@@ -6,8 +6,10 @@ import {
   TextField,
   Typography,
   Alert,
+  Link as MuiLink,
 } from "@mui/material";
 import axios from "../../api/axiosInstance";
+import { useNavigate, Link } from "react-router-dom";
 
 const ChangePassword: React.FC = () => {
   const [usuario, setUsuario] = useState("");
@@ -15,6 +17,8 @@ const ChangePassword: React.FC = () => {
   const [confirmarContrasena, setConfirmarContrasena] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [error, setError] = useState("");
+
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,10 +37,14 @@ const ChangePassword: React.FC = () => {
         confirmarContrasena,
       });
 
-      setMensaje(response.data);
+      setMensaje("Contraseña cambiada exitosamente. Serás redirigido...");
       setUsuario("");
       setNuevaContrasena("");
       setConfirmarContrasena("");
+
+      setTimeout(() => {
+        navigate("/");
+      }, 4000); // Redirige después de 4 segundos
     } catch (err: any) {
       setError(err.response?.data || "Error al cambiar la contraseña.");
     }
@@ -67,7 +75,6 @@ const ChangePassword: React.FC = () => {
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-
           "@media (max-width: 600px)": {
             maxWidth: 320,
             padding: 3,
@@ -117,6 +124,19 @@ const ChangePassword: React.FC = () => {
           {mensaje && (
             <Alert severity="success" sx={{ mt: 2 }}>
               {mensaje}
+              <Typography variant="body2" mt={1}>
+                Redirigiendo... o{" "}
+                <Link
+                  to="/"
+                  style={{
+                    color: "#6a11cb",
+                    textDecoration: "none",
+                    fontWeight: "bold",
+                  }}
+                >
+                  haz clic aquí
+                </Link>
+              </Typography>
             </Alert>
           )}
 

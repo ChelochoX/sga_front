@@ -15,3 +15,9 @@ export interface CambioContrasenaResponse {
   NombreUsuario: string;
   Mensaje: string;
 }
+
+export interface ChangePasswordRequest {
+  Usuario: string;
+  NuevaContrasena: string;
+  ConfirmarContrasena: string;
+}
