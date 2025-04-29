@@ -1,23 +1,18 @@
-import axios from "axios";
-import {
-  LoginRequest,
-  LoginSuccessResponse,
-  CambioContrasenaResponse,
-} from "../types/auth";
-
-const API_URL = "https://TU_BACKEND_URL_AQUI/api"; // Cambia por tu URL real
+// src/api/authService.ts
+import instance from "./axiosInstance";
+import { LoginRequest } from "../types/auth";
 
 export const login = async (credentials: LoginRequest) => {
-  try {
-    const response = await axios.post<
-      LoginSuccessResponse | CambioContrasenaResponse
-    >(`${API_URL}/login`, credentials);
-    return response.data;
-  } catch (error: any) {
-    if (error.response && error.response.status === 401) {
-      throw new Error("Credenciales incorrectas.");
-    } else {
-      throw new Error("Error al conectar con el servidor.");
-    }
+  const response = await instance.post("/Auth/login", credentials);
+  const data = response.data;
+
+  if (data.parTokens?.bearerToken) {
+    localStorage.setItem("token", data.parTokens.bearerToken);
   }
+
+  return data;
 };
+
+///DATOS DEL USUARIO PARA PRUEBAS
+//usuario: cesar.lezca46c4
+//contrasena: 123456
