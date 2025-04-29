@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { Box, Button, Paper, TextField, Typography } from "@mui/material";
 import { login } from "../../api/authService";
 import { LoginRequest } from "../../types/auth";
@@ -111,6 +112,18 @@ const Login: React.FC = () => {
           >
             Iniciar sesión
           </Button>
+          <Typography variant="body2" mt={2} textAlign="center" width="100%">
+            <Link
+              to="/cambiar-contrasena"
+              style={{
+                color: "#6a11cb",
+                textDecoration: "none",
+                fontWeight: 500,
+              }}
+            >
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </Typography>
         </form>
       </Paper>
     </Box>

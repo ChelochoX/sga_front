@@ -7,7 +7,7 @@ import {
   Typography,
   Alert,
 } from "@mui/material";
-import axios from "../api/axiosInstance";
+import axios from "../../api/axiosInstance";
 
 const ChangePassword: React.FC = () => {
   const [usuario, setUsuario] = useState("");
@@ -27,12 +27,16 @@ const ChangePassword: React.FC = () => {
     }
 
     try {
-      const response = await axios.post("/Auth/cambiar-contrasena", {
-        Usuario: usuario,
-        NuevaContrasena: nuevaContrasena,
-        ConfirmarContrasena: confirmarContrasena,
+      const response = await axios.post("/auth/cambiar-contrasena", {
+        usuario,
+        nuevaContrasena,
+        confirmarContrasena,
       });
+
       setMensaje(response.data);
+      setUsuario("");
+      setNuevaContrasena("");
+      setConfirmarContrasena("");
     } catch (err: any) {
       setError(err.response?.data || "Error al cambiar la contraseña.");
     }
@@ -48,25 +52,33 @@ const ChangePassword: React.FC = () => {
         justifyContent: "center",
         alignItems: "center",
         overflow: "hidden",
-        paddingX: 2,
       }}
     >
       <Paper
         elevation={10}
         sx={{
-          maxWidth: 360,
           width: "100%",
+          maxWidth: 360,
           padding: 4,
           borderRadius: 5,
           backgroundColor: "white",
           boxShadow: "0px 10px 40px rgba(0,0,0,0.2)",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+
+          "@media (max-width: 600px)": {
+            maxWidth: 320,
+            padding: 3,
+          },
         }}
       >
         <Typography variant="h5" textAlign="center" mb={4}>
           Cambiar Contraseña
         </Typography>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} style={{ width: "100%" }}>
           <TextField
             label="Usuario"
             variant="standard"
@@ -102,7 +114,6 @@ const ChangePassword: React.FC = () => {
               {error}
             </Alert>
           )}
-
           {mensaje && (
             <Alert severity="success" sx={{ mt: 2 }}>
               {mensaje}
