@@ -12,3 +12,19 @@ body,
   font-family: "Poppins", sans-serif;
   background: none;
 }
+
+.sidebar-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.sidebar-link.active .MuiListItemButton-root {
+  background-color: rgba(33, 150, 243, 0.1);
+}
+
+.sidebar-link.active .MuiListItemIcon-root,
+.sidebar-link.active .MuiListItemText-primary {
+  color: #1976d2;
+  font-weight: bold;
+}

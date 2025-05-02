@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login/Login";
 import ChangePassword from "./pages/CambiarContrasena/ChangePassword";
 import Personas from "./pages/Personas/Personas";
+import Dashboard from "./pages/Dashboard/Dashboard";
 // import Usuarios from "./pages/Usuarios/Usuarios";
 // import Roles from "./pages/Roles/Roles";
 // import Cursos from "./pages/Cursos/Cursos";
@@ -17,13 +18,16 @@ const App: React.FC = () => {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/cambiar-contrasena" element={<ChangePassword />} />
-        <Route path="/personas" element={<Personas />} />
-        {/* <Route path="/usuarios" element={<Usuarios />} />
-        <Route path="/roles" element={<Roles />} />
-        <Route path="/cursos" element={<Cursos />} />
-        <Route path="/inscripciones" element={<Inscripciones />} />
-        <Route path="/pagos" element={<Pagos />} />
-        <Route path="/caja" element={<Caja />} /> */}
+
+        <Route path="/dashboard" element={<Dashboard />}>
+          <Route path="personas" element={<Personas />} />
+          {/* <Route path="usuarios" element={<Usuarios />} />
+        <Route path="roles" element={<Roles />} />
+        <Route path="cursos" element={<Cursos />} />
+        <Route path="inscripciones" element={<Inscripciones />} />
+        <Route path="pagos" element={<Pagos />} />
+        <Route path="caja" element={<Caja />} /> */}
+        </Route>
       </Routes>
     </BrowserRouter>
   );

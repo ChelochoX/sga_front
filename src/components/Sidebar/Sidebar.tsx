@@ -6,6 +6,7 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
+  ListItemButton,
 } from "@mui/material";
 import PeopleIcon from "@mui/icons-material/People";
 import PersonIcon from "@mui/icons-material/Person";
@@ -14,6 +15,7 @@ import SchoolIcon from "@mui/icons-material/School";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import PaymentIcon from "@mui/icons-material/Payment";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
+import { drawerStyles, activeLinkStyle } from "./Sidebar.styles";
 
 const menuItems = [
   { text: "Personas", icon: <PeopleIcon />, path: "/personas" },
@@ -27,13 +29,21 @@ const menuItems = [
 
 const Sidebar: React.FC = () => {
   return (
-    <Drawer variant="permanent" anchor="left">
+    <Drawer variant="permanent" anchor="left" sx={drawerStyles}>
       <List>
         {menuItems.map((item) => (
-          <ListItem button key={item.text} component={NavLink} to={item.path}>
-            <ListItemIcon>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.text} />
-          </ListItem>
+          <NavLink
+            key={item.text}
+            to={item.path}
+            style={({ isActive }) => (isActive ? activeLinkStyle : undefined)}
+          >
+            <ListItem disablePadding>
+              <ListItemButton>
+                <ListItemIcon>{item.icon}</ListItemIcon>
+                <ListItemText primary={item.text} />
+              </ListItemButton>
+            </ListItem>
+          </NavLink>
         ))}
       </List>
     </Drawer>

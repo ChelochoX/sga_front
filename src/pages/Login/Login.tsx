@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Box, Button, Paper, TextField, Typography } from "@mui/material";
 import { login } from "../../api/authService";
 import { LoginRequest } from "../../types/auth";
@@ -8,6 +8,7 @@ const Login: React.FC = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const navigate = useNavigate(); // 👉 Importante
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -22,8 +23,9 @@ const Login: React.FC = () => {
       const result = await login(credentials);
       if ("parTokens" in result) {
         console.log("Token:", result.parTokens.bearerToken);
+        navigate("/dashboard/personas"); // 👈 Redirige al Dashboard
       } else if ("RequiereCambioContrasena" in result) {
-        console.log("Debe cambiar contraseña");
+        navigate("/cambiar-contrasena");
       }
     } catch (err: any) {
       setError(err.message);
@@ -33,9 +35,9 @@ const Login: React.FC = () => {
   return (
     <Box
       sx={{
-        height: "100vh", // Altura completa
+        height: "100vh",
         width: "100%",
-        background: "linear-gradient(135deg, #1d2b64, #f8cdda)", // Fondo
+        background: "linear-gradient(135deg, #1d2b64, #f8cdda)",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
@@ -46,7 +48,7 @@ const Login: React.FC = () => {
         elevation={10}
         sx={{
           width: "100%",
-          maxWidth: 360, // Tamaño máximo para desktop
+          maxWidth: 360,
           padding: 4,
           borderRadius: 5,
           backgroundColor: "white",
@@ -55,11 +57,9 @@ const Login: React.FC = () => {
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-
-          // Media query para móvil
           "@media (max-width: 600px)": {
-            maxWidth: 320, // Ancho máximo para móvil
-            padding: 3, // Menos padding en móvil
+            maxWidth: 320,
+            padding: 3,
           },
         }}
       >
