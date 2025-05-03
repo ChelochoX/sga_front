@@ -1,47 +1,71 @@
+// src/components/Sidebar/Sidebar.tsx
 import React from "react";
-import { NavLink } from "react-router-dom";
 import {
   Drawer,
   List,
   ListItem,
   ListItemIcon,
   ListItemText,
-  ListItemButton,
+  IconButton,
+  Toolbar,
+  Divider,
+  useTheme,
 } from "@mui/material";
-import PeopleIcon from "@mui/icons-material/People";
-import PersonIcon from "@mui/icons-material/Person";
-import SecurityIcon from "@mui/icons-material/Security";
-import SchoolIcon from "@mui/icons-material/School";
-import AssignmentIcon from "@mui/icons-material/Assignment";
-import PaymentIcon from "@mui/icons-material/Payment";
-import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
-import { drawerStyles, activeLinkStyle } from "./Sidebar.styles";
+import {
+  People as PeopleIcon,
+  Person as PersonIcon,
+  Security as SecurityIcon,
+  School as SchoolIcon,
+  Assignment as AssignmentIcon,
+  Payment as PaymentIcon,
+  AccountBalance as AccountBalanceIcon,
+  ChevronLeft as ChevronLeftIcon,
+} from "@mui/icons-material";
+import { NavLink } from "react-router-dom";
+import { drawerStyles, drawerWidth, activeLinkStyle } from "./Sidebar.styles";
+
+interface SidebarProps {
+  open: boolean;
+  handleDrawerClose: () => void;
+}
 
 const menuItems = [
-  { text: "Personas", icon: <PeopleIcon />, path: "/personas" },
-  { text: "Usuarios", icon: <PersonIcon />, path: "/usuarios" },
-  { text: "Roles", icon: <SecurityIcon />, path: "/roles" },
-  { text: "Cursos", icon: <SchoolIcon />, path: "/cursos" },
-  { text: "Inscripciones", icon: <AssignmentIcon />, path: "/inscripciones" },
-  { text: "Pagos", icon: <PaymentIcon />, path: "/pagos" },
-  { text: "Caja", icon: <AccountBalanceIcon />, path: "/caja" },
+  { text: "Personas", icon: <PeopleIcon />, path: "/dashboard/personas" },
+  { text: "Usuarios", icon: <PersonIcon />, path: "/dashboard/usuarios" },
+  { text: "Roles", icon: <SecurityIcon />, path: "/dashboard/roles" },
+  { text: "Cursos", icon: <SchoolIcon />, path: "/dashboard/cursos" },
+  {
+    text: "Inscripciones",
+    icon: <AssignmentIcon />,
+    path: "/dashboard/inscripciones",
+  },
+  { text: "Pagos", icon: <PaymentIcon />, path: "/dashboard/pagos" },
+  { text: "Caja", icon: <AccountBalanceIcon />, path: "/dashboard/caja" },
 ];
 
-const Sidebar: React.FC = () => {
+const Sidebar: React.FC<SidebarProps> = ({ open, handleDrawerClose }) => {
+  const theme = useTheme();
+
   return (
-    <Drawer variant="permanent" anchor="left" sx={drawerStyles}>
+    <Drawer sx={drawerStyles} variant="persistent" anchor="left" open={open}>
+      <Toolbar>
+        <IconButton onClick={handleDrawerClose}>
+          <ChevronLeftIcon />
+        </IconButton>
+      </Toolbar>
+      <Divider />
       <List>
         {menuItems.map((item) => (
           <NavLink
             key={item.text}
             to={item.path}
-            style={({ isActive }) => (isActive ? activeLinkStyle : undefined)}
+            style={({ isActive }) =>
+              isActive ? activeLinkStyle(theme) : undefined
+            }
           >
-            <ListItem disablePadding>
-              <ListItemButton>
-                <ListItemIcon>{item.icon}</ListItemIcon>
-                <ListItemText primary={item.text} />
-              </ListItemButton>
+            <ListItem button>
+              <ListItemIcon>{item.icon}</ListItemIcon>
+              <ListItemText primary={item.text} />
             </ListItem>
           </NavLink>
         ))}

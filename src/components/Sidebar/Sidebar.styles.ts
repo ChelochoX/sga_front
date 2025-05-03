@@ -1,18 +1,17 @@
-import { SxProps, Theme } from "@mui/material";
+// src/components/Sidebar/Sidebar.styles.ts
+import { Theme } from "@mui/material/styles";
 
-export const drawerStyles: SxProps<Theme> = {
-  width: 240,
+export const drawerWidth = 240;
+
+export const drawerStyles = {
+  width: drawerWidth,
   flexShrink: 0,
-  [`& .MuiDrawer-paper`]: {
-    width: 240,
+  "& .MuiDrawer-paper": {
+    width: drawerWidth,
     boxSizing: "border-box",
-    backgroundColor: "#f4f6f8",
-    borderRight: "1px solid #ddd",
   },
 };
 
-export const activeLinkStyle: React.CSSProperties = {
-  backgroundColor: "#e0f7fa",
-  color: "#0288d1",
-  textDecoration: "none",
-};
+export const activeLinkStyle = (theme: Theme) => ({
+  backgroundColor: theme.palette.action.selected,
+});
