@@ -1,4 +1,3 @@
-// src/pages/Dashboard/Dashboard.tsx
 import React, { useState } from "react";
 import {
   AppBar,
@@ -8,22 +7,33 @@ import {
   Toolbar,
   Typography,
   useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
+import LogoutIcon from "@mui/icons-material/Logout";
+import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import { Outlet } from "react-router-dom";
-import { drawerWidth } from "../../components/Sidebar/Sidebar.styles";
+import {
+  drawerWidth,
+  collapsedDrawerWidth,
+} from "../../components/Sidebar/Sidebar.styles";
 
 const Dashboard: React.FC = () => {
   const theme = useTheme();
-  const [open, setOpen] = useState(true);
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const [open, setOpen] = useState(!isMobile);
+  const navigate = useNavigate();
 
-  const handleDrawerOpen = () => {
-    setOpen(true);
+  const handleDrawerToggle = () => {
+    setOpen(!open);
   };
 
-  const handleDrawerClose = () => {
-    setOpen(false);
+  const handleLogout = () => {
+    // Eliminar el token de autenticación
+    localStorage.removeItem("userToken"); // Ajusta la clave según tu implementación
+    // Redirigir al login
+    navigate("/");
   };
 
   return (
@@ -33,54 +43,46 @@ const Dashboard: React.FC = () => {
         position="fixed"
         sx={{
           zIndex: theme.zIndex.drawer + 1,
-          transition: theme.transitions.create(["margin", "width"], {
+          width: {
+            sm: `calc(100% - ${open ? drawerWidth : collapsedDrawerWidth}px)`,
+          },
+          ml: { sm: `${open ? drawerWidth : collapsedDrawerWidth}px` },
+          transition: theme.transitions.create(["width", "margin"], {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
-          }),
-          ...(open && {
-            width: `calc(100% - ${drawerWidth}px)`,
-            marginLeft: `${drawerWidth}px`,
-            transition: theme.transitions.create(["margin", "width"], {
-              easing: theme.transitions.easing.easeOut,
-              duration: theme.transitions.duration.enteringScreen,
-            }),
           }),
         }}
       >
         <Toolbar>
-          {!open && (
-            <IconButton
-              color="inherit"
-              aria-label="open drawer"
-              edge="start"
-              onClick={handleDrawerOpen}
-              sx={{ mr: 2 }}
-            >
-              <MenuIcon />
-            </IconButton>
-          )}
-          <Typography variant="h6" noWrap component="div">
+          <IconButton
+            color="inherit"
+            aria-label="open drawer"
+            edge="start"
+            onClick={handleDrawerToggle}
+            sx={{ mr: 2 }}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             Sistema de Gestión Académica
           </Typography>
+          <IconButton color="inherit" onClick={handleLogout}>
+            <LogoutIcon />
+          </IconButton>
         </Toolbar>
       </AppBar>
-      <Sidebar open={open} handleDrawerClose={handleDrawerClose} />
+      <Sidebar open={open} handleDrawerToggle={handleDrawerToggle} />
       <Box
         component="main"
         sx={{
           flexGrow: 1,
           p: 3,
-          transition: theme.transitions.create("margin", {
+          width: {
+            sm: `calc(100% - ${open ? drawerWidth : collapsedDrawerWidth}px)`,
+          },
+          transition: theme.transitions.create(["margin", "width"], {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
-          }),
-          marginLeft: `-${drawerWidth}px`,
-          ...(open && {
-            transition: theme.transitions.create("margin", {
-              easing: theme.transitions.easing.easeOut,
-              duration: theme.transitions.duration.enteringScreen,
-            }),
-            marginLeft: 0,
           }),
         }}
       >
