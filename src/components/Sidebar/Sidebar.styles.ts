@@ -16,7 +16,7 @@ export const drawerStyles = {
   },
 };
 
-export const activeLinkStyle = (theme: Theme) => ({
+export const activeLinkStyle = (_theme: Theme) => ({
   backgroundColor: "rgba(255, 255, 255, 0.1)",
   color: "#fff",
   "& .MuiListItemIcon-root": {

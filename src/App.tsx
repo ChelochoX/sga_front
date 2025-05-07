@@ -3,7 +3,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login/Login";
 import ChangePassword from "./pages/CambiarContrasena/ChangePassword";
-import Personas from "./pages/Personas/Personas";
+import Personas from "./pages/Personas/pages/PersonasPage";
 import Dashboard from "./pages/Dashboard/Dashboard";
 // import Usuarios from "./pages/Usuarios/Usuarios";
 // import Roles from "./pages/Roles/Roles";
