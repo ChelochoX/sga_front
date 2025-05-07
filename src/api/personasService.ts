@@ -8,10 +8,13 @@ console.log("🔎 API_URL configurada:", API_URL); // 🔥 Verificar URL
 // Obtener todas las personas
 export const getPersonas = async (): Promise<Persona[]> => {
   try {
-    console.log("🔄 Realizando petición GET a:", API_URL); // 🔥 Log para verificar
     const response = await axios.get(API_URL);
-    console.log("✅ Datos obtenidos:", response.data); // 🔥 Log para verificar datos
-    return response.data;
+    const personas = response.data.map((p: any) => ({
+      ...p,
+      id: p.idPersona, // 🔥 Mapeo de idPersona a id
+    }));
+    console.log("✅ Datos obtenidos y mapeados:", personas);
+    return personas;
   } catch (error) {
     console.error("❌ Error obteniendo las personas:", error);
     throw error;

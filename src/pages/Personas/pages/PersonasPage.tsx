@@ -6,6 +6,11 @@ import {
   IconButton,
   Tooltip,
   CircularProgress,
+  useMediaQuery,
+  Card,
+  CardContent,
+  CardActions,
+  Grid,
 } from "@mui/material";
 import { DataGrid, GridColDef, GridRowParams } from "@mui/x-data-grid";
 import { usePersonas } from "../hooks/usePersonas";
@@ -13,6 +18,7 @@ import PersonaForm from "../components/PersonaForm";
 import { Persona } from "../types/personas.types";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
+import AddIcon from "@mui/icons-material/Add";
 
 const PersonasPage: React.FC = () => {
   const { personas, loading, addPersona, editPersona, removePersona } =
@@ -21,6 +27,9 @@ const PersonasPage: React.FC = () => {
   const [selectedPersona, setSelectedPersona] = useState<Persona | undefined>(
     undefined
   );
+
+  // ✅ Detectar si estamos en modo móvil (ancho menor a 768px)
+  const isMobile = useMediaQuery("(max-width:768px)");
 
   const handleAdd = () => {
     setSelectedPersona(undefined);
@@ -53,52 +62,14 @@ const PersonasPage: React.FC = () => {
     }
   };
 
+  // ✅ Columnas del DataGrid
   const columns: GridColDef[] = [
-    {
-      field: "nombres",
-      headerName: "Nombres",
-      width: 150,
-    },
-    {
-      field: "apellidos",
-      headerName: "Apellidos",
-      width: 150,
-    },
-    {
-      field: "email",
-      headerName: "Email",
-      width: 200,
-    },
-    {
-      field: "telefono",
-      headerName: "Teléfono",
-      width: 150,
-    },
-    {
-      field: "direccion",
-      headerName: "Dirección",
-      width: 200,
-    },
-    {
-      field: "fechaNacimiento",
-      headerName: "Fecha de Nacimiento",
-      width: 150,
-    },
-    {
-      field: "cedula",
-      headerName: "Cédula",
-      width: 150,
-    },
-    {
-      field: "ruc",
-      headerName: "RUC",
-      width: 150,
-    },
-    {
-      field: "digitoVerificador",
-      headerName: "Dígito Verificador",
-      width: 150,
-    },
+    { field: "nombres", headerName: "Nombres", width: 150 },
+    { field: "apellidos", headerName: "Apellidos", width: 150 },
+    { field: "email", headerName: "Email", width: 200 },
+    { field: "telefono", headerName: "Teléfono", width: 150 },
+    { field: "direccion", headerName: "Dirección", width: 200 },
+    { field: "cedula", headerName: "Cédula", width: 150 },
     {
       field: "acciones",
       headerName: "Acciones",
@@ -133,31 +104,87 @@ const PersonasPage: React.FC = () => {
 
   return (
     <Box sx={{ p: 2 }}>
-      <Typography variant="h4" gutterBottom>
+      {/* ✅ Título adaptable según el tamaño de pantalla */}
+      <Typography
+        variant={isMobile ? "h5" : "h4"} // Ajuste de tamaño
+        gutterBottom
+        sx={{
+          fontWeight: "bold",
+          textAlign: isMobile ? "center" : "left", // Centrar en móvil
+        }}
+      >
         Gestión de Personas
       </Typography>
+
       <Button
         variant="contained"
         color="primary"
+        startIcon={<AddIcon />}
         onClick={handleAdd}
-        sx={{ mb: 2 }}
+        sx={{
+          mb: 2,
+          background: "linear-gradient(to right, #6a11cb, #2575fc)",
+        }}
       >
         Agregar Persona
       </Button>
+
       {loading ? (
         <CircularProgress />
+      ) : isMobile ? (
+        // ✅ MODO MÓVIL - Tarjetas
+        <Grid container spacing={2}>
+          {personas.map((persona) => (
+            <Grid item xs={12} key={persona.id}>
+              <Card>
+                <CardContent>
+                  <Typography variant="h6">
+                    {persona.nombres} {persona.apellidos}
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    📧 {persona.email}
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    📞 {persona.telefono}
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    🏠 {persona.direccion}
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    📑 {persona.cedula}
+                  </Typography>
+                </CardContent>
+                <CardActions>
+                  <IconButton
+                    color="primary"
+                    onClick={() => handleEdit(persona)}
+                  >
+                    <EditIcon />
+                  </IconButton>
+                  <IconButton
+                    color="error"
+                    onClick={() => handleDelete(persona.id!)}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </CardActions>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
       ) : (
         <DataGrid
           rows={personas}
           columns={columns}
           loading={loading}
-          getRowId={(row) => row.id || row.cedula}
+          getRowId={(row) => row.idPersona!}
           onRowClick={handleRowClick}
           autoHeight
           pageSizeOptions={[5, 10, 20, 100]}
           disableRowSelectionOnClick
         />
       )}
+
       <PersonaForm
         open={openForm}
         onClose={() => setOpenForm(false)}
