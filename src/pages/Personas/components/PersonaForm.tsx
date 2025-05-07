@@ -7,7 +7,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  GridLegacy,
+  Grid,
 } from "@mui/material";
 import { Persona } from "../types/personas.types";
 
@@ -87,8 +87,8 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
       </DialogTitle>
       <DialogContent>
         <Box component="form" sx={{ mt: 2 }}>
-          <GridLegacy container spacing={2}>
-            <GridLegacy item xs={12} sm={6}>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
               <TextField
                 label="Nombres"
                 name="nombres"
@@ -97,8 +97,8 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
                 fullWidth
                 required
               />
-            </GridLegacy>
-            <GridLegacy item xs={12} sm={6}>
+            </Grid>
+            <Grid item xs={12} sm={6}>
               <TextField
                 label="Apellidos"
                 name="apellidos"
@@ -107,8 +107,8 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
                 fullWidth
                 required
               />
-            </GridLegacy>
-            <GridLegacy item xs={12}>
+            </Grid>
+            <Grid item xs={12}>
               <TextField
                 label="Email"
                 name="email"
@@ -117,8 +117,8 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
                 fullWidth
                 type="email"
               />
-            </GridLegacy>
-            <GridLegacy item xs={12} sm={6}>
+            </Grid>
+            <Grid item xs={12} sm={6}>
               <TextField
                 label="Teléfono"
                 name="telefono"
@@ -127,8 +127,8 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
                 fullWidth
                 required
               />
-            </GridLegacy>
-            <GridLegacy item xs={12} sm={6}>
+            </Grid>
+            <Grid item xs={12} sm={6}>
               <TextField
                 label="Dirección"
                 name="direccion"
@@ -137,8 +137,8 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
                 fullWidth
                 required
               />
-            </GridLegacy>
-            <GridLegacy item xs={12} sm={6}>
+            </Grid>
+            <Grid item xs={12} sm={6}>
               <TextField
                 label="Fecha de Nacimiento"
                 name="fechaNacimiento"
@@ -150,8 +150,8 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
                   shrink: true,
                 }}
               />
-            </GridLegacy>
-            <GridLegacy item xs={12} sm={6}>
+            </Grid>
+            <Grid item xs={12} sm={6}>
               <TextField
                 label="Cédula"
                 name="cedula"
@@ -160,8 +160,8 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
                 fullWidth
                 required
               />
-            </GridLegacy>
-            <GridLegacy item xs={12} sm={6}>
+            </Grid>
+            <Grid item xs={12} sm={6}>
               <TextField
                 label="RUC"
                 name="ruc"
@@ -170,8 +170,8 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
                 fullWidth
                 required
               />
-            </GridLegacy>
-            <GridLegacy item xs={12} sm={6}>
+            </Grid>
+            <Grid item xs={12} sm={6}>
               <TextField
                 label="Dígito Verificador"
                 name="digitoVerificador"
@@ -180,8 +180,8 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
                 fullWidth
                 type="number"
               />
-            </GridLegacy>
-          </GridLegacy>
+            </Grid>
+          </Grid>
         </Box>
       </DialogContent>
       <DialogActions>

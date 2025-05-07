@@ -151,9 +151,10 @@ const PersonasPage: React.FC = () => {
           rows={personas}
           columns={columns}
           loading={loading}
+          getRowId={(row) => row.id || row.cedula}
           onRowClick={handleRowClick}
           autoHeight
-          pageSizeOptions={[5, 10, 20]}
+          pageSizeOptions={[5, 10, 20, 100]}
           disableRowSelectionOnClick
         />
       )}
