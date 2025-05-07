@@ -2,19 +2,37 @@
 import instance from "./axiosInstance";
 import { LoginRequest, ChangePasswordRequest } from "../types/auth";
 
+// ✅ Login de usuario
 export const login = async (credentials: LoginRequest) => {
-  const response = await instance.post("/Auth/login", credentials);
-  const data = response.data;
+  try {
+    console.log("🔄 Enviando credenciales al login...");
+    const response = await instance.post("/api/Auth/login", credentials); // 👈 Ruta absoluta con Axios
+    const data = response.data;
 
-  if (data.parTokens?.bearerToken) {
-    localStorage.setItem("token", data.parTokens.bearerToken);
+    if (data.parTokens?.bearerToken) {
+      localStorage.setItem("token", data.parTokens.bearerToken);
+      console.log("✅ Token almacenado en localStorage");
+    }
+
+    console.log("✅ Respuesta de Login:", data);
+    return data;
+  } catch (error) {
+    console.error("❌ Error en login:", error);
+    throw error;
   }
-  return data;
 };
 
+// ✅ Cambio de contraseña
 export const changePassword = async (data: ChangePasswordRequest) => {
-  const response = await instance.post("/Auth/cambiar-contrasena", data);
-  return response.data;
+  try {
+    console.log("🔄 Enviando datos para cambiar contraseña...");
+    const response = await instance.post("/api/Auth/cambiar-contrasena", data);
+    console.log("✅ Respuesta de cambio de contraseña:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("❌ Error en cambio de contraseña:", error);
+    throw error;
+  }
 };
 
 ///DATOS DEL USUARIO PARA PRUEBAS

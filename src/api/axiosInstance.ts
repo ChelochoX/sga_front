@@ -1,20 +1,23 @@
-// src/api/axiosInstance.ts
 import axios from "axios";
 
-// Creamos una instancia personalizada
+// ✅ Usando la variable de entorno correctamente
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+console.log("🔎 Base URL configurada:", API_BASE_URL);
+
 const instance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: API_BASE_URL, // ← Aquí se configura la URL base
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
-// Interceptor para agregar token automáticamente
-instance.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+// ✅ Interceptores para manejar errores y logs
+instance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error("❌ Error en Axios:", error.response);
+    return Promise.reject(error);
   }
-
-  return config;
-});
+);
 
 export default instance;
