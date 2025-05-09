@@ -181,7 +181,7 @@ const PersonasPage: React.FC = () => {
       ) : isMobile ? (
         <Grid container spacing={2}>
           {personas.map((persona) => (
-            <Grid item xs={12} key={persona.id}>
+            <Grid item xs={12} key={persona.idPersona}>
               <Card>
                 <CardContent>
                   <Typography variant="h6">
@@ -214,6 +214,16 @@ const PersonasPage: React.FC = () => {
                     <FaHashtag style={iconStyle} /> DV:{" "}
                     {persona.digitoVerificador}
                   </Typography>
+
+                  {/* Botones de acción */}
+                  <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
+                    <IconButton onClick={() => handleEdit(persona)}>
+                      <EditIcon color="primary" />
+                    </IconButton>
+                    <IconButton onClick={() => handleDelete(persona.idPersona)}>
+                      <DeleteIcon color="error" />
+                    </IconButton>
+                  </Box>
                 </CardContent>
               </Card>
             </Grid>
