@@ -39,16 +39,6 @@ const iconStyle = {
   WebkitTextFillColor: "transparent",
 };
 
-// ✅ Función para formatear fechas
-const formatFecha = (fecha: string | undefined) => {
-  if (!fecha || fecha === "") return "Sin Fecha";
-  return new Intl.DateTimeFormat("es-ES", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(new Date(fecha));
-};
-
 const PersonasPage: React.FC = () => {
   const { personas, loading, editPersona, removePersona, fetchPersonas } =
     usePersonas();
@@ -119,15 +109,11 @@ const PersonasPage: React.FC = () => {
       field: "fechaNacimiento",
       headerName: "Fecha de Nacimiento",
       width: 150,
-      valueGetter: (params: any) =>
-        params.row ? formatFecha(params.row.fechaNacimiento) : "Sin Fecha",
     },
     {
       field: "fechaRegistro",
       headerName: "Fecha de Registro",
       width: 150,
-      valueGetter: (params: any) =>
-        params.row ? formatFecha(params.row.fechaRegistro) : "Sin Fecha",
     },
     { field: "cedula", headerName: "Cédula", width: 150 },
     { field: "ruc", headerName: "RUC", width: 100 },
@@ -181,7 +167,7 @@ const PersonasPage: React.FC = () => {
       ) : isMobile ? (
         <Grid container spacing={2}>
           {personas.map((persona) => (
-            <Grid item xs={12} key={persona.idPersona}>
+            <Grid item xs={12} key={persona.id}>
               <Card>
                 <CardContent>
                   <Typography variant="h6">
@@ -198,11 +184,11 @@ const PersonasPage: React.FC = () => {
                   </Typography>
                   <Typography>
                     <FaBirthdayCake style={iconStyle} />{" "}
-                    {formatFecha(persona.fechaNacimiento)}
+                    {persona.fechaNacimiento}
                   </Typography>
                   <Typography>
                     <FaCalendarCheck style={iconStyle} />{" "}
-                    {formatFecha(persona.fechaRegistro)}
+                    {persona.fechaRegistro}
                   </Typography>
                   <Typography>
                     <FaIdCard style={iconStyle} /> {persona.cedula}
@@ -220,7 +206,7 @@ const PersonasPage: React.FC = () => {
                     <IconButton onClick={() => handleEdit(persona)}>
                       <EditIcon color="primary" />
                     </IconButton>
-                    <IconButton onClick={() => handleDelete(persona.idPersona)}>
+                    <IconButton onClick={() => handleDelete(persona.id)}>
                       <DeleteIcon color="error" />
                     </IconButton>
                   </Box>
