@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "skipLibCheck": true,
-    "module": "esnext", // 🔥 Cambiado a "esnext" (compatible con bundler)
+    "module": "esnext",
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "isolatedModules": true,
@@ -13,7 +13,10 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
-    "lib": ["dom", "es2015"] // <-- 🔥 Aquí sigue el "es2015"
+    "lib": ["dom", "es2015"],
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "types": ["react", "react-dom"]
   },
   "include": ["src"],
   "exclude": ["node_modules"]

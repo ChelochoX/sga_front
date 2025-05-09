@@ -1,9 +1,11 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
+  plugins: [react(), tsconfigPaths()],
   server: {
-    host: "0.0.0.0", // Permite conexiones externas
-    port: 5173, // El puerto que usas
+    host: "0.0.0.0",
+    port: 5173,
   },
 });

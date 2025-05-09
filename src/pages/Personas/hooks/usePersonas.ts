@@ -15,6 +15,7 @@ export const usePersonas = () => {
     setLoading(true);
     try {
       const data = await getPersonas();
+      console.log("🔍 Datos del backend:", data);
       setPersonas(data);
     } catch (error) {
       console.error("Error fetching personas:", error);
@@ -62,5 +63,6 @@ export const usePersonas = () => {
     addPersona,
     editPersona,
     removePersona,
+    fetchPersonas,
   };
 };

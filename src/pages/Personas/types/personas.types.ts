@@ -6,6 +6,7 @@ export interface Persona {
   telefono: string;
   direccion: string;
   fechaNacimiento: string;
+  fechaRegistro: string;
   cedula: string;
   ruc: string;
   digitoVerificador: number;

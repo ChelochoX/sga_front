@@ -3,7 +3,6 @@ import { Persona } from "../pages/Personas/types/personas.types";
 
 // ✅ Usando variable de entorno del .env.development
 const API_URL = `${import.meta.env.VITE_API_URL}/api/Personas`;
-console.log("🔎 API_URL configurada:", API_URL); // 🔥 Verificar URL
 
 // Obtener todas las personas
 export const getPersonas = async (): Promise<Persona[]> => {
@@ -13,10 +12,8 @@ export const getPersonas = async (): Promise<Persona[]> => {
       ...p,
       id: p.idPersona, // 🔥 Mapeo de idPersona a id
     }));
-    console.log("✅ Datos obtenidos y mapeados:", personas);
     return personas;
   } catch (error) {
-    console.error("❌ Error obteniendo las personas:", error);
     throw error;
   }
 };
@@ -24,7 +21,9 @@ export const getPersonas = async (): Promise<Persona[]> => {
 // Crear una persona
 export const createPersona = async (persona: Persona): Promise<Persona> => {
   try {
-    const response = await axios.post(API_URL, persona);
+    // 🔥 Removemos el id antes de enviar
+    const { id, ...personaRequest } = persona;
+    const response = await axios.post(API_URL, personaRequest);
     return response.data;
   } catch (error) {
     console.error("❌ Error creando la persona:", error);

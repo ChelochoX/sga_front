@@ -9,7 +9,6 @@ import {
   useMediaQuery,
   Card,
   CardContent,
-  CardActions,
   Grid,
 } from "@mui/material";
 import { DataGrid, GridColDef, GridRowParams } from "@mui/x-data-grid";
@@ -19,16 +18,45 @@ import { Persona } from "../types/personas.types";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
+import { createPersona, updatePersona } from "../../../api/personasService";
+import Swal from "sweetalert2";
+
+import {
+  FaEnvelope,
+  FaPhone,
+  FaMapMarkerAlt,
+  FaBirthdayCake,
+  FaCalendarCheck,
+  FaIdCard,
+  FaFileSignature,
+  FaHashtag,
+} from "react-icons/fa";
+
+// ✅ Estilo del gradiente para los íconos
+const iconStyle = {
+  background: "linear-gradient(45deg, #6a11cb, #2575fc)",
+  WebkitBackgroundClip: "text",
+  WebkitTextFillColor: "transparent",
+};
+
+// ✅ Función para formatear fechas
+const formatFecha = (fecha: string | undefined) => {
+  if (!fecha || fecha === "") return "Sin Fecha";
+  return new Intl.DateTimeFormat("es-ES", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(new Date(fecha));
+};
 
 const PersonasPage: React.FC = () => {
-  const { personas, loading, addPersona, editPersona, removePersona } =
+  const { personas, loading, editPersona, removePersona, fetchPersonas } =
     usePersonas();
   const [openForm, setOpenForm] = useState(false);
   const [selectedPersona, setSelectedPersona] = useState<Persona | undefined>(
     undefined
   );
 
-  // ✅ Detectar si estamos en modo móvil (ancho menor a 768px)
   const isMobile = useMediaQuery("(max-width:768px)");
 
   const handleAdd = () => {
@@ -42,77 +70,99 @@ const PersonasPage: React.FC = () => {
   };
 
   const handleDelete = (id: number) => {
-    if (window.confirm("¿Estás seguro de eliminar esta persona?")) {
-      removePersona(id);
-    }
+    Swal.fire({
+      title: "¿Estás seguro?",
+      text: "No podrás revertir este cambio.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        removePersona(id);
+        Swal.fire("Eliminado!", "La persona ha sido eliminada.", "success");
+      }
+    });
   };
 
-  const handleSave = (persona: Persona) => {
-    if (persona.id) {
-      editPersona(persona.id, persona);
-    } else {
-      addPersona(persona);
+  const handleSave = async (persona: Persona) => {
+    try {
+      if (persona.id) {
+        await editPersona(persona.id, persona);
+        Swal.fire(
+          "Actualizado",
+          "La persona ha sido actualizada correctamente.",
+          "success"
+        );
+      } else {
+        await createPersona(persona);
+        Swal.fire(
+          "Agregado",
+          "La persona ha sido agregada correctamente.",
+          "success"
+        );
+      }
+      fetchPersonas();
+    } catch (error) {
+      Swal.fire("Error", "Hubo un problema al guardar la persona.", "error");
     }
+    setOpenForm(false);
   };
 
-  const handleRowClick = (params: GridRowParams) => {
-    const persona = personas.find((p) => p.id === params.id);
-    if (persona) {
-      handleEdit(persona);
-    }
-  };
-
-  // ✅ Columnas del DataGrid
+  // ✅ Columnas del DataGrid con TODOS los datos y las fechas formateadas:
   const columns: GridColDef[] = [
     { field: "nombres", headerName: "Nombres", width: 150 },
     { field: "apellidos", headerName: "Apellidos", width: 150 },
-    { field: "email", headerName: "Email", width: 200 },
-    { field: "telefono", headerName: "Teléfono", width: 150 },
-    { field: "direccion", headerName: "Dirección", width: 200 },
+    {
+      field: "fechaNacimiento",
+      headerName: "Fecha de Nacimiento",
+      width: 150,
+      valueGetter: (params: any) =>
+        params.row ? formatFecha(params.row.fechaNacimiento) : "Sin Fecha",
+    },
+    {
+      field: "fechaRegistro",
+      headerName: "Fecha de Registro",
+      width: 150,
+      valueGetter: (params: any) =>
+        params.row ? formatFecha(params.row.fechaRegistro) : "Sin Fecha",
+    },
     { field: "cedula", headerName: "Cédula", width: 150 },
+    { field: "ruc", headerName: "RUC", width: 100 },
+    {
+      field: "digitoVerificador",
+      headerName: "Dígito Verificador",
+      width: 150,
+    },
     {
       field: "acciones",
       headerName: "Acciones",
       width: 150,
-      sortable: false,
-      filterable: false,
-      renderCell: (params) => {
-        const persona = personas.find((p) => p.id === params.id);
-        return (
-          <>
-            <Tooltip title="Editar">
-              <IconButton
-                onClick={() => persona && handleEdit(persona)}
-                color="primary"
-              >
-                <EditIcon />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Eliminar">
-              <IconButton
-                onClick={() => handleDelete(params.id as number)}
-                color="error"
-              >
-                <DeleteIcon />
-              </IconButton>
-            </Tooltip>
-          </>
-        );
-      },
+      renderCell: (params) => (
+        <>
+          <Tooltip title="Editar">
+            <IconButton onClick={() => handleEdit(params.row)} color="primary">
+              <EditIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Eliminar">
+            <IconButton
+              onClick={() => handleDelete(params.row.idPersona)}
+              color="error"
+            >
+              <DeleteIcon />
+            </IconButton>
+          </Tooltip>
+        </>
+      ),
     },
   ];
 
   return (
     <Box sx={{ p: 2 }}>
-      {/* ✅ Título adaptable según el tamaño de pantalla */}
-      <Typography
-        variant={isMobile ? "h5" : "h4"} // Ajuste de tamaño
-        gutterBottom
-        sx={{
-          fontWeight: "bold",
-          textAlign: isMobile ? "center" : "left", // Centrar en móvil
-        }}
-      >
+      <Typography variant="h4" gutterBottom>
         Gestión de Personas
       </Typography>
 
@@ -121,10 +171,7 @@ const PersonasPage: React.FC = () => {
         color="primary"
         startIcon={<AddIcon />}
         onClick={handleAdd}
-        sx={{
-          mb: 2,
-          background: "linear-gradient(to right, #6a11cb, #2575fc)",
-        }}
+        sx={{ mb: 2 }}
       >
         Agregar Persona
       </Button>
@@ -132,7 +179,6 @@ const PersonasPage: React.FC = () => {
       {loading ? (
         <CircularProgress />
       ) : isMobile ? (
-        // ✅ MODO MÓVIL - Tarjetas
         <Grid container spacing={2}>
           {personas.map((persona) => (
             <Grid item xs={12} key={persona.id}>
@@ -141,33 +187,34 @@ const PersonasPage: React.FC = () => {
                   <Typography variant="h6">
                     {persona.nombres} {persona.apellidos}
                   </Typography>
-                  <Typography variant="body2" color="textSecondary">
-                    📧 {persona.email}
+                  <Typography>
+                    <FaEnvelope style={iconStyle} /> {persona.email}
                   </Typography>
-                  <Typography variant="body2" color="textSecondary">
-                    📞 {persona.telefono}
+                  <Typography>
+                    <FaPhone style={iconStyle} /> {persona.telefono}
                   </Typography>
-                  <Typography variant="body2" color="textSecondary">
-                    🏠 {persona.direccion}
+                  <Typography>
+                    <FaMapMarkerAlt style={iconStyle} /> {persona.direccion}
                   </Typography>
-                  <Typography variant="body2" color="textSecondary">
-                    📑 {persona.cedula}
+                  <Typography>
+                    <FaBirthdayCake style={iconStyle} />{" "}
+                    {formatFecha(persona.fechaNacimiento)}
+                  </Typography>
+                  <Typography>
+                    <FaCalendarCheck style={iconStyle} />{" "}
+                    {formatFecha(persona.fechaRegistro)}
+                  </Typography>
+                  <Typography>
+                    <FaIdCard style={iconStyle} /> {persona.cedula}
+                  </Typography>
+                  <Typography>
+                    <FaFileSignature style={iconStyle} /> RUC: {persona.ruc}
+                  </Typography>
+                  <Typography>
+                    <FaHashtag style={iconStyle} /> DV:{" "}
+                    {persona.digitoVerificador}
                   </Typography>
                 </CardContent>
-                <CardActions>
-                  <IconButton
-                    color="primary"
-                    onClick={() => handleEdit(persona)}
-                  >
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton
-                    color="error"
-                    onClick={() => handleDelete(persona.id!)}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </CardActions>
               </Card>
             </Grid>
           ))}
@@ -176,12 +223,9 @@ const PersonasPage: React.FC = () => {
         <DataGrid
           rows={personas}
           columns={columns}
-          loading={loading}
-          getRowId={(row) => row.idPersona!}
-          onRowClick={handleRowClick}
+          getRowId={(row) => row.idPersona}
           autoHeight
           pageSizeOptions={[5, 10, 20, 100]}
-          disableRowSelectionOnClick
         />
       )}
 

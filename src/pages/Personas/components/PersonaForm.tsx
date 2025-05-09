@@ -8,6 +8,10 @@ import {
   DialogContent,
   DialogActions,
   Grid,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
+  FormLabel,
 } from "@mui/material";
 import { Persona } from "../types/personas.types";
 
@@ -31,8 +35,9 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
     telefono: "",
     direccion: "",
     fechaNacimiento: "",
+    fechaRegistro: "",
     cedula: "",
-    ruc: "",
+    ruc: "N",
     digitoVerificador: 0,
   });
 
@@ -47,8 +52,9 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
         telefono: "",
         direccion: "",
         fechaNacimiento: "",
+        fechaRegistro: "",
         cedula: "",
-        ruc: "",
+        ruc: "N",
         digitoVerificador: 0,
       });
     }
@@ -64,8 +70,21 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
     }));
   };
 
+  const handleRucChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPersona((prev) => ({
+      ...prev,
+      ruc: e.target.value,
+    }));
+  };
+
   const handleSubmit = () => {
-    onSave(persona);
+    const formattedPersona = {
+      ...persona,
+      fechaNacimiento: new Date(persona.fechaNacimiento).toISOString(),
+    };
+
+    console.log("📝 Datos a guardar:", formattedPersona);
+    onSave(formattedPersona);
     onClose();
     setPersona({
       nombres: "",
@@ -74,8 +93,9 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
       telefono: "",
       direccion: "",
       fechaNacimiento: "",
+      fechaRegistro: "",
       cedula: "",
-      ruc: "",
+      ruc: "N",
       digitoVerificador: 0,
     });
   };
@@ -108,6 +128,19 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
                 required
               />
             </Grid>
+
+            {/* 🔄 Dirección antes que Email y con un tamaño más grande */}
+            <Grid item xs={12}>
+              <TextField
+                label="Dirección"
+                name="direccion"
+                value={persona.direccion}
+                onChange={handleChange}
+                fullWidth
+                required
+              />
+            </Grid>
+
             <Grid item xs={12}>
               <TextField
                 label="Email"
@@ -118,6 +151,7 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
                 type="email"
               />
             </Grid>
+
             <Grid item xs={12} sm={6}>
               <TextField
                 label="Teléfono"
@@ -128,16 +162,7 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
                 required
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Dirección"
-                name="direccion"
-                value={persona.direccion}
-                onChange={handleChange}
-                fullWidth
-                required
-              />
-            </Grid>
+
             <Grid item xs={12} sm={6}>
               <TextField
                 label="Fecha de Nacimiento"
@@ -151,6 +176,7 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
                 }}
               />
             </Grid>
+
             <Grid item xs={12} sm={6}>
               <TextField
                 label="Cédula"
@@ -161,16 +187,28 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
                 required
               />
             </Grid>
+
             <Grid item xs={12} sm={6}>
-              <TextField
-                label="RUC"
+              <FormLabel component="legend">RUC</FormLabel>
+              <RadioGroup
+                row
                 name="ruc"
                 value={persona.ruc}
-                onChange={handleChange}
-                fullWidth
-                required
-              />
+                onChange={handleRucChange}
+              >
+                <FormControlLabel
+                  value="N"
+                  control={<Radio color="primary" />}
+                  label="N"
+                />
+                <FormControlLabel
+                  value="S"
+                  control={<Radio color="primary" />}
+                  label="S"
+                />
+              </RadioGroup>
             </Grid>
+
             <Grid item xs={12} sm={6}>
               <TextField
                 label="Dígito Verificador"
