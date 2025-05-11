@@ -10,8 +10,10 @@ import {
   Card,
   CardContent,
   Grid,
+  TextField,
+  InputAdornment,
 } from "@mui/material";
-import { DataGrid, GridColDef, GridRowParams } from "@mui/x-data-grid";
+import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { usePersonas } from "../hooks/usePersonas";
 import PersonaForm from "../components/PersonaForm";
 import { Persona } from "../types/personas.types";
@@ -20,7 +22,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
 import { createPersona, updatePersona } from "../../../api/personasService";
 import Swal from "sweetalert2";
-
+import SearchIcon from "@mui/icons-material/Search";
 import {
   FaEnvelope,
   FaPhone,
@@ -32,16 +34,20 @@ import {
   FaHashtag,
 } from "react-icons/fa";
 
-// ✅ Estilo del gradiente para los íconos
 const iconStyle = {
-  background: "linear-gradient(45deg, #6a11cb, #2575fc)",
-  WebkitBackgroundClip: "text",
-  WebkitTextFillColor: "transparent",
+  color: "#6a11cb",
+  marginRight: "5px",
 };
 
 const PersonasPage: React.FC = () => {
-  const { personas, loading, editPersona, removePersona, fetchPersonas } =
-    usePersonas();
+  const {
+    personas,
+    loading,
+    editPersona,
+    removePersona,
+    fetchPersonas,
+    setFilter,
+  } = usePersonas();
   const [openForm, setOpenForm] = useState(false);
   const [selectedPersona, setSelectedPersona] = useState<Persona | undefined>(
     undefined
@@ -135,7 +141,7 @@ const PersonasPage: React.FC = () => {
           </Tooltip>
           <Tooltip title="Eliminar">
             <IconButton
-              onClick={() => handleDelete(params.row.idPersona)}
+              onClick={() => handleDelete(params.row.id)}
               color="error"
             >
               <DeleteIcon />
@@ -152,15 +158,50 @@ const PersonasPage: React.FC = () => {
         Gestión de Personas
       </Typography>
 
-      <Button
-        variant="contained"
-        color="primary"
-        startIcon={<AddIcon />}
-        onClick={handleAdd}
-        sx={{ mb: 2 }}
+      <Box
+        sx={{
+          display: "flex",
+          gap: 2,
+          mb: 2,
+          flexDirection: isMobile ? "column" : "row",
+        }}
       >
-        Agregar Persona
-      </Button>
+        <TextField
+          variant="outlined"
+          size="small"
+          placeholder="Buscar persona..."
+          onChange={(e) => setFilter(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon style={{ color: "#6a11cb" }} />
+              </InputAdornment>
+            ),
+          }}
+          sx={{
+            borderRadius: "50px",
+            width: isMobile ? "100%" : "600px",
+            backgroundColor: "#f3f3f3",
+            "& .MuiOutlinedInput-root": {
+              borderRadius: "25px",
+            },
+          }}
+        />
+
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<AddIcon />}
+          onClick={handleAdd}
+          sx={{
+            borderRadius: "25px",
+            height: "40px",
+            background: "linear-gradient(45deg, #6a11cb, #2575fc)",
+          }}
+        >
+          Agregar Persona
+        </Button>
+      </Box>
 
       {loading ? (
         <CircularProgress />
@@ -168,7 +209,7 @@ const PersonasPage: React.FC = () => {
         <Grid container spacing={2}>
           {personas.map((persona) => (
             <Grid item xs={12} key={persona.id}>
-              <Card>
+              <Card sx={{ borderRadius: "12px" }}>
                 <CardContent>
                   <Typography variant="h6">
                     {persona.nombres} {persona.apellidos}
@@ -200,16 +241,6 @@ const PersonasPage: React.FC = () => {
                     <FaHashtag style={iconStyle} /> DV:{" "}
                     {persona.digitoVerificador}
                   </Typography>
-
-                  {/* Botones de acción */}
-                  <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
-                    <IconButton onClick={() => handleEdit(persona)}>
-                      <EditIcon color="primary" />
-                    </IconButton>
-                    <IconButton onClick={() => handleDelete(persona.id)}>
-                      <DeleteIcon color="error" />
-                    </IconButton>
-                  </Box>
                 </CardContent>
               </Card>
             </Grid>
@@ -219,7 +250,7 @@ const PersonasPage: React.FC = () => {
         <DataGrid
           rows={personas}
           columns={columns}
-          getRowId={(row) => row.idPersona}
+          getRowId={(row) => row.id}
           autoHeight
           pageSizeOptions={[5, 10, 20, 100]}
         />

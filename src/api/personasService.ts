@@ -5,15 +5,24 @@ import { Persona } from "../pages/Personas/types/personas.types";
 const API_URL = `${import.meta.env.VITE_API_URL}/Personas`;
 
 // Obtener todas las personas
-export const getPersonas = async (): Promise<Persona[]> => {
+export const getPersonas = async (filtro: string = ""): Promise<Persona[]> => {
   try {
-    const response = await axios.get(API_URL);
-    const personas = response.data.map((p: any) => ({
+    // 👇 Enviamos el filtro como query param
+    const response = await axios.get(API_URL, {
+      params: {
+        filtro,
+      },
+    });
+
+    // ✅ Accedemos a "items" en lugar de data directamente
+    const personas = response.data.items.map((p: any) => ({
       ...p,
       id: p.idPersona, // 🔥 Mapeo de idPersona a id
     }));
+
     return personas;
   } catch (error) {
+    console.error("❌ Error al obtener personas:", error);
     throw error;
   }
 };

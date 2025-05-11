@@ -10,6 +10,7 @@ import {
 export const usePersonas = () => {
   const [personas, setPersonas] = useState<Persona[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [filter, setFilter] = useState<string>("");
 
   // ✅ Función para formatear fechas correctamente
   const formatFecha = (fecha: string | Date | null | undefined) => {
@@ -35,7 +36,7 @@ export const usePersonas = () => {
   const fetchPersonas = async () => {
     setLoading(true);
     try {
-      const data = await getPersonas();
+      const data = await getPersonas(filter);
 
       // ✅ Preprocesamos los datos para formatear fechas
       const formattedData = data.map((persona) => ({
@@ -83,7 +84,7 @@ export const usePersonas = () => {
 
   useEffect(() => {
     fetchPersonas();
-  }, []);
+  }, [filter]);
 
   return {
     personas,
@@ -92,5 +93,6 @@ export const usePersonas = () => {
     editPersona,
     removePersona,
     fetchPersonas,
+    setFilter,
   };
 };
