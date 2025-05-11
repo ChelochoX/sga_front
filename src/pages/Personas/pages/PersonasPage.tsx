@@ -241,6 +241,22 @@ const PersonasPage: React.FC = () => {
                     <FaHashtag style={iconStyle} /> DV:{" "}
                     {persona.digitoVerificador}
                   </Typography>
+
+                  {/* Botones de Acción */}
+                  <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
+                    <IconButton
+                      onClick={() => handleEdit(persona)}
+                      color="primary"
+                    >
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton
+                      onClick={() => handleDelete(persona.id)}
+                      color="error"
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Box>
                 </CardContent>
               </Card>
             </Grid>
@@ -252,7 +268,6 @@ const PersonasPage: React.FC = () => {
           columns={columns}
           getRowId={(row) => row.id}
           autoHeight
-          pageSizeOptions={[5, 10, 20, 100]}
         />
       )}
 
