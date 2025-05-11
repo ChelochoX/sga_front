@@ -6,7 +6,7 @@ import { LoginRequest, ChangePasswordRequest } from "../types/auth";
 export const login = async (credentials: LoginRequest) => {
   try {
     console.log("🔄 Enviando credenciales al login...");
-    const response = await instance.post("/api/Auth/login", credentials); // 👈 Ruta absoluta con Axios
+    const response = await instance.post("/Auth/login", credentials); // 👈 Ruta absoluta con Axios
     const data = response.data;
 
     if (data.parTokens?.bearerToken) {
@@ -26,7 +26,7 @@ export const login = async (credentials: LoginRequest) => {
 export const changePassword = async (data: ChangePasswordRequest) => {
   try {
     console.log("🔄 Enviando datos para cambiar contraseña...");
-    const response = await instance.post("/api/Auth/cambiar-contrasena", data);
+    const response = await instance.post("/Auth/cambiar-contrasena", data);
     console.log("✅ Respuesta de cambio de contraseña:", response.data);
     return response.data;
   } catch (error) {

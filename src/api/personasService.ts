@@ -2,7 +2,7 @@ import axios from "axios";
 import { Persona } from "../pages/Personas/types/personas.types";
 
 // ✅ Usando variable de entorno del .env.development
-const API_URL = `${import.meta.env.VITE_API_URL}/api/Personas`;
+const API_URL = `${import.meta.env.VITE_API_URL}/Personas`;
 
 // Obtener todas las personas
 export const getPersonas = async (): Promise<Persona[]> => {
