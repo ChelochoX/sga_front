@@ -31,15 +31,32 @@ export const createPersona = async (persona: Persona): Promise<Persona> => {
   }
 };
 
+// ✅ Función para convertir "dd/MM/yyyy" → "yyyy-MM-dd"
+const convertirFecha = (fecha: string): string => {
+  if (!fecha.includes("/")) return fecha; // Si ya está formateado, no hacemos nada
+  const [day, month, year] = fecha.split("/");
+  return `${year}-${month}-${day}`;
+};
+
 // Actualizar una persona
 export const updatePersona = async (
   id: number,
   persona: Persona
 ): Promise<void> => {
   try {
-    await axios.put(`${API_URL}/${id}`, persona);
-  } catch (error) {
-    console.error("❌ Error actualizando la persona:", error);
+    // ✅ Aplicar el formateo correcto antes de enviar al backend
+    const formattedPersona = {
+      ...persona,
+      fechaNacimiento: convertirFecha(persona.fechaNacimiento),
+      fechaRegistro: convertirFecha(persona.fechaRegistro),
+    };
+
+    await axios.put(`${API_URL}/${id}`, formattedPersona);
+  } catch (error: any) {
+    console.error(
+      "❌ Error actualizando la persona:",
+      error.response?.data ?? error.message
+    );
     throw error;
   }
 };

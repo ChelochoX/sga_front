@@ -1,19 +1,16 @@
 import React, { useState, useEffect } from "react";
 import {
-  Box,
-  Button,
-  TextField,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
+  Button,
+  TextField,
+  useMediaQuery,
   Grid,
-  RadioGroup,
-  FormControlLabel,
-  Radio,
-  FormLabel,
 } from "@mui/material";
 import { Persona } from "../types/personas.types";
+import { useTheme } from "@mui/material/styles";
 
 interface PersonaFormProps {
   open: boolean;
@@ -22,210 +19,236 @@ interface PersonaFormProps {
   initialData?: Persona;
 }
 
+const initialState: Persona = {
+  id: 0,
+  nombres: "",
+  apellidos: "",
+  email: "",
+  telefono: "",
+  direccion: "",
+  fechaNacimiento: "",
+  fechaRegistro: "",
+  cedula: "",
+  ruc: "",
+  digitoVerificador: 0,
+};
+
 const PersonaForm: React.FC<PersonaFormProps> = ({
   open,
   onClose,
   onSave,
   initialData,
 }) => {
-  const [persona, setPersona] = useState<Persona>({
-    nombres: "",
-    apellidos: "",
-    email: "",
-    telefono: "",
-    direccion: "",
-    fechaNacimiento: "",
-    fechaRegistro: "",
-    cedula: "",
-    ruc: "N",
-    digitoVerificador: 0,
-  });
+  const [persona, setPersona] = useState<Persona>(initialState);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
+  // ✅ Cada vez que se abre el form con datos, se setean en el estado
   useEffect(() => {
     if (initialData) {
       setPersona(initialData);
     } else {
-      setPersona({
-        nombres: "",
-        apellidos: "",
-        email: "",
-        telefono: "",
-        direccion: "",
-        fechaNacimiento: "",
-        fechaRegistro: "",
-        cedula: "",
-        ruc: "N",
-        digitoVerificador: 0,
-      });
+      setPersona(initialState);
     }
   }, [initialData]);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  // ✅ Manejo de cambios en el formulario
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setPersona((prev) => ({
       ...prev,
-      [name]: name === "digitoVerificador" ? parseInt(value, 10) || 0 : value,
+      [name]: value,
     }));
   };
 
-  const handleRucChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPersona((prev) => ({
-      ...prev,
-      ruc: e.target.value,
-    }));
-  };
-
-  const handleSubmit = () => {
-    const formattedPersona = {
-      ...persona,
-      fechaNacimiento: new Date(persona.fechaNacimiento).toISOString(),
-    };
-
-    console.log("📝 Datos a guardar:", formattedPersona);
-    onSave(formattedPersona);
-    onClose();
-    setPersona({
-      nombres: "",
-      apellidos: "",
-      email: "",
-      telefono: "",
-      direccion: "",
-      fechaNacimiento: "",
-      fechaRegistro: "",
-      cedula: "",
-      ruc: "N",
-      digitoVerificador: 0,
-    });
+  // ✅ Guardar cambios al hacer submit
+  const handleSave = () => {
+    onSave(persona);
   };
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>
-        {initialData ? "Editar Persona" : "Nueva Persona"}
+      <DialogTitle
+        sx={{
+          textAlign: "center",
+          fontWeight: "bold",
+          fontSize: isMobile ? "18px" : "20px",
+        }}
+      >
+        {persona.id ? "Editar Persona" : "Agregar Persona"}
       </DialogTitle>
+
       <DialogContent>
-        <Box component="form" sx={{ mt: 2 }}>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Nombres"
-                name="nombres"
-                value={persona.nombres}
-                onChange={handleChange}
-                fullWidth
-                required
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Apellidos"
-                name="apellidos"
-                value={persona.apellidos}
-                onChange={handleChange}
-                fullWidth
-                required
-              />
-            </Grid>
-
-            {/* 🔄 Dirección antes que Email y con un tamaño más grande */}
-            <Grid item xs={12}>
-              <TextField
-                label="Dirección"
-                name="direccion"
-                value={persona.direccion}
-                onChange={handleChange}
-                fullWidth
-                required
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <TextField
-                label="Email"
-                name="email"
-                value={persona.email}
-                onChange={handleChange}
-                fullWidth
-                type="email"
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Teléfono"
-                name="telefono"
-                value={persona.telefono}
-                onChange={handleChange}
-                fullWidth
-                required
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Fecha de Nacimiento"
-                name="fechaNacimiento"
-                value={persona.fechaNacimiento}
-                onChange={handleChange}
-                fullWidth
-                type="date"
-                InputLabelProps={{
-                  shrink: true,
-                }}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Cédula"
-                name="cedula"
-                value={persona.cedula}
-                onChange={handleChange}
-                fullWidth
-                required
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <FormLabel component="legend">RUC</FormLabel>
-              <RadioGroup
-                row
-                name="ruc"
-                value={persona.ruc}
-                onChange={handleRucChange}
-              >
-                <FormControlLabel
-                  value="N"
-                  control={<Radio color="primary" />}
-                  label="N"
-                />
-                <FormControlLabel
-                  value="S"
-                  control={<Radio color="primary" />}
-                  label="S"
-                />
-              </RadioGroup>
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Dígito Verificador"
-                name="digitoVerificador"
-                value={persona.digitoVerificador}
-                onChange={handleChange}
-                fullWidth
-                type="number"
-              />
-            </Grid>
+        <Grid container spacing={2} alignItems="flex-start">
+          {/* 🔄 Primera fila */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label="Nombres"
+              name="nombres"
+              fullWidth
+              size="small"
+              value={persona.nombres}
+              onChange={handleChange}
+              variant="outlined"
+              InputLabelProps={{
+                shrink: true,
+                style: { marginBottom: "8px" }, // 🔥 Baja el label
+              }}
+              sx={{ marginTop: "8px" }} // 🔥 Añadir margen superior para separarlo más
+            />
           </Grid>
-        </Box>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label="Apellidos"
+              name="apellidos"
+              fullWidth
+              size="small"
+              value={persona.apellidos}
+              onChange={handleChange}
+              variant="outlined"
+              InputLabelProps={{
+                shrink: true,
+                style: { marginBottom: "8px" },
+              }}
+              sx={{ marginTop: "8px" }}
+            />
+          </Grid>
+
+          <Grid item xs={12}>
+            <TextField
+              label="Dirección"
+              name="direccion"
+              fullWidth
+              size="small"
+              value={persona.direccion}
+              onChange={handleChange}
+              variant="outlined"
+              InputLabelProps={{
+                shrink: true,
+                style: { marginBottom: "8px" },
+              }}
+            />
+          </Grid>
+
+          <Grid item xs={12}>
+            <TextField
+              label="Email"
+              name="email"
+              fullWidth
+              size="small"
+              value={persona.email}
+              onChange={handleChange}
+              variant="outlined"
+              InputLabelProps={{
+                shrink: true,
+                style: { marginBottom: "8px" },
+              }}
+            />
+          </Grid>
+
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label="Teléfono"
+              name="telefono"
+              fullWidth
+              size="small"
+              value={persona.telefono}
+              onChange={handleChange}
+              variant="outlined"
+              InputLabelProps={{
+                shrink: true,
+                style: { marginBottom: "8px" },
+              }}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label="Fecha de Nacimiento"
+              name="fechaNacimiento"
+              fullWidth
+              size="small"
+              value={persona.fechaNacimiento}
+              onChange={handleChange}
+              variant="outlined"
+              InputLabelProps={{
+                shrink: true,
+                style: { marginBottom: "8px" },
+              }}
+            />
+          </Grid>
+
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label="Cédula"
+              name="cedula"
+              fullWidth
+              size="small"
+              value={persona.cedula}
+              onChange={handleChange}
+              variant="outlined"
+              InputLabelProps={{
+                shrink: true,
+                style: { marginBottom: "8px" },
+              }}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label="RUC"
+              name="ruc"
+              fullWidth
+              size="small"
+              value={persona.ruc}
+              onChange={handleChange}
+              variant="outlined"
+              InputLabelProps={{
+                shrink: true,
+                style: { marginBottom: "8px" },
+              }}
+            />
+          </Grid>
+
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label="Dígito Verificador"
+              name="digitoVerificador"
+              fullWidth
+              size="small"
+              value={persona.digitoVerificador}
+              onChange={handleChange}
+              type="number"
+              variant="outlined"
+              InputLabelProps={{
+                shrink: true,
+                style: { marginBottom: "8px" },
+              }}
+            />
+          </Grid>
+        </Grid>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cancelar</Button>
-        <Button onClick={handleSubmit} variant="contained" color="primary">
-          Guardar
+
+      <DialogActions
+        sx={{
+          justifyContent: "center",
+          gap: 2,
+          marginBottom: 2,
+        }}
+      >
+        <Button
+          onClick={onClose}
+          color="secondary"
+          variant="contained"
+          sx={{ minWidth: isMobile ? "45%" : "150px" }}
+        >
+          Cancelar
+        </Button>
+        <Button
+          onClick={handleSave}
+          color="primary"
+          variant="contained"
+          sx={{ minWidth: isMobile ? "45%" : "150px" }}
+        >
+          {persona.id ? "Actualizar" : "Guardar"}
         </Button>
       </DialogActions>
     </Dialog>

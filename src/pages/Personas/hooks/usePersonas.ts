@@ -36,7 +36,6 @@ export const usePersonas = () => {
     setLoading(true);
     try {
       const data = await getPersonas();
-      console.log("🔍 Datos del backend antes del formateo:", data);
 
       // ✅ Preprocesamos los datos para formatear fechas
       const formattedData = data.map((persona) => ({
@@ -45,7 +44,6 @@ export const usePersonas = () => {
         fechaRegistro: formatFecha(persona.fechaRegistro),
       }));
 
-      console.log("📌 Datos formateados para el DataGrid:", formattedData);
       setPersonas(formattedData);
     } catch (error) {
       console.error("Error fetching personas:", error);
