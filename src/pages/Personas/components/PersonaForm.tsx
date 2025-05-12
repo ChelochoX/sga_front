@@ -40,6 +40,7 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
   initialData,
 }) => {
   const [persona, setPersona] = useState<Persona>(initialState);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -65,11 +66,45 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
       ...prev,
       [name]: value,
     }));
+
+    // Limpiamos el error si se corrige el campo
+    if (value !== "") {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+  };
+
+  // ✅ Función para validar campos obligatorios
+  const validateFields = () => {
+    const requiredFields = [
+      "nombres",
+      "apellidos",
+      "email",
+      "telefono",
+      "direccion",
+      "fechaNacimiento",
+      "cedula",
+      "ruc",
+    ];
+
+    const newErrors: Record<string, string> = {};
+
+    requiredFields.forEach((field) => {
+      if (!persona[field as keyof Persona]) {
+        newErrors[field] = "Este campo es obligatorio";
+      }
+    });
+
+    setErrors(newErrors);
+
+    // Si no hay errores, retorna `true`
+    return Object.keys(newErrors).length === 0;
   };
 
   // ✅ Guardar cambios al hacer submit
   const handleSave = () => {
-    onSave(persona);
+    if (validateFields()) {
+      onSave(persona);
+    }
   };
 
   return (
@@ -86,7 +121,7 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
 
       <DialogContent>
         <Grid container spacing={2} alignItems="flex-start">
-          {/* 🔄 Primera fila */}
+          {/* 🔄 Campos del formulario */}
           <Grid item xs={12} sm={6}>
             <TextField
               label="Nombres"
@@ -97,11 +132,8 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
               onChange={handleChange}
               inputRef={inputRef}
               variant="outlined"
-              InputLabelProps={{
-                shrink: true,
-                style: { marginBottom: "8px" }, // 🔥 Baja el label
-              }}
-              sx={{ marginTop: "8px" }} // 🔥 Añadir margen superior para separarlo más
+              error={Boolean(errors.nombres)}
+              helperText={errors.nombres}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -113,11 +145,8 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
               value={persona.apellidos}
               onChange={handleChange}
               variant="outlined"
-              InputLabelProps={{
-                shrink: true,
-                style: { marginBottom: "8px" },
-              }}
-              sx={{ marginTop: "8px" }}
+              error={Boolean(errors.apellidos)}
+              helperText={errors.apellidos}
             />
           </Grid>
 
@@ -130,10 +159,8 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
               value={persona.direccion}
               onChange={handleChange}
               variant="outlined"
-              InputLabelProps={{
-                shrink: true,
-                style: { marginBottom: "8px" },
-              }}
+              error={Boolean(errors.direccion)}
+              helperText={errors.direccion}
             />
           </Grid>
 
@@ -146,10 +173,8 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
               value={persona.email}
               onChange={handleChange}
               variant="outlined"
-              InputLabelProps={{
-                shrink: true,
-                style: { marginBottom: "8px" },
-              }}
+              error={Boolean(errors.email)}
+              helperText={errors.email}
             />
           </Grid>
 
@@ -162,12 +187,11 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
               value={persona.telefono}
               onChange={handleChange}
               variant="outlined"
-              InputLabelProps={{
-                shrink: true,
-                style: { marginBottom: "8px" },
-              }}
+              error={Boolean(errors.telefono)}
+              helperText={errors.telefono}
             />
           </Grid>
+
           <Grid item xs={12} sm={6}>
             <TextField
               label="Fecha de Nacimiento"
@@ -177,10 +201,8 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
               value={persona.fechaNacimiento}
               onChange={handleChange}
               variant="outlined"
-              InputLabelProps={{
-                shrink: true,
-                style: { marginBottom: "8px" },
-              }}
+              error={Boolean(errors.fechaNacimiento)}
+              helperText={errors.fechaNacimiento}
             />
           </Grid>
 
@@ -193,12 +215,11 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
               value={persona.cedula}
               onChange={handleChange}
               variant="outlined"
-              InputLabelProps={{
-                shrink: true,
-                style: { marginBottom: "8px" },
-              }}
+              error={Boolean(errors.cedula)}
+              helperText={errors.cedula}
             />
           </Grid>
+
           <Grid item xs={12} sm={6}>
             <TextField
               label="RUC"
@@ -208,10 +229,8 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
               value={persona.ruc}
               onChange={handleChange}
               variant="outlined"
-              InputLabelProps={{
-                shrink: true,
-                style: { marginBottom: "8px" },
-              }}
+              error={Boolean(errors.ruc)}
+              helperText={errors.ruc}
             />
           </Grid>
 
@@ -225,10 +244,6 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
               onChange={handleChange}
               type="number"
               variant="outlined"
-              InputLabelProps={{
-                shrink: true,
-                style: { marginBottom: "8px" },
-              }}
             />
           </Grid>
         </Grid>
@@ -241,20 +256,10 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
           marginBottom: 2,
         }}
       >
-        <Button
-          onClick={onClose}
-          color="secondary"
-          variant="contained"
-          sx={{ minWidth: isMobile ? "45%" : "150px" }}
-        >
+        <Button onClick={onClose} color="secondary" variant="contained">
           Cancelar
         </Button>
-        <Button
-          onClick={handleSave}
-          color="primary"
-          variant="contained"
-          sx={{ minWidth: isMobile ? "45%" : "150px" }}
-        >
+        <Button onClick={handleSave} color="primary" variant="contained">
           {persona.id ? "Actualizar" : "Guardar"}
         </Button>
       </DialogActions>

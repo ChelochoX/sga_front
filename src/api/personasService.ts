@@ -27,11 +27,31 @@ export const getPersonas = async (filtro: string = ""): Promise<Persona[]> => {
   }
 };
 
+// ✅ Función para convertir "dd/MM/yyyy" → "yyyy-MM-dd"
+const formatFecha = (fecha: string): string => {
+  if (!fecha.includes("/")) return fecha; // Si ya está formateado, lo dejamos
+  const [day, month, year] = fecha.split("/");
+  return `${year}-${month}-${day}`;
+};
+
 // Crear una persona
 export const createPersona = async (persona: Persona): Promise<Persona> => {
   try {
-    // 🔥 Removemos el id antes de enviar
+    // 🔄 Removemos el id antes de enviar
     const { id, ...personaRequest } = persona;
+
+    // ✅ Formateamos las fechas antes de enviar
+    if (personaRequest.fechaNacimiento) {
+      personaRequest.fechaNacimiento = formatFecha(
+        personaRequest.fechaNacimiento
+      );
+    }
+
+    if (personaRequest.fechaRegistro) {
+      personaRequest.fechaRegistro = formatFecha(personaRequest.fechaRegistro);
+    }
+
+    // 🔥 Enviamos al backend con las fechas ya formateadas
     const response = await axios.post(API_URL, personaRequest);
     return response.data;
   } catch (error) {
