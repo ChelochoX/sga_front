@@ -154,7 +154,7 @@ const PersonasPage: React.FC = () => {
 
   return (
     <Box sx={{ p: 2 }}>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h5" gutterBottom>
         Gestión de Personas
       </Typography>
 
@@ -209,53 +209,90 @@ const PersonasPage: React.FC = () => {
         <Grid container spacing={2}>
           {personas.map((persona) => (
             <Grid item xs={12} key={persona.id}>
-              <Card sx={{ borderRadius: "12px" }}>
+              <Card
+                sx={{
+                  borderRadius: "12px",
+                  boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+                  padding: "12px",
+                  position: "relative",
+                  overflow: "hidden",
+                }}
+              >
+                {/* 🔍 Iconos de acciones */}
+                <Box
+                  sx={{
+                    position: "absolute",
+                    top: "10px",
+                    right: "10px",
+                    display: "flex",
+                    gap: 1,
+                  }}
+                >
+                  <IconButton
+                    onClick={() => handleEdit(persona)}
+                    sx={{ color: "#6a11cb" }}
+                  >
+                    <EditIcon />
+                  </IconButton>
+                  <IconButton
+                    onClick={() => handleDelete(persona.id)}
+                    sx={{ color: "#d32f2f" }}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </Box>
+
                 <CardContent>
-                  <Typography variant="h6">
+                  <Typography variant="h6" sx={{ fontWeight: "bold", mb: 1 }}>
                     {persona.nombres} {persona.apellidos}
                   </Typography>
-                  <Typography>
-                    <FaEnvelope style={iconStyle} /> {persona.email}
-                  </Typography>
-                  <Typography>
-                    <FaPhone style={iconStyle} /> {persona.telefono}
-                  </Typography>
-                  <Typography>
-                    <FaMapMarkerAlt style={iconStyle} /> {persona.direccion}
-                  </Typography>
-                  <Typography>
-                    <FaBirthdayCake style={iconStyle} />{" "}
-                    {persona.fechaNacimiento}
-                  </Typography>
-                  <Typography>
-                    <FaCalendarCheck style={iconStyle} />{" "}
-                    {persona.fechaRegistro}
-                  </Typography>
-                  <Typography>
-                    <FaIdCard style={iconStyle} /> {persona.cedula}
-                  </Typography>
-                  <Typography>
-                    <FaFileSignature style={iconStyle} /> RUC: {persona.ruc}
-                  </Typography>
-                  <Typography>
-                    <FaHashtag style={iconStyle} /> DV:{" "}
-                    {persona.digitoVerificador}
-                  </Typography>
 
-                  {/* Botones de Acción */}
-                  <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
-                    <IconButton
-                      onClick={() => handleEdit(persona)}
-                      color="primary"
-                    >
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton
-                      onClick={() => handleDelete(persona.id)}
-                      color="error"
-                    >
-                      <DeleteIcon />
-                    </IconButton>
+                  <Box
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography>📧 {persona.email}</Typography>
+                  </Box>
+
+                  <Box
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography>📞 {persona.telefono}</Typography>
+                  </Box>
+
+                  <Box
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography>📍 {persona.direccion}</Typography>
+                  </Box>
+
+                  <Box
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography>🎂 {persona.fechaNacimiento}</Typography>
+                  </Box>
+
+                  <Box
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography>🗓️ {persona.fechaRegistro}</Typography>
+                  </Box>
+
+                  <Box
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography>🆔 {persona.cedula}</Typography>
+                  </Box>
+
+                  <Box
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography>🏷️ RUC: {persona.ruc}</Typography>
+                  </Box>
+
+                  <Box
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography>🔢 DV: {persona.digitoVerificador}</Typography>
                   </Box>
                 </CardContent>
               </Card>

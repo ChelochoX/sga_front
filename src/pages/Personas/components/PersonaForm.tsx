@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -42,6 +42,7 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
   const [persona, setPersona] = useState<Persona>(initialState);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   // ✅ Cada vez que se abre el form con datos, se setean en el estado
   useEffect(() => {
@@ -50,7 +51,12 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
     } else {
       setPersona(initialState);
     }
-  }, [initialData]);
+
+    // 👇 Enfocamos el primer input al abrir el modal
+    if (open && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [initialData, open]);
 
   // ✅ Manejo de cambios en el formulario
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -89,6 +95,7 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
               size="small"
               value={persona.nombres}
               onChange={handleChange}
+              inputRef={inputRef}
               variant="outlined"
               InputLabelProps={{
                 shrink: true,
