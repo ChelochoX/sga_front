@@ -1,10 +1,10 @@
 // src/App.tsx
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Login from "./pages/Login/Login";
-import ChangePassword from "./pages/CambiarContrasena/ChangePassword";
-import Personas from "./pages/Personas/pages/PersonasPage";
-import Dashboard from "./pages/Dashboard/Dashboard";
+import Login from "./modulos/Login/Login";
+import ChangePassword from "./modulos/CambiarContrasena/ChangePassword";
+import Personas from "./modulos/Personas/pages/PersonasPage";
+import Dashboard from "./modulos/Dashboard/Dashboard";
 // import Usuarios from "./pages/Usuarios/Usuarios";
 // import Roles from "./pages/Roles/Roles";
 // import Cursos from "./pages/Cursos/Cursos";

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Persona } from "../pages/Personas/types/personas.types";
+import { Persona } from "../modulos/Personas/types/personas.types";
 
 // ✅ Usando variable de entorno del .env.development
 const API_URL = `${import.meta.env.VITE_API_URL}/Personas`;
