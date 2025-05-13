@@ -32,6 +32,7 @@ const UsuariosPage: React.FC = () => {
     setPageNumber,
     setPageSize,
     toggleUsuarioEstado,
+    editUsuario,
   } = useUsuarios();
 
   const [searchText, setSearchText] = useState("");
@@ -152,6 +153,26 @@ const UsuariosPage: React.FC = () => {
                       <TableCell>{usuario.estado}</TableCell>
                       <TableCell>{usuario.fechaCreacion}</TableCell>
                       <TableCell>{usuario.fechaModificacion}</TableCell>
+                      <TableCell>
+                        <Button
+                          onClick={() =>
+                            editUsuario({
+                              idUsuario: usuario.idUsuario,
+                              nombreUsuario: "NuevoNombreUsuario",
+                              estado:
+                                usuario.estado === "Activo"
+                                  ? "Inactivo"
+                                  : "Activo",
+                              fechaModificacion: new Date().toISOString(), // 👈 Esto lo formateas al backend
+                            })
+                          }
+                          variant="outlined"
+                          color="primary"
+                          fullWidth
+                        >
+                          Editar
+                        </Button>
+                      </TableCell>
                       <TableCell>
                         <Button
                           onClick={() => toggleUsuarioEstado(usuario.idUsuario)}

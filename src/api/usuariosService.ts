@@ -36,3 +36,20 @@ export const getUsuarios = async (): Promise<Usuario[]> => {
     throw error;
   }
 };
+
+// 🔄 Función para actualizar el usuario
+export const actualizarUsuario = async (
+  usuario: Partial<Usuario>
+): Promise<void> => {
+  console.log(`🚀 Actualizando usuario con ID: ${usuario.idUsuario}`);
+  try {
+    await axios.put(`${API_URL}/editar-usuario`, usuario);
+    console.log("✅ Usuario actualizado correctamente");
+  } catch (error: any) {
+    console.error("❌ Error al actualizar el usuario:", error.message);
+    if (error.response) {
+      console.error("❌ Detalle del error:", error.response.data);
+    }
+    throw error;
+  }
+};

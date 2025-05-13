@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { Usuario } from "../types/usuarios.types";
-import { activarUsuario } from "../../../api/usuariosService";
+import {
+  activarUsuario,
+  actualizarUsuario,
+} from "../../../api/usuariosService";
 
 // Función para formatear fechas correctamente
 const formatFecha = (fecha: string | Date | null | undefined) => {
@@ -98,6 +101,27 @@ export const useUsuarios = () => {
     }
   };
 
+  // 🔄 Función para actualizar datos del usuario
+  const editUsuario = async (updatedData: Partial<Usuario>) => {
+    console.log(
+      `🔄 Intentando actualizar el usuario con ID: ${updatedData.idUsuario}`
+    );
+    try {
+      await actualizarUsuario(updatedData);
+
+      // Actualizamos el estado en el frontend
+      setUsuarios((prev: Usuario[]) =>
+        prev.map((usuario) =>
+          usuario.idUsuario === updatedData.idUsuario
+            ? { ...usuario, ...updatedData }
+            : usuario
+        )
+      );
+    } catch (error) {
+      console.error("❌ Error al actualizar el usuario:", error);
+    }
+  };
+
   useEffect(() => {
     fetchUsuarios();
   }, [filter, pageNumber, pageSize]);
@@ -110,5 +134,6 @@ export const useUsuarios = () => {
     setPageNumber,
     setPageSize,
     toggleUsuarioEstado,
+    editUsuario,
   };
 };
