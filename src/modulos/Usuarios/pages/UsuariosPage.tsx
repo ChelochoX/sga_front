@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import {
-  Button,
+  Button, // ✅ Importado correctamente
   Grid,
   Typography,
   CircularProgress,
@@ -12,8 +12,16 @@ import {
   TableRow,
   TablePagination,
   TextField,
+  InputAdornment,
+  IconButton,
+  Box,
+  Card,
+  CardContent,
+  useMediaQuery,
 } from "@mui/material";
+import { Search } from "@mui/icons-material";
 import { useUsuarios } from "../hooks/useUsuarios"; // Asegúrate de que la ruta sea correcta
+import { useTheme } from "@mui/material/styles";
 
 const UsuariosPage: React.FC = () => {
   const {
@@ -26,7 +34,12 @@ const UsuariosPage: React.FC = () => {
     toggleUsuarioEstado,
   } = useUsuarios();
 
+  const [searchText, setSearchText] = useState("");
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm")); // 📱 Detectar si es móvil
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchText(e.target.value);
     setFilter(e.target.value);
   };
 
@@ -42,70 +55,135 @@ const UsuariosPage: React.FC = () => {
   };
 
   return (
-    <div>
-      <Typography variant="h4" sx={{ marginBottom: 2 }}>
+    <Box p={2}>
+      <Typography variant="h5" sx={{ marginBottom: 2 }}>
         Gestión de Usuarios
       </Typography>
 
-      {/* Filtro de búsqueda */}
+      {/* 🔎 Filtro de búsqueda con estilo corregido */}
       <TextField
-        label="Buscar usuario..."
+        placeholder="Buscar usuario..."
         variant="outlined"
+        value={searchText}
         onChange={handleSearchChange}
         fullWidth
         size="small"
-        sx={{ marginBottom: 2 }}
+        sx={{
+          marginBottom: 2,
+          "& .MuiOutlinedInput-root": {
+            borderRadius: "50px",
+          },
+          "& .MuiOutlinedInput-notchedOutline": {
+            borderColor: "#ccc",
+          },
+          "&:hover .MuiOutlinedInput-notchedOutline": {
+            borderColor: "#aaa",
+          },
+        }}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <IconButton edge="start">
+                <Search />
+              </IconButton>
+            </InputAdornment>
+          ),
+        }}
       />
 
+      {/* Loader */}
       {loading ? (
         <CircularProgress />
       ) : (
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Nombre de Usuario</TableCell>
-                <TableCell>Estado</TableCell>
-                <TableCell>Fecha de Creación</TableCell>
-                <TableCell>Fecha de Modificación</TableCell>
-                <TableCell>Acciones</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
+        <>
+          {isMobile ? (
+            <Grid container spacing={2}>
               {usuarios.map((usuario) => (
-                <TableRow key={usuario.idUsuario}>
-                  <TableCell>{usuario.nombreUsuario}</TableCell>
-                  <TableCell>{usuario.estado}</TableCell>
-                  <TableCell>{usuario.fechaCreacion}</TableCell>{" "}
-                  {/* Fecha formateada */}
-                  <TableCell>{usuario.fechaModificacion}</TableCell>{" "}
-                  {/* Fecha formateada */}
-                  <TableCell>
-                    <Button
-                      onClick={() => toggleUsuarioEstado(usuario.idUsuario)}
-                      variant="contained"
-                      color={usuario.estado === "activo" ? "error" : "success"}
-                    >
-                      {usuario.estado === "activo" ? "Desactivar" : "Activar"}
-                    </Button>
-                  </TableCell>
-                </TableRow>
+                <Grid item xs={12} key={usuario.idUsuario}>
+                  <Card variant="outlined">
+                    <CardContent>
+                      <Typography variant="h6">
+                        {usuario.nombreUsuario}
+                      </Typography>
+                      <Typography color="textSecondary">
+                        Estado: {usuario.estado}
+                      </Typography>
+                      <Typography color="textSecondary">
+                        Fecha de Creación: {usuario.fechaCreacion}
+                      </Typography>
+                      <Typography color="textSecondary">
+                        Fecha de Modificación: {usuario.fechaModificacion}
+                      </Typography>
+                      <Box mt={2}>
+                        <Button
+                          onClick={() => toggleUsuarioEstado(usuario.idUsuario)}
+                          variant="contained"
+                          color={
+                            usuario.estado === "activo" ? "error" : "success"
+                          }
+                          fullWidth
+                        >
+                          {usuario.estado === "activo"
+                            ? "Desactivar"
+                            : "Activar"}
+                        </Button>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Grid>
               ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+            </Grid>
+          ) : (
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Nombre de Usuario</TableCell>
+                    <TableCell>Estado</TableCell>
+                    <TableCell>Fecha de Creación</TableCell>
+                    <TableCell>Fecha de Modificación</TableCell>
+                    <TableCell>Acciones</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {usuarios.map((usuario) => (
+                    <TableRow key={usuario.idUsuario}>
+                      <TableCell>{usuario.nombreUsuario}</TableCell>
+                      <TableCell>{usuario.estado}</TableCell>
+                      <TableCell>{usuario.fechaCreacion}</TableCell>
+                      <TableCell>{usuario.fechaModificacion}</TableCell>
+                      <TableCell>
+                        <Button
+                          onClick={() => toggleUsuarioEstado(usuario.idUsuario)}
+                          variant="contained"
+                          color={
+                            usuario.estado === "activo" ? "error" : "success"
+                          }
+                        >
+                          {usuario.estado === "activo"
+                            ? "Desactivar"
+                            : "Activar"}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </>
       )}
 
       {/* Paginación */}
       <TablePagination
         component="div"
         count={total}
-        page={0} // Ajustamos la página a 0-based para la paginación
+        page={0}
         onPageChange={handleChangePage}
-        rowsPerPage={10} // Ajuste en el tamaño de filas
+        rowsPerPage={10}
         onRowsPerPageChange={handleChangeRowsPerPage}
       />
-    </div>
+    </Box>
   );
 };
 
