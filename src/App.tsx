@@ -5,7 +5,7 @@ import Login from "./modulos/Login/Login";
 import ChangePassword from "./modulos/CambiarContrasena/ChangePassword";
 import Personas from "./modulos/Personas/pages/PersonasPage";
 import Dashboard from "./modulos/Dashboard/Dashboard";
-// import Usuarios from "./pages/Usuarios/Usuarios";
+import Usuarios from "./modulos/Usuarios/pages/UsuariosPage";
 // import Roles from "./pages/Roles/Roles";
 // import Cursos from "./pages/Cursos/Cursos";
 // import Inscripciones from "./pages/Inscripciones/Inscripciones";
@@ -21,8 +21,8 @@ const App: React.FC = () => {
 
         <Route path="/dashboard" element={<Dashboard />}>
           <Route path="personas" element={<Personas />} />
-          {/* <Route path="usuarios" element={<Usuarios />} />
-        <Route path="roles" element={<Roles />} />
+          <Route path="usuarios" element={<Usuarios />} />
+          {/* <Route path="roles" element={<Roles />} />
         <Route path="cursos" element={<Cursos />} />
         <Route path="inscripciones" element={<Inscripciones />} />
         <Route path="pagos" element={<Pagos />} />
