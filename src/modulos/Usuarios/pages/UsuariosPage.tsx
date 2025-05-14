@@ -45,6 +45,7 @@ const UsuariosPage: React.FC = () => {
     setPageSize,
     toggleUsuarioEstado,
     editUsuario,
+    fetchUsuarios,
   } = useUsuarios();
 
   const [searchText, setSearchText] = useState("");
@@ -90,7 +91,23 @@ const UsuariosPage: React.FC = () => {
       });
 
       setOpenEdit(false);
+      fetchUsuarios();
     }
+  };
+
+  // ✅ Función para formatear fecha (sin hora)
+  const formatFecha = (fecha: string | null | undefined) => {
+    if (!fecha) return "Sin Fecha";
+
+    // 🔄 Convertimos el string ISO a Date
+    const dateObj = new Date(fecha);
+
+    if (isNaN(dateObj.getTime())) {
+      return "Fecha inválida";
+    }
+
+    // 🔍 Mostramos solo la fecha (sin la hora)
+    return dateObj.toLocaleDateString("es-ES");
   };
 
   return (
@@ -205,8 +222,12 @@ const UsuariosPage: React.FC = () => {
                     <TableRow key={usuario.idUsuario}>
                       <TableCell>{usuario.nombreUsuario}</TableCell>
                       <TableCell>{usuario.estado}</TableCell>
-                      <TableCell>{usuario.fechaCreacion}</TableCell>
-                      <TableCell>{usuario.fechaModificacion}</TableCell>
+                      <TableCell>
+                        {formatFecha(usuario.fechaCreacion)}
+                      </TableCell>
+                      <TableCell>
+                        {formatFecha(usuario.fechaModificacion)}
+                      </TableCell>
                       <TableCell>
                         <Button
                           onClick={() => toggleUsuarioEstado(usuario.idUsuario)}

@@ -23,21 +23,6 @@ import AddIcon from "@mui/icons-material/Add";
 import { createPersona, updatePersona } from "../../../api/personasService";
 import Swal from "sweetalert2";
 import SearchIcon from "@mui/icons-material/Search";
-import {
-  FaEnvelope,
-  FaPhone,
-  FaMapMarkerAlt,
-  FaBirthdayCake,
-  FaCalendarCheck,
-  FaIdCard,
-  FaFileSignature,
-  FaHashtag,
-} from "react-icons/fa";
-
-const iconStyle = {
-  color: "#6a11cb",
-  marginRight: "5px",
-};
 
 const PersonasPage: React.FC = () => {
   const {
