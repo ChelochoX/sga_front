@@ -3,9 +3,6 @@ import { Usuario } from "../modulos/Usuarios/types/usuarios.types";
 
 const API_URL = `${import.meta.env.VITE_API_URL}/Usuarios`;
 
-// ✅ Log para ver la URL que se está llamando
-console.log("🔎 URL Base para Usuarios:", API_URL);
-
 // ✅ Función para convertir "dd/MM/yyyy" → "yyyy-MM-dd"
 const convertirFecha = (fecha: string): string => {
   if (!fecha.includes("/")) return fecha; // Si ya está formateado, lo dejamos
@@ -39,7 +36,6 @@ const formatFecha = (fecha: string | null | undefined): string => {
 
 // Activar o desactivar usuario
 export const cambiarEstadoUsuario = async (id: number): Promise<void> => {
-  console.log(`🚀 Llamando a: ${API_URL}/cambiar-estado/${id}`);
   try {
     await axios.put(
       `${API_URL}/cambiar-estado/${id}`,
@@ -50,7 +46,6 @@ export const cambiarEstadoUsuario = async (id: number): Promise<void> => {
         },
       }
     );
-    console.log(`✅ Estado del usuario ${id} actualizado correctamente.`);
   } catch (error: any) {
     console.error("❌ Error al cambiar estado del usuario:", error.message);
     if (error.response) {
@@ -67,8 +62,6 @@ export const getUsuarios = async (
   pageSize: number = 10
 ): Promise<Usuario[]> => {
   try {
-    console.log(`🚀 Llamando a: ${API_URL}/obtener-usuarios`);
-
     // 🔄 Hacemos el request al endpoint correcto
     const response = await axios.get(`${API_URL}/obtener-usuarios`, {
       params: {
@@ -78,7 +71,6 @@ export const getUsuarios = async (
       },
     });
 
-    console.log("✅ Respuesta al obtener usuarios:", response.data);
     return response.data.usuarios; // 👈 Aquí es "usuarios", no "items"
   } catch (error) {
     console.error("❌ Error al obtener usuarios:", error);
@@ -90,10 +82,8 @@ export const getUsuarios = async (
 export const actualizarUsuario = async (
   usuario: Partial<Usuario>
 ): Promise<void> => {
-  console.log(`🚀 Actualizando usuario con ID: ${usuario.idUsuario}`);
   try {
     await axios.put(`${API_URL}/editar-usuario`, usuario);
-    console.log("✅ Usuario actualizado correctamente");
   } catch (error: any) {
     console.error("❌ Error al actualizar el usuario:", error.message);
     if (error.response) {

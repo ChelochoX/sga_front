@@ -30,7 +30,6 @@ export const useUsuarios = () => {
 
   // ✅ Función para cambiar el estado de un usuario
   const toggleUsuarioEstado = async (id: number) => {
-    console.log(`🔄 Intentando cambiar el estado del usuario con ID: ${id}`);
     try {
       await cambiarEstadoUsuario(id);
 
@@ -45,10 +44,6 @@ export const useUsuarios = () => {
               }
             : usuario
         )
-      );
-
-      console.log(
-        `✅ Estado del usuario con ID ${id} actualizado correctamente.`
       );
     } catch (error) {
       console.error("❌ Error al cambiar estado del usuario:", error);
