@@ -278,7 +278,25 @@ const UsuariosPage: React.FC = () => {
                   {usuarios.map((usuario) => (
                     <TableRow key={usuario.idUsuario}>
                       <TableCell>{usuario.nombreUsuario}</TableCell>
-                      <TableCell>{usuario.estado}</TableCell>
+                      <TableCell>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                            color:
+                              usuario.estado === "Activo" ? "green" : "red",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          {usuario.estado === "Activo" ? (
+                            <CheckCircleIcon color="success" />
+                          ) : (
+                            <CancelIcon color="error" />
+                          )}
+                          {usuario.estado}
+                        </Box>
+                      </TableCell>
                       <TableCell>
                         {formatFecha(usuario.fechaCreacion)}
                       </TableCell>
@@ -286,27 +304,50 @@ const UsuariosPage: React.FC = () => {
                         {formatFecha(usuario.fechaModificacion)}
                       </TableCell>
                       <TableCell>
-                        <Button
-                          onClick={() => toggleUsuarioEstado(usuario.idUsuario)}
-                          variant="contained"
-                          color={
-                            usuario.estado === "Activo" ? "error" : "success"
-                          }
-                          sx={{ marginRight: "8px" }}
-                        >
-                          {usuario.estado === "Activo"
-                            ? "Desactivar"
-                            : "Activar"}
-                        </Button>
+                        <Box sx={{ display: "flex", gap: 1 }}>
+                          <Button
+                            onClick={() =>
+                              toggleUsuarioEstado(usuario.idUsuario)
+                            }
+                            variant="contained"
+                            fullWidth
+                            sx={{
+                              background:
+                                usuario.estado === "Activo"
+                                  ? "#ff4d4d"
+                                  : "#4caf50",
+                              color: "white",
+                              "&:hover": {
+                                background:
+                                  usuario.estado === "Activo"
+                                    ? "#ff1a1a"
+                                    : "#45a049",
+                              },
+                            }}
+                          >
+                            {usuario.estado === "Activo"
+                              ? "Desactivar"
+                              : "Activar"}
+                          </Button>
 
-                        <Button
-                          onClick={() => handleEditClick(usuario)}
-                          variant="outlined"
-                          color="primary"
-                          startIcon={<EditIcon />}
-                        >
-                          Editar
-                        </Button>
+                          <Button
+                            onClick={() => handleEditClick(usuario)}
+                            variant="outlined"
+                            fullWidth
+                            sx={{
+                              background:
+                                "linear-gradient(45deg, #6a11cb, #2575fc)",
+                              color: "white", // 🔄 Letra en blanco
+                              "&:hover": {
+                                background:
+                                  "linear-gradient(45deg, #5b10b0, #1d66e0)",
+                              },
+                            }}
+                            startIcon={<EditIcon />}
+                          >
+                            Editar
+                          </Button>
+                        </Box>
                       </TableCell>
                     </TableRow>
                   ))}
