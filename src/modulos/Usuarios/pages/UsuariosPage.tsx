@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import {
-  Button, // ✅ Importado correctamente
+  Button,
   Grid,
   Typography,
   CircularProgress,
@@ -18,9 +18,21 @@ import {
   Card,
   CardContent,
   useMediaQuery,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
-import { Search } from "@mui/icons-material";
-import { useUsuarios } from "../hooks/useUsuarios"; // Asegúrate de que la ruta sea correcta
+import {
+  Search,
+  Person as PersonIcon,
+  Event as EventIcon,
+  Update as UpdateIcon,
+  CheckCircle as CheckCircleIcon,
+  Cancel as CancelIcon,
+  Edit as EditIcon,
+} from "@mui/icons-material";
+import { useUsuarios } from "../hooks/useUsuarios";
 import { useTheme } from "@mui/material/styles";
 
 const UsuariosPage: React.FC = () => {
@@ -37,15 +49,21 @@ const UsuariosPage: React.FC = () => {
 
   const [searchText, setSearchText] = useState("");
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm")); // 📱 Detectar si es móvil
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
+  // ✏️ Estado para el modal de edición
+  const [openEdit, setOpenEdit] = useState(false);
+  const [selectedUsuario, setSelectedUsuario] = useState<any>(null);
+  const [newNombreUsuario, setNewNombreUsuario] = useState<string>("");
+
+  // 🔄 Función para manejar la búsqueda
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchText(e.target.value);
     setFilter(e.target.value);
   };
 
   const handleChangePage = (event: unknown, newPage: number) => {
-    setPageNumber(newPage + 1); // Ajustamos la página a 1-based para la paginación
+    setPageNumber(newPage + 1);
   };
 
   const handleChangeRowsPerPage = (
@@ -55,13 +73,32 @@ const UsuariosPage: React.FC = () => {
     setPageNumber(1);
   };
 
+  // ✏️ Función para abrir el modal y setear el usuario
+  const handleEditClick = (usuario: any) => {
+    setSelectedUsuario(usuario);
+    setNewNombreUsuario(usuario.nombreUsuario);
+    setOpenEdit(true);
+  };
+
+  // 🔄 Función para guardar cambios
+  const handleSaveEdit = async () => {
+    if (selectedUsuario) {
+      await editUsuario({
+        idUsuario: selectedUsuario.idUsuario,
+        nombreUsuario: newNombreUsuario,
+        fechaModificacion: new Date().toISOString(),
+      });
+
+      setOpenEdit(false);
+    }
+  };
+
   return (
     <Box p={2}>
       <Typography variant="h5" sx={{ marginBottom: 2 }}>
         Gestión de Usuarios
       </Typography>
 
-      {/* 🔎 Filtro de búsqueda con estilo corregido */}
       <TextField
         placeholder="Buscar usuario..."
         variant="outlined"
@@ -92,7 +129,6 @@ const UsuariosPage: React.FC = () => {
         }}
       />
 
-      {/* Loader */}
       {loading ? (
         <CircularProgress />
       ) : (
@@ -104,29 +140,47 @@ const UsuariosPage: React.FC = () => {
                   <Card variant="outlined">
                     <CardContent>
                       <Typography variant="h6">
+                        <PersonIcon color="primary" />
                         {usuario.nombreUsuario}
                       </Typography>
                       <Typography color="textSecondary">
+                        {usuario.estado === "Activo" ? (
+                          <CheckCircleIcon color="success" />
+                        ) : (
+                          <CancelIcon color="error" />
+                        )}
                         Estado: {usuario.estado}
                       </Typography>
                       <Typography color="textSecondary">
+                        <EventIcon color="action" />
                         Fecha de Creación: {usuario.fechaCreacion}
                       </Typography>
                       <Typography color="textSecondary">
+                        <UpdateIcon color="action" />
                         Fecha de Modificación: {usuario.fechaModificacion}
                       </Typography>
-                      <Box mt={2}>
+                      <Box mt={2} sx={{ display: "flex", gap: 1 }}>
                         <Button
                           onClick={() => toggleUsuarioEstado(usuario.idUsuario)}
                           variant="contained"
                           color={
-                            usuario.estado === "activo" ? "error" : "success"
+                            usuario.estado === "Activo" ? "error" : "success"
                           }
                           fullWidth
                         >
-                          {usuario.estado === "activo"
+                          {usuario.estado === "Activo"
                             ? "Desactivar"
                             : "Activar"}
+                        </Button>
+
+                        <Button
+                          onClick={() => handleEditClick(usuario)}
+                          variant="outlined"
+                          color="primary"
+                          fullWidth
+                          startIcon={<EditIcon />}
+                        >
+                          Editar
                         </Button>
                       </Box>
                     </CardContent>
@@ -155,35 +209,25 @@ const UsuariosPage: React.FC = () => {
                       <TableCell>{usuario.fechaModificacion}</TableCell>
                       <TableCell>
                         <Button
-                          onClick={() =>
-                            editUsuario({
-                              idUsuario: usuario.idUsuario,
-                              nombreUsuario: "NuevoNombreUsuario",
-                              estado:
-                                usuario.estado === "Activo"
-                                  ? "Inactivo"
-                                  : "Activo",
-                              fechaModificacion: new Date().toISOString(), // 👈 Esto lo formateas al backend
-                            })
-                          }
-                          variant="outlined"
-                          color="primary"
-                          fullWidth
-                        >
-                          Editar
-                        </Button>
-                      </TableCell>
-                      <TableCell>
-                        <Button
                           onClick={() => toggleUsuarioEstado(usuario.idUsuario)}
                           variant="contained"
                           color={
-                            usuario.estado === "activo" ? "error" : "success"
+                            usuario.estado === "Activo" ? "error" : "success"
                           }
+                          sx={{ marginRight: "8px" }}
                         >
-                          {usuario.estado === "activo"
+                          {usuario.estado === "Activo"
                             ? "Desactivar"
                             : "Activar"}
+                        </Button>
+
+                        <Button
+                          onClick={() => handleEditClick(usuario)}
+                          variant="outlined"
+                          color="primary"
+                          startIcon={<EditIcon />}
+                        >
+                          Editar
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -195,15 +239,26 @@ const UsuariosPage: React.FC = () => {
         </>
       )}
 
-      {/* Paginación */}
-      <TablePagination
-        component="div"
-        count={total}
-        page={0}
-        onPageChange={handleChangePage}
-        rowsPerPage={10}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-      />
+      {/* ✅ Modal para editar */}
+      <Dialog open={openEdit} onClose={() => setOpenEdit(false)}>
+        <DialogTitle>Editar Usuario</DialogTitle>
+        <DialogContent>
+          <TextField
+            label="Nombre de Usuario"
+            value={newNombreUsuario}
+            onChange={(e) => setNewNombreUsuario(e.target.value)}
+            fullWidth
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenEdit(false)} color="secondary">
+            Cancelar
+          </Button>
+          <Button onClick={handleSaveEdit} color="primary">
+            Guardar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

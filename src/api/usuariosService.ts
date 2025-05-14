@@ -7,13 +7,21 @@ const API_URL = `${import.meta.env.VITE_API_URL}/Usuarios`;
 console.log("🔎 URL Base para Usuarios:", API_URL);
 
 // Activar o desactivar usuario
-export const activarUsuario = async (id: number): Promise<void> => {
-  console.log(`🚀 Llamando a: ${API_URL}/activarusuario/${id}`);
+export const cambiarEstadoUsuario = async (id: number): Promise<void> => {
+  console.log(`🚀 Llamando a: ${API_URL}/cambiar-estado/${id}`);
   try {
-    const response = await axios.put(`${API_URL}/activarusuario/${id}`);
-    console.log("✅ Respuesta al activar usuario:", response.data);
+    await axios.put(
+      `${API_URL}/cambiar-estado/${id}`,
+      {},
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    console.log(`✅ Estado del usuario ${id} actualizado correctamente.`);
   } catch (error: any) {
-    console.error("❌ Error al activar/desactivar el usuario:", error.message);
+    console.error("❌ Error al cambiar estado del usuario:", error.message);
     if (error.response) {
       console.error("❌ Detalle del error:", error.response.data);
     }

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { Usuario } from "../types/usuarios.types";
 import {
-  activarUsuario,
+  cambiarEstadoUsuario,
   actualizarUsuario,
 } from "../../../api/usuariosService";
 
@@ -33,17 +33,9 @@ export const useUsuarios = () => {
   const [pageNumber, setPageNumber] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
 
-  // Función para obtener usuarios con paginación y filtro
+  // 🚀 Función para obtener usuarios con paginación y filtro
   const fetchUsuarios = async () => {
     setLoading(true);
-
-    // 🚀 Logs de depuración
-    console.log("🚀 URL Final:", `/api/usuarios/obtener-usuarios`);
-    console.log("📌 Parámetros enviados:", {
-      filtro: filter,
-      pageNumber: pageNumber,
-      pageSize: pageSize,
-    });
 
     try {
       const response = await axios.get("/api/usuarios/obtener-usuarios", {
@@ -53,9 +45,6 @@ export const useUsuarios = () => {
           pageSize: pageSize,
         },
       });
-
-      // ✅ Log de la respuesta
-      console.log("✅ Respuesta del servidor:", response.data);
 
       const { usuarios, total } = response.data;
 
@@ -70,7 +59,6 @@ export const useUsuarios = () => {
       setTotal(total);
     } catch (error: any) {
       console.error("❌ Error fetching usuarios:", error.message);
-
       if (error.response) {
         console.error("❌ Detalle del error:", error.response.data);
       }
@@ -79,37 +67,38 @@ export const useUsuarios = () => {
     }
   };
 
-  // Función para cambiar el estado de un usuario
+  // ✅ Función para cambiar el estado de un usuario
   const toggleUsuarioEstado = async (id: number) => {
     console.log(`🔄 Intentando cambiar el estado del usuario con ID: ${id}`);
     try {
-      await activarUsuario(id);
-      console.log(`✅ Usuario con ID ${id} actualizado correctamente.`);
+      await cambiarEstadoUsuario(id);
 
+      // 🔄 Refrescar solo el estado del usuario afectado
       setUsuarios((prev: Usuario[]) =>
         prev.map((usuario) =>
           usuario.idUsuario === id
             ? {
                 ...usuario,
-                estado: usuario.estado === "activo" ? "inactivo" : "activo",
+                estado: usuario.estado === "Activo" ? "Inactivo" : "Activo",
+                fechaModificacion: new Date().toLocaleString(),
               }
             : usuario
         )
+      );
+
+      console.log(
+        `✅ Estado del usuario con ID ${id} actualizado correctamente.`
       );
     } catch (error) {
       console.error("❌ Error al cambiar estado del usuario:", error);
     }
   };
 
-  // 🔄 Función para actualizar datos del usuario
+  // ✅ Función para actualizar datos del usuario
   const editUsuario = async (updatedData: Partial<Usuario>) => {
-    console.log(
-      `🔄 Intentando actualizar el usuario con ID: ${updatedData.idUsuario}`
-    );
     try {
       await actualizarUsuario(updatedData);
 
-      // Actualizamos el estado en el frontend
       setUsuarios((prev: Usuario[]) =>
         prev.map((usuario) =>
           usuario.idUsuario === updatedData.idUsuario
@@ -126,13 +115,14 @@ export const useUsuarios = () => {
     fetchUsuarios();
   }, [filter, pageNumber, pageSize]);
 
+  // ✅ Retornamos las funciones necesarias, incluyendo las que faltaban
   return {
     usuarios,
     total,
     loading,
     setFilter,
-    setPageNumber,
-    setPageSize,
+    setPageNumber, // ✅ Exportado correctamente
+    setPageSize, // ✅ Exportado correctamente
     toggleUsuarioEstado,
     editUsuario,
   };
