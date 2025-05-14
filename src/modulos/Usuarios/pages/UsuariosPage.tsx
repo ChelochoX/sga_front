@@ -154,28 +154,73 @@ const UsuariosPage: React.FC = () => {
             <Grid container spacing={2}>
               {usuarios.map((usuario) => (
                 <Grid item xs={12} key={usuario.idUsuario}>
-                  <Card variant="outlined">
+                  <Card
+                    variant="outlined"
+                    sx={{ borderRadius: "15px", overflow: "hidden" }}
+                  >
                     <CardContent>
-                      <Typography variant="h6">
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                          color: "#4a4a4a",
+                        }}
+                      >
                         <PersonIcon color="primary" />
                         {usuario.nombreUsuario}
                       </Typography>
-                      <Typography color="textSecondary">
+
+                      <Box
+                        sx={{
+                          display: "flex",
+                          gap: 1,
+                          alignItems: "center",
+                          mt: 1,
+                        }}
+                      >
                         {usuario.estado === "Activo" ? (
                           <CheckCircleIcon color="success" />
                         ) : (
                           <CancelIcon color="error" />
                         )}
-                        Estado: {usuario.estado}
-                      </Typography>
-                      <Typography color="textSecondary">
+                        <Typography fontWeight="bold">Estado:</Typography>
+                        <Typography color="primary">
+                          {usuario.estado}
+                        </Typography>
+                      </Box>
+
+                      <Box
+                        sx={{
+                          display: "flex",
+                          gap: 1,
+                          alignItems: "center",
+                          mt: 1,
+                        }}
+                      >
                         <EventIcon color="action" />
-                        Fecha de Creación: {usuario.fechaCreacion}
-                      </Typography>
-                      <Typography color="textSecondary">
+                        <Typography fontWeight="bold">Creación:</Typography>
+                        <Typography color="primary">
+                          {formatFecha(usuario.fechaCreacion)}
+                        </Typography>
+                      </Box>
+
+                      <Box
+                        sx={{
+                          display: "flex",
+                          gap: 1,
+                          alignItems: "center",
+                          mt: 1,
+                        }}
+                      >
                         <UpdateIcon color="action" />
-                        Fecha de Modificación: {usuario.fechaModificacion}
-                      </Typography>
+                        <Typography fontWeight="bold">Modificación:</Typography>
+                        <Typography color="primary">
+                          {formatFecha(usuario.fechaModificacion)}
+                        </Typography>
+                      </Box>
+
                       <Box mt={2} sx={{ display: "flex", gap: 1 }}>
                         <Button
                           onClick={() => toggleUsuarioEstado(usuario.idUsuario)}
@@ -184,6 +229,18 @@ const UsuariosPage: React.FC = () => {
                             usuario.estado === "Activo" ? "error" : "success"
                           }
                           fullWidth
+                          sx={{
+                            background:
+                              usuario.estado === "Activo"
+                                ? "#ff4d4d"
+                                : "#4caf50",
+                            "&:hover": {
+                              background:
+                                usuario.estado === "Activo"
+                                  ? "#ff1a1a"
+                                  : "#45a049",
+                            },
+                          }}
                         >
                           {usuario.estado === "Activo"
                             ? "Desactivar"
