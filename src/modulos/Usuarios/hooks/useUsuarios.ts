@@ -77,8 +77,8 @@ export const useUsuarios = () => {
     total,
     loading,
     setFilter,
-    setPageNumber, // ✅ Exportado correctamente
-    setPageSize, // ✅ Exportado correctamente
+    setPageNumber,
+    setPageSize,
     toggleUsuarioEstado,
     editUsuario,
     fetchUsuarios,
