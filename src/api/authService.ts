@@ -5,20 +5,32 @@ import { LoginRequest, ChangePasswordRequest } from "../types/auth";
 // ✅ Login de usuario
 export const login = async (credentials: LoginRequest) => {
   try {
-    console.log("🔄 Enviando credenciales al login...");
-    const response = await instance.post("/Auth/login", credentials); // 👈 Ruta absoluta con Axios
-    const data = response.data;
+    const response = await instance.post("/Auth/login", credentials);
 
-    if (data.parTokens?.bearerToken) {
-      localStorage.setItem("token", data.parTokens.bearerToken);
+    // Guardamos token si viene
+    if (response.data.parTokens?.bearerToken) {
+      localStorage.setItem("token", response.data.parTokens.bearerToken);
       console.log("✅ Token almacenado en localStorage");
     }
 
-    console.log("✅ Respuesta de Login:", data);
-    return data;
-  } catch (error) {
-    console.error("❌ Error en login:", error);
-    throw error;
+    return response.data;
+  } catch (error: any) {
+    if (error.response) {
+      const data = error.response.data;
+      const message = data?.message || "Error en el login";
+
+      // Lanza un error simulando el objeto Axios error
+      const err = new Error(message) as any;
+      err.response = error.response; // <- Añadimos la response para que el catch del componente la pueda leer
+      throw err;
+    } else if (error.request) {
+      const err = new Error(
+        "💔 El servidor no está respondiendo. Intenta más tarde."
+      ) as any;
+      throw err;
+    } else {
+      throw new Error(error.message || "Ocurrió un error inesperado.");
+    }
   }
 };
 
@@ -34,7 +46,3 @@ export const changePassword = async (data: ChangePasswordRequest) => {
     throw error;
   }
 };
-
-///DATOS DEL USUARIO PARA PRUEBAS
-//usuario: cesar.lezca46c4
-//contrasena: 123456
