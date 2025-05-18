@@ -80,7 +80,9 @@ const Login: React.FC = () => {
         navigate("/dashboard/personas");
       } else if (result.requiereCambioContrasena) {
         // Usuario necesita cambiar contraseña, redirigir a cambio
-        navigate("/cambiar-contrasena");
+        navigate("/cambiar-contrasena", {
+          state: { usuario: result.nombreUsuario },
+        });
       } else {
         // Otro caso que no esperas
         setError("Estado de usuario no reconocido.");

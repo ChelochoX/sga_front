@@ -8,10 +8,11 @@ import {
   Snackbar,
   Alert,
 } from "@mui/material";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { changePassword } from "../../api/authService";
 
 const ChangePassword: React.FC = () => {
+  const location = useLocation();
   const [usuario, setUsuario] = useState("");
   const [nuevaContrasena, setNuevaContrasena] = useState("");
   const [confirmarContrasena, setConfirmarContrasena] = useState("");
@@ -24,17 +25,27 @@ const ChangePassword: React.FC = () => {
 
   // 🔍 Monitorizamos el estado de conexión a Internet
   useEffect(() => {
+    // Leer usuario desde location.state si existe
+    if (location.state?.usuario) {
+      setUsuario(location.state.usuario);
+      setNuevaContrasena("");
+      setConfirmarContrasena("");
+    }
+
+    // Funciones para detectar online/offline
     const handleOnline = () => setIsOffline(false);
     const handleOffline = () => setIsOffline(true);
 
+    // Añadir listeners
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
 
+    // Cleanup
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
-  }, []);
+  }, [location.state]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,9 +126,11 @@ const ChangePassword: React.FC = () => {
             value={usuario}
             onChange={(e) => setUsuario(e.target.value)}
             required
+            InputProps={{ readOnly: true }}
             sx={{
               "& .MuiOutlinedInput-root": {
                 borderRadius: "10px",
+                backgroundColor: "#f5f5f5",
               },
             }}
           />
