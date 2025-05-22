@@ -1,39 +1,55 @@
-import { useEffect, useState } from "react";
-import { getUsuarios, getRoles } from "../../../api/permisosService";
+import { useState, useEffect } from "react";
+import { RolDetalle, RolCatalogo } from "../types/roles.types";
+import {
+  getRolesDetalleByUsuarioNombre,
+  getRolesCatalogo,
+} from "../../../api/permisosService";
 
 export const useRoles = () => {
-  const [usuarios, setUsuarios] = useState([]);
-  const [roles, setRoles] = useState([]);
+  const [rolesDetalle, setRolesDetalle] = useState<RolDetalle[]>([]);
+  const [rolesCatalogo, setRolesCatalogo] = useState<RolCatalogo[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
+  const [filter, setFilter] = useState("");
+
+  const fetchRoles = async () => {
+    if (!filter.trim()) {
+      setRolesDetalle([]);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const data = await getRolesDetalleByUsuarioNombre(filter);
+      setRolesDetalle(data);
+    } catch (err) {
+      console.error("❌ Error al obtener roles:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCatalogoRoles = async () => {
+    try {
+      const data = await getRolesCatalogo();
+      setRolesCatalogo(data);
+    } catch (err) {
+      console.error("❌ Error al obtener el catálogo de roles:", err);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const usuarioData = await getUsuarios(search, page);
-        const rolesData = await getRoles();
-        setUsuarios(usuarioData.usuarios);
-        setRoles(rolesData);
-      } catch (err: any) {
-        console.error(err.message);
-        setError("Error al cargar datos");
-      } finally {
-        setLoading(false);
-      }
-    };
+    fetchRoles();
+  }, [filter]);
 
-    fetchData();
-  }, [search, page]);
+  useEffect(() => {
+    fetchCatalogoRoles();
+  }, []);
 
   return {
-    usuarios,
-    roles,
+    rolesDetalle,
+    rolesCatalogo,
     loading,
-    error,
-    setSearch,
-    setPage,
+    setFilter,
+    fetchRoles,
   };
 };

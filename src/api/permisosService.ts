@@ -1,89 +1,33 @@
-// permisosService.ts
 import axios from "axios";
-import {
-  Recurso,
-  Entidad,
-  Permiso,
-} from "../modulos/Permisos/types/permisos.types";
+import { RolDetalle, RolCatalogo } from "../modulos/Permisos/types/roles.types";
 
-// ✅ Usando variable de entorno del .env.development
-const API_URL = `${import.meta.env.VITE_API_URL}`;
+// ✅ Base API desde .env
+const API_URL = `${import.meta.env.VITE_API_URL}/Roles`;
 
-// -------------------------------------------
-// ✅ Obtener todos los Recursos
-// Endpoint: GET /Permisos/recursos
-// -------------------------------------------
-export const getRecursos = async (): Promise<Recurso[]> => {
-  try {
-    const response = await axios.get(`${API_URL}/Permisos/recursos`);
-    console.log("✅ Recursos obtenidos:", response.data);
-    return response.data;
-  } catch (error) {
-    console.error("❌ Error al obtener recursos:", error);
-    throw error;
-  }
+// 🟢 Obtener roles con permisos por nombre de usuario
+export const getRolesDetalleByUsuarioNombre = async (
+  filtro: string
+): Promise<RolDetalle[]> => {
+  const response = await axios.get(`${API_URL}/usuarios/detalle-roles`, {
+    params: { nombreUsuario: filtro },
+  });
+  return response.data;
 };
 
-// -------------------------------------------
-// ✅ Obtener todas las Entidades
-// Endpoint: GET /Permisos/entidades
-// -------------------------------------------
-export const getEntidades = async (): Promise<Entidad[]> => {
+// ✅ catálogo de roles
+export const getRolesCatalogo = async (): Promise<RolCatalogo[]> => {
   try {
-    const response = await axios.get(`${API_URL}/Permisos/entidades`);
-    console.log("✅ Entidades obtenidas:", response.data);
-    return response.data;
-  } catch (error) {
-    console.error("❌ Error al obtener entidades:", error);
-    throw error;
-  }
-};
+    const { data } = await axios.get(`${API_URL}/obtener-todos`);
 
-// -------------------------------------------
-// ✅ Obtener Permisos por Rol
-// Endpoint: GET /Permisos/{idRol}/permisos
-// -------------------------------------------
-export const getPermisosByRol = async (idRol: number): Promise<Permiso[]> => {
-  try {
-    const response = await axios.get(`${API_URL}/Permisos/${idRol}/permisos`);
-    console.log(
-      `✅ Permisos obtenidos para el Rol ID ${idRol}:`,
-      response.data
-    );
-    return response.data;
-  } catch (error) {
-    console.error(
-      `❌ Error al obtener permisos para el Rol ID ${idRol}:`,
-      error
-    );
-    throw error;
-  }
-};
+    // Validar que data sea array
+    if (!Array.isArray(data)) {
+      console.error("❌ La respuesta no es un array:", data);
+      return [];
+    }
 
-// ✅ Obtener Usuarios con Filtro
-export const getUsuarios = async (
-  filtro: string,
-  page: number = 1,
-  pageSize: number = 10
-) => {
-  try {
-    const response = await axios.get(`${API_URL}/Usuarios/obtener-usuarios`, {
-      params: { filtro, pageNumber: page, pageSize },
-    });
-    return response.data;
+    return data; // [{ idRol: 1, nombreRol: "Admin" }, ...]
   } catch (error) {
-    console.error("❌ Error al obtener usuarios:", error);
-    throw error;
-  }
-};
-
-// ✅ Obtener Roles
-export const getRoles = async () => {
-  try {
-    const response = await axios.get(`${API_URL}/Roles/obtener-todos`);
-    return response.data;
-  } catch (error) {
-    console.error("❌ Error al obtener roles:", error);
-    throw error;
+    console.error("❌ Error al obtener roles del catálogo:", error);
+    return [];
   }
 };
