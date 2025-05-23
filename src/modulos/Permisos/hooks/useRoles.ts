@@ -10,10 +10,12 @@ export const useRoles = () => {
   const [rolesCatalogo, setRolesCatalogo] = useState<RolCatalogo[]>([]);
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState("");
+  const [selectedRoles, setSelectedRoles] = useState<number[]>([]);
 
   const fetchRoles = async () => {
     if (!filter.trim()) {
       setRolesDetalle([]);
+      setSelectedRoles([]); // 🔄 reset al cambiar búsqueda
       return;
     }
 
@@ -21,6 +23,10 @@ export const useRoles = () => {
     try {
       const data = await getRolesDetalleByUsuarioNombre(filter);
       setRolesDetalle(data);
+
+      // ✅ Aquí extraemos los roles que ya tiene asignado
+      const idsAsignados = data.map((rol) => rol.idRol);
+      setSelectedRoles(idsAsignados);
     } catch (err) {
       console.error("❌ Error al obtener roles:", err);
     } finally {
@@ -48,6 +54,8 @@ export const useRoles = () => {
   return {
     rolesDetalle,
     rolesCatalogo,
+    selectedRoles,
+    setSelectedRoles,
     loading,
     setFilter,
     fetchRoles,

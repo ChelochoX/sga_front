@@ -20,10 +20,16 @@ import { ExpandMore, Search } from "@mui/icons-material";
 import { useRoles } from "../hooks/useRoles";
 
 const RolesPage: React.FC = () => {
-  const { rolesDetalle, rolesCatalogo, loading, setFilter } = useRoles();
+  const {
+    rolesDetalle,
+    rolesCatalogo,
+    selectedRoles,
+    setSelectedRoles,
+    loading,
+    setFilter,
+  } = useRoles();
 
   const [searchText, setSearchText] = useState("");
-  const [selectedRoles, setSelectedRoles] = useState<number[]>([]);
 
   const handleRoleToggle = (idRol: number) => {
     setSelectedRoles((prev) =>
@@ -77,27 +83,35 @@ const RolesPage: React.FC = () => {
       </Paper>
 
       {/* ✅ Selector de roles */}
-      <Paper
-        elevation={1}
-        sx={{
-          p: 2,
-          mb: 3,
-          borderRadius: 3,
-          backgroundColor: "#f4f6fa",
-        }}
-      >
-        <Typography fontWeight="bold" sx={{ mb: 1 }}>
+      <Paper elevation={1} sx={{ p: 2, mb: 3 }}>
+        <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
           Asignar roles al usuario
         </Typography>
 
-        <Grid container spacing={1}>
+        <Grid container spacing={2}>
           {rolesCatalogo.map((rol) => (
             <Grid item xs={12} sm={6} md={4} key={rol.idRol}>
               <FormControlLabel
                 control={
                   <Checkbox
-                    checked={selectedRoles.includes(rol.idRol)}
-                    onChange={() => handleRoleToggle(rol.idRol)}
+                    checked={selectedRoles.includes(rol.idRol)} // 🔁 Estado sincronizado
+                    onChange={() => {
+                      if (selectedRoles.includes(rol.idRol)) {
+                        // 🔄 Deseleccionamos
+                        setSelectedRoles((prev) =>
+                          prev.filter((id) => id !== rol.idRol)
+                        );
+                      } else {
+                        // ✅ Seleccionamos
+                        setSelectedRoles((prev) => [...prev, rol.idRol]);
+                      }
+                    }}
+                    sx={{
+                      color: "purple",
+                      "&.Mui-checked": {
+                        color: "purple",
+                      },
+                    }}
                   />
                 }
                 label={rol.nombreRol}
@@ -105,21 +119,20 @@ const RolesPage: React.FC = () => {
             </Grid>
           ))}
         </Grid>
-        {/* ✅ Botón Guardar */}
-        <Box display="flex" justifyContent="flex-end" mt={3}>
+
+        <Box textAlign="right" mt={2}>
           <Button
             variant="contained"
-            color="primary"
             sx={{
-              background: "linear-gradient(45deg, #6a11cb, #2575fc)",
-              color: "white",
-              px: 4,
-              py: 1,
-              borderRadius: 8,
-              textTransform: "none",
+              background: "linear-gradient(to right, #6a11cb, #2575fc)",
+              color: "#fff",
               "&:hover": {
-                background: "linear-gradient(45deg, #5b10b0, #1d66e0)",
+                background: "linear-gradient(to right, #5b0eb1, #1f64e6)",
               },
+            }}
+            onClick={() => {
+              console.log("💾 Guardar roles seleccionados:", selectedRoles);
+              // Aquí iría la llamada a la API para guardar
             }}
           >
             Guardar
