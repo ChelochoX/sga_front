@@ -1,5 +1,9 @@
 import axios from "axios";
-import { RolDetalle, RolCatalogo } from "../modulos/Permisos/types/roles.types";
+import {
+  RolDetalle,
+  RolCatalogo,
+  ActualizarRolesRequest,
+} from "../modulos/Permisos/types/roles.types";
 
 // ✅ Base API desde .env
 const API_URL = `${import.meta.env.VITE_API_URL}/Roles`;
@@ -29,5 +33,21 @@ export const getRolesCatalogo = async (): Promise<RolCatalogo[]> => {
   } catch (error) {
     console.error("❌ Error al obtener roles del catálogo:", error);
     return [];
+  }
+};
+
+export const actualizarRolesUsuario = async (
+  nombreUsuario: string,
+  idsRoles: number[]
+): Promise<void> => {
+  try {
+    await axios.post(`${API_URL}/actualizar-roles`, {
+      nombreUsuario,
+      idsRoles,
+    });
+    console.log("✅ Roles actualizados correctamente desde el servicio.");
+  } catch (error) {
+    console.error("❌ Error al actualizar roles en el servicio:", error);
+    throw error;
   }
 };

@@ -12,6 +12,10 @@ import RolesPage from "./modulos/Permisos/pages/RolesPage";
 // import Pagos from "./modulos/Pagos/pages/PagosPage";
 // import Caja from "./modulos/Caja/pages/CajaPage";
 
+// 🟣 Toastify
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 const App: React.FC = () => {
   return (
     <BrowserRouter>
@@ -30,6 +34,19 @@ const App: React.FC = () => {
           <Route path="caja" element={<Caja />} />*/}
         </Route>
       </Routes>
+
+      {/* 📣 Toast notifications globales */}
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
     </BrowserRouter>
   );
 };

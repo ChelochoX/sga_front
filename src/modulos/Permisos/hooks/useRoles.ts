@@ -3,7 +3,9 @@ import { RolDetalle, RolCatalogo } from "../types/roles.types";
 import {
   getRolesDetalleByUsuarioNombre,
   getRolesCatalogo,
+  actualizarRolesUsuario as actualizarRolesUsuarioService,
 } from "../../../api/permisosService";
+import { toast } from "react-toastify";
 
 export const useRoles = () => {
   const [rolesDetalle, setRolesDetalle] = useState<RolDetalle[]>([]);
@@ -15,7 +17,7 @@ export const useRoles = () => {
   const fetchRoles = async () => {
     if (!filter.trim()) {
       setRolesDetalle([]);
-      setSelectedRoles([]); // 🔄 reset al cambiar búsqueda
+      setSelectedRoles([]);
       return;
     }
 
@@ -43,6 +45,21 @@ export const useRoles = () => {
     }
   };
 
+  const guardarRolesUsuario = async () => {
+    try {
+      const nombreUsuario = rolesDetalle[0]?.nombreUsuario ?? "";
+      if (!nombreUsuario) throw new Error("No hay usuario seleccionado");
+
+      await actualizarRolesUsuarioService(nombreUsuario, selectedRoles);
+      toast.success("✅ Roles guardados exitosamente");
+      // 🔁 Refrescar tarjeta de detalle
+      await fetchRoles();
+    } catch (err) {
+      toast.error("❌ Error al guardar los roles");
+      throw err;
+    }
+  };
+
   useEffect(() => {
     fetchRoles();
   }, [filter]);
@@ -59,5 +76,6 @@ export const useRoles = () => {
     loading,
     setFilter,
     fetchRoles,
+    guardarRolesUsuario,
   };
 };

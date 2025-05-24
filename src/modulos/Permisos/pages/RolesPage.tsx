@@ -27,6 +27,7 @@ const RolesPage: React.FC = () => {
     setSelectedRoles,
     loading,
     setFilter,
+    guardarRolesUsuario,
   } = useRoles();
 
   const [searchText, setSearchText] = useState("");
@@ -82,6 +83,14 @@ const RolesPage: React.FC = () => {
         />
       </Paper>
 
+      {/* ✅ Nombre del Usuario */}
+      {rolesDetalle.length > 0 && (
+        <Typography variant="subtitle1" sx={{ mb: 1 }}>
+          <strong>Usuario seleccionado:</strong>{" "}
+          {rolesDetalle[0]?.nombreUsuario ?? "-"}
+        </Typography>
+      )}
+
       {/* ✅ Selector de roles */}
       <Paper elevation={1} sx={{ p: 2, mb: 3 }}>
         <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
@@ -97,12 +106,10 @@ const RolesPage: React.FC = () => {
                     checked={selectedRoles.includes(rol.idRol)} // 🔁 Estado sincronizado
                     onChange={() => {
                       if (selectedRoles.includes(rol.idRol)) {
-                        // 🔄 Deseleccionamos
                         setSelectedRoles((prev) =>
                           prev.filter((id) => id !== rol.idRol)
                         );
                       } else {
-                        // ✅ Seleccionamos
                         setSelectedRoles((prev) => [...prev, rol.idRol]);
                       }
                     }}
@@ -111,10 +118,18 @@ const RolesPage: React.FC = () => {
                       "&.Mui-checked": {
                         color: "purple",
                       },
+                      p: 0, // 👈 Reducido padding del checkbox
                     }}
                   />
                 }
-                label={rol.nombreRol}
+                label={
+                  <Typography variant="body2" sx={{ ml: 1 }}>
+                    {rol.nombreRol}
+                  </Typography>
+                }
+                sx={{
+                  m: 0, // 👈 Eliminamos margen vertical del FormControlLabel
+                }}
               />
             </Grid>
           ))}
@@ -130,9 +145,10 @@ const RolesPage: React.FC = () => {
                 background: "linear-gradient(to right, #5b0eb1, #1f64e6)",
               },
             }}
-            onClick={() => {
-              console.log("💾 Guardar roles seleccionados:", selectedRoles);
-              // Aquí iría la llamada a la API para guardar
+            onClick={async () => {
+              try {
+                await guardarRolesUsuario();
+              } catch {}
             }}
           >
             Guardar
