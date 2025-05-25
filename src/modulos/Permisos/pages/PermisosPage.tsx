@@ -184,17 +184,17 @@ const PermisosPage: React.FC = () => {
                       <FormControlLabel
                         control={
                           <Checkbox
-                            checked={permisosSeleccionados.includes(
-                              recurso.idRecurso
+                            checked={permisosSeleccionados.some(
+                              (p) =>
+                                p.idEntidad === entidad.idEntidad &&
+                                p.idRecurso === recurso.idRecurso
                             )}
-                            onChange={() => togglePermiso(recurso.idRecurso)}
-                            sx={{
-                              color: "purple",
-                              "&.Mui-checked": {
-                                color: "purple",
-                              },
-                              p: 0,
-                            }}
+                            onChange={() =>
+                              togglePermiso(
+                                entidad.idEntidad,
+                                recurso.idRecurso
+                              )
+                            }
                           />
                         }
                         label={
