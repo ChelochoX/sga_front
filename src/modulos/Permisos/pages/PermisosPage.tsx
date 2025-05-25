@@ -5,45 +5,23 @@ import {
   CircularProgress,
   InputAdornment,
   IconButton,
-  Grid,
-  FormControlLabel,
-  Checkbox,
   Accordion,
   AccordionSummary,
   AccordionDetails,
   Chip,
   Paper,
-  Button,
 } from "@mui/material";
 import { ExpandMore, Search } from "@mui/icons-material";
-
 import { useRoles } from "../hooks/useRoles";
 
-const RolesPage: React.FC = () => {
-  const {
-    rolesDetalle,
-    rolesCatalogo,
-    selectedRoles,
-    setSelectedRoles,
-    loading,
-    setFilter,
-    guardarRolesUsuario,
-  } = useRoles();
-
+const PermisosPage: React.FC = () => {
+  const { rolesDetalle, loading, setFilter } = useRoles();
   const [searchText, setSearchText] = useState("");
-
-  const handleRoleToggle = (idRol: number) => {
-    setSelectedRoles((prev) =>
-      prev.includes(idRol)
-        ? prev.filter((id) => id !== idRol)
-        : [...prev, idRol]
-    );
-  };
 
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h5" gutterBottom sx={{ mb: 2 }}>
-        Gestión de Roles
+        Gestión de Permisos
       </Typography>
 
       {/* 🔍 Buscador */}
@@ -83,7 +61,7 @@ const RolesPage: React.FC = () => {
         />
       </Paper>
 
-      {/* ✅ Nombre del Usuario */}
+      {/* 👤 Nombre del usuario */}
       {rolesDetalle.length > 0 && (
         <Typography variant="subtitle1" sx={{ mb: 1 }}>
           <strong>Usuario seleccionado:</strong>{" "}
@@ -91,72 +69,7 @@ const RolesPage: React.FC = () => {
         </Typography>
       )}
 
-      {/* ✅ Selector de roles */}
-      <Paper elevation={1} sx={{ p: 2, mb: 3 }}>
-        <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-          Asignar roles al usuario
-        </Typography>
-
-        <Grid container spacing={2}>
-          {rolesCatalogo.map((rol) => (
-            <Grid item xs={12} sm={6} md={4} key={rol.idRol}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={selectedRoles.includes(rol.idRol)}
-                    onChange={() => {
-                      if (selectedRoles.includes(rol.idRol)) {
-                        setSelectedRoles((prev) =>
-                          prev.filter((id) => id !== rol.idRol)
-                        );
-                      } else {
-                        setSelectedRoles((prev) => [...prev, rol.idRol]);
-                      }
-                    }}
-                    sx={{
-                      color: "purple",
-                      "&.Mui-checked": {
-                        color: "purple",
-                      },
-                      p: 0, // 👈 Reducido padding del checkbox
-                    }}
-                  />
-                }
-                label={
-                  <Typography variant="body2" sx={{ ml: 1 }}>
-                    {rol.nombreRol}
-                  </Typography>
-                }
-                sx={{
-                  m: 0, // 👈 Eliminamos margen vertical del FormControlLabel
-                }}
-              />
-            </Grid>
-          ))}
-        </Grid>
-
-        <Box textAlign="right" mt={2}>
-          <Button
-            variant="contained"
-            sx={{
-              background: "linear-gradient(to right, #6a11cb, #2575fc)",
-              color: "#fff",
-              "&:hover": {
-                background: "linear-gradient(to right, #5b0eb1, #1f64e6)",
-              },
-            }}
-            onClick={async () => {
-              try {
-                await guardarRolesUsuario();
-              } catch {}
-            }}
-          >
-            Guardar
-          </Button>
-        </Box>
-      </Paper>
-
-      {/* 📂 Detalle de roles */}
+      {/* 📂 Detalle de permisos por rol */}
       {loading ? (
         <CircularProgress />
       ) : rolesDetalle.length > 0 && !rolesDetalle[0]?.nombreRol ? (
@@ -236,4 +149,4 @@ const RolesPage: React.FC = () => {
   );
 };
 
-export default RolesPage;
+export default PermisosPage;

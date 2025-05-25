@@ -27,7 +27,7 @@ export const useRoles = () => {
       setRolesDetalle(data);
 
       // ✅ Aquí extraemos los roles que ya tiene asignado
-      const idsAsignados = data.map((rol) => rol.idRol);
+      const idsAsignados = data.map((rol) => rol.idRol).filter(Boolean);
       setSelectedRoles(idsAsignados);
     } catch (err) {
       console.error("❌ Error al obtener roles:", err);
@@ -50,7 +50,12 @@ export const useRoles = () => {
       const nombreUsuario = rolesDetalle[0]?.nombreUsuario ?? "";
       if (!nombreUsuario) throw new Error("No hay usuario seleccionado");
 
-      await actualizarRolesUsuarioService(nombreUsuario, selectedRoles);
+      console.log("Roles seleccionados para guardar:", selectedRoles);
+
+      await actualizarRolesUsuarioService(
+        nombreUsuario,
+        selectedRoles.filter((id) => id > 0)
+      );
       toast.success("✅ Roles guardados exitosamente");
       // 🔁 Refrescar tarjeta de detalle
       await fetchRoles();

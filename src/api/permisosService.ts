@@ -4,9 +4,14 @@ import {
   RolCatalogo,
   ActualizarRolesRequest,
 } from "../modulos/Permisos/types/roles.types";
+import {
+  EntidadConRecursos,
+  AsignarPermisosRequest,
+} from "../modulos/Permisos/types/permisos.types";
 
 // ✅ Base API desde .env
 const API_URL = `${import.meta.env.VITE_API_URL}/Roles`;
+const API_URL_Permisos = `${import.meta.env.VITE_API_URL}/Permisos`;
 
 // 🟢 Obtener roles con permisos por nombre de usuario
 export const getRolesDetalleByUsuarioNombre = async (
@@ -50,4 +55,19 @@ export const actualizarRolesUsuario = async (
     console.error("❌ Error al actualizar roles en el servicio:", error);
     throw error;
   }
+};
+
+export const obtenerEntidadesConRecursos = async (): Promise<
+  EntidadConRecursos[]
+> => {
+  const response = await axios.get(
+    `${API_URL_Permisos}/entidades-con-recursos`
+  );
+  return response.data;
+};
+
+export const asignarPermisosARol = async (
+  request: AsignarPermisosRequest
+): Promise<void> => {
+  await axios.post(`${API_URL_Permisos}/asignar-permisos`, request);
 };
