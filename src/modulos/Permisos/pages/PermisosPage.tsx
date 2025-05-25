@@ -22,10 +22,8 @@ import { usePermisos } from "../hooks/usePermisos";
 const PermisosPage: React.FC = () => {
   const [searchText, setSearchText] = useState("");
   const { rolesDetalle, loading: loadingRoles, setFilter } = useRoles();
-
   const idRol = rolesDetalle[0]?.idRol;
-
-  const permisosHook = usePermisos(idRol ?? 0);
+  const permisosHook = usePermisos(idRol ?? null, rolesDetalle);
 
   const {
     entidades = [],

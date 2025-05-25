@@ -1,9 +1,5 @@
 import axios from "axios";
-import {
-  RolDetalle,
-  RolCatalogo,
-  ActualizarRolesRequest,
-} from "../modulos/Permisos/types/roles.types";
+import { RolDetalle, RolCatalogo } from "../modulos/Permisos/types/roles.types";
 import {
   EntidadConRecursos,
   AsignarPermisosRequest,

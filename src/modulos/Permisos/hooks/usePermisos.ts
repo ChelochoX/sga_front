@@ -5,10 +5,14 @@ import {
   asignarPermisosARol,
 } from "../../../api/permisosService";
 import { toast } from "react-toastify";
+import { RolDetalle } from "../types/roles.types";
 
 type PermisoMarcado = { idEntidad: number; idRecurso: number };
 
-export const usePermisos = (idRol: number | null) => {
+export const usePermisos = (
+  idRol: number | null,
+  rolesDetalle: RolDetalle[]
+) => {
   const [entidades, setEntidades] = useState<EntidadConRecursos[]>([]);
   const [permisosSeleccionados, setPermisosSeleccionados] = useState<
     PermisoMarcado[]
@@ -23,7 +27,37 @@ export const usePermisos = (idRol: number | null) => {
       try {
         const data = await obtenerEntidadesConRecursos();
         setEntidades(data);
-        // Aquí podrías cargar los permisos actuales del rol si es necesario
+
+        // Cargar permisos actuales del rol desde rolesDetalle
+        const rolActual = rolesDetalle.find((rol) => rol.idRol === idRol);
+
+        if (rolActual) {
+          const permisosIniciales: PermisoMarcado[] = [];
+
+          rolActual.entidades.forEach((entidadRol) => {
+            const entidadSistema = data.find(
+              (e) => e.idEntidad === entidadRol.idEntidad
+            );
+
+            if (!entidadSistema) return;
+
+            entidadRol.acciones.forEach((accionNombre) => {
+              const recursoEncontrado = entidadSistema.recursos.find(
+                (r) =>
+                  r.nombreRecurso.toLowerCase() === accionNombre.toLowerCase()
+              );
+
+              if (recursoEncontrado) {
+                permisosIniciales.push({
+                  idEntidad: entidadRol.idEntidad,
+                  idRecurso: recursoEncontrado.idRecurso,
+                });
+              }
+            });
+          });
+
+          setPermisosSeleccionados(permisosIniciales);
+        }
       } catch (error) {
         toast.error("Error al obtener las entidades con recursos.");
       } finally {
@@ -32,7 +66,7 @@ export const usePermisos = (idRol: number | null) => {
     };
 
     fetchEntidades();
-  }, [idRol]);
+  }, [idRol, rolesDetalle]);
 
   const togglePermiso = (idEntidad: number, idRecurso: number) => {
     const existe = permisosSeleccionados.some(
