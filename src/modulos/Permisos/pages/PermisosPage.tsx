@@ -10,13 +10,28 @@ import {
   AccordionDetails,
   Chip,
   Paper,
+  Grid,
+  Checkbox,
+  FormControlLabel,
+  Button,
 } from "@mui/material";
 import { ExpandMore, Search } from "@mui/icons-material";
 import { useRoles } from "../hooks/useRoles";
+import { usePermisos } from "../hooks/usePermisos";
 
 const PermisosPage: React.FC = () => {
-  const { rolesDetalle, loading, setFilter } = useRoles();
   const [searchText, setSearchText] = useState("");
+  const idRol = 1; // ⚠️ En producción, esto debería venir de un select dinámico o ruta
+
+  const { rolesDetalle, loading: loadingRoles, setFilter } = useRoles();
+
+  const {
+    entidades,
+    permisosSeleccionados,
+    togglePermiso,
+    guardarPermisos,
+    loading: loadingPermisos,
+  } = usePermisos(idRol);
 
   return (
     <Box sx={{ p: 3 }}>
@@ -69,8 +84,8 @@ const PermisosPage: React.FC = () => {
         </Typography>
       )}
 
-      {/* 📂 Detalle de permisos por rol */}
-      {loading ? (
+      {/* 📋 DETALLE DE PERMISOS ASIGNADOS POR ROL */}
+      {loadingRoles ? (
         <CircularProgress />
       ) : rolesDetalle.length > 0 && !rolesDetalle[0]?.nombreRol ? (
         <Paper
@@ -145,6 +160,74 @@ const PermisosPage: React.FC = () => {
           </Paper>
         ))
       )}
+
+      {/* ✅ SECCIÓN DE ASIGNACIÓN DE PERMISOS */}
+      <Paper elevation={1} sx={{ p: 2, mt: 4 }}>
+        <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+          Asignar permisos por módulo
+        </Typography>
+
+        {loadingPermisos ? (
+          <CircularProgress />
+        ) : (
+          entidades.map((entidad) => (
+            <Accordion key={entidad.idEntidad} sx={{ mb: 1 }}>
+              <AccordionSummary expandIcon={<ExpandMore />}>
+                <Typography fontWeight="bold">
+                  Módulo: {entidad.nombreEntidad}
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  {entidad.recursos.map((recurso) => (
+                    <Grid item xs={12} sm={6} md={4} key={recurso.idRecurso}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={permisosSeleccionados.includes(
+                              recurso.idRecurso
+                            )}
+                            onChange={() => togglePermiso(recurso.idRecurso)}
+                            sx={{
+                              color: "purple",
+                              "&.Mui-checked": {
+                                color: "purple",
+                              },
+                              p: 0,
+                            }}
+                          />
+                        }
+                        label={
+                          <Typography variant="body2" sx={{ ml: 1 }}>
+                            {recurso.nombreRecurso}
+                          </Typography>
+                        }
+                        sx={{ m: 0 }}
+                      />
+                    </Grid>
+                  ))}
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
+          ))
+        )}
+
+        <Box textAlign="right" mt={2}>
+          <Button
+            variant="contained"
+            onClick={guardarPermisos}
+            sx={{
+              background: "linear-gradient(to right, #6a11cb, #2575fc)",
+              color: "#fff",
+              "&:hover": {
+                background: "linear-gradient(to right, #5b0eb1, #1f64e6)",
+              },
+            }}
+          >
+            Guardar
+          </Button>
+        </Box>
+      </Paper>
     </Box>
   );
 };
