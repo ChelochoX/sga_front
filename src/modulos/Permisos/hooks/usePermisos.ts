@@ -1,5 +1,3 @@
-// src/modulos/Permisos/hooks/usePermisos.ts
-
 import { useState, useEffect } from "react";
 import { EntidadConRecursos } from "../types/permisos.types";
 import {
@@ -10,7 +8,7 @@ import { toast } from "react-toastify";
 
 type PermisoMarcado = { idEntidad: number; idRecurso: number };
 
-export const usePermisos = (idRol: number) => {
+export const usePermisos = (idRol: number | null) => {
   const [entidades, setEntidades] = useState<EntidadConRecursos[]>([]);
   const [permisosSeleccionados, setPermisosSeleccionados] = useState<
     PermisoMarcado[]
@@ -18,6 +16,8 @@ export const usePermisos = (idRol: number) => {
   const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
+    if (idRol === null) return;
+
     const fetchEntidades = async () => {
       setLoading(true);
       try {
@@ -32,7 +32,7 @@ export const usePermisos = (idRol: number) => {
     };
 
     fetchEntidades();
-  }, []);
+  }, [idRol]);
 
   const togglePermiso = (idEntidad: number, idRecurso: number) => {
     const existe = permisosSeleccionados.some(
@@ -51,9 +51,19 @@ export const usePermisos = (idRol: number) => {
   };
 
   const guardarPermisos = async () => {
+    if (idRol === null) {
+      toast.error("ID de rol no disponible.");
+      return;
+    }
+
     try {
-      const idsRecurso = permisosSeleccionados.map((p) => p.idRecurso);
-      await asignarPermisosARol({ idRol, permisos: idsRecurso });
+      const permisos = permisosSeleccionados.map((p) => ({
+        idEntidad: p.idEntidad,
+        idRecurso: p.idRecurso,
+      }));
+
+      await asignarPermisosARol({ idRol, permisos });
+
       toast.success("Permisos asignados correctamente.");
     } catch (error) {
       toast.error("Error al asignar los permisos.");

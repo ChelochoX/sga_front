@@ -13,5 +13,5 @@ export interface Recurso {
 
 export interface AsignarPermisosRequest {
   idRol: number;
-  permisos: number[]; // IDs de recursos
+  permisos: { idEntidad: number; idRecurso: number }[];
 }
