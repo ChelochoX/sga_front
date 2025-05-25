@@ -11,7 +11,8 @@ type PermisoMarcado = { idEntidad: number; idRecurso: number };
 
 export const usePermisos = (
   idRol: number | null,
-  rolesDetalle: RolDetalle[]
+  rolesDetalle: RolDetalle[],
+  onSuccess?: () => void
 ) => {
   const [entidades, setEntidades] = useState<EntidadConRecursos[]>([]);
   const [permisosSeleccionados, setPermisosSeleccionados] = useState<
@@ -99,6 +100,7 @@ export const usePermisos = (
       await asignarPermisosARol({ idRol, permisos });
 
       toast.success("Permisos asignados correctamente.");
+      onSuccess?.();
     } catch (error) {
       toast.error("Error al asignar los permisos.");
     }
