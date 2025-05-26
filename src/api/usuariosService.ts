@@ -71,7 +71,7 @@ export const getUsuarios = async (
       },
     });
 
-    return response.data.usuarios; // 👈 Aquí es "usuarios", no "items"
+    return response.data.usuarios;
   } catch (error) {
     console.error("❌ Error al obtener usuarios:", error);
     throw error;

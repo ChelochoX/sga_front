@@ -236,7 +236,7 @@ const Login: React.FC = () => {
       >
         <Alert
           onClose={() => setOpenSnackbar(false)}
-          severity="error"
+          severity={error.includes("🔒") ? "warning" : "error"}
           sx={{ width: "100%" }}
         >
           {error}

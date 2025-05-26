@@ -39,7 +39,7 @@ export const changePassword = async (data: ChangePasswordRequest) => {
   try {
     console.log("🔄 Enviando datos para cambiar contraseña...");
     const response = await instance.post("/Auth/cambiar-contrasena", data);
-    console.log("✅ Respuesta de cambio de contraseña:", response.data);
+
     return response.data;
   } catch (error) {
     console.error("❌ Error en cambio de contraseña:", error);

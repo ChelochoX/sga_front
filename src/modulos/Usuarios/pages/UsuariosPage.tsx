@@ -221,6 +221,25 @@ const UsuariosPage: React.FC = () => {
                         </Typography>
                       </Box>
 
+                      {usuario.requiereCambioContrasena &&
+                        usuario.contrasenaTemporal && (
+                          <Box
+                            sx={{
+                              display: "flex",
+                              gap: 1,
+                              alignItems: "center",
+                              mt: 1,
+                            }}
+                          >
+                            <Typography fontWeight="bold">
+                              Contraseña temporal:
+                            </Typography>
+                            <Typography color="primary">
+                              {usuario.contrasenaTemporal}
+                            </Typography>
+                          </Box>
+                        )}
+
                       <Box mt={2} sx={{ display: "flex", gap: 1 }}>
                         <Button
                           onClick={() => toggleUsuarioEstado(usuario.idUsuario)}
@@ -271,6 +290,7 @@ const UsuariosPage: React.FC = () => {
                     <TableCell>Estado</TableCell>
                     <TableCell>Fecha de Creación</TableCell>
                     <TableCell>Fecha de Modificación</TableCell>
+                    <TableCell>Contraseña Temporal</TableCell>
                     <TableCell>Acciones</TableCell>
                   </TableRow>
                 </TableHead>
@@ -302,6 +322,18 @@ const UsuariosPage: React.FC = () => {
                       </TableCell>
                       <TableCell>
                         {formatFecha(usuario.fechaModificacion)}
+                      </TableCell>
+                      <TableCell>
+                        {usuario.requiereCambioContrasena &&
+                        usuario.contrasenaTemporal ? (
+                          <Typography variant="body2" color="primary">
+                            {usuario.contrasenaTemporal}
+                          </Typography>
+                        ) : (
+                          <Typography variant="body2" color="textSecondary">
+                            —
+                          </Typography>
+                        )}
                       </TableCell>
                       <TableCell>
                         <Box sx={{ display: "flex", gap: 1 }}>

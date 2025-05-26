@@ -19,6 +19,7 @@ export const useUsuarios = () => {
     setLoading(true);
     try {
       const data = await getUsuarios(filter);
+
       setUsuarios(data);
       setTotal(data.length); // Opcional, si quieres mostrar el total
     } catch (error) {
