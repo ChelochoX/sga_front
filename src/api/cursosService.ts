@@ -1,5 +1,8 @@
 import axios from "axios";
-import { Curso } from "../modulos/Cursos/types/cursos.types";
+import {
+  ObtenerCursosRequest,
+  Curso,
+} from "../modulos/Cursos/types/cursos.types";
 
 // ⚡ Usando variables de entorno
 const API_URL = `${import.meta.env.VITE_API_URL}/Cursos`;
@@ -35,10 +38,31 @@ const formatFecha = (fecha: string | null | undefined): string => {
 };
 
 // 🔄 Obtener todos los cursos
-export const getCursos = async (): Promise<Curso[]> => {
+export const getCursos = async (
+  params: ObtenerCursosRequest
+): Promise<Curso[]> => {
   try {
-    const response = await axios.get(`${API_URL}`);
-    return response.data;
+    const response = await axios.post(`${API_URL}/obtener-cursos`, params, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    // Mapea los datos del backend a tu interfaz
+    const data: Curso[] = response.data.map((item: any) => ({
+      id_curso: item.idCurso,
+      nombre: item.nombre,
+      descripcion: item.descripcion,
+      duracion: item.duracion,
+      unidad_duracion: item.unidadDuracion,
+      cantidad_cuota: item.cantidadCuota,
+      monto_cuota: item.montoCuota,
+      tiene_practica: item.tienePractica === "S",
+      costo_practica: item.costoPractica,
+      fecha_inicio: formatFecha(item.fechaInicio),
+      fecha_fin: formatFecha(item.fechaFin),
+      monto_matricula: item.montoMatricula,
+    }));
+    return data;
   } catch (error: any) {
     console.error("❌ Error al obtener cursos:", error.message);
     if (error.response) {
@@ -97,5 +121,3 @@ export const deleteCurso = async (id: number): Promise<void> => {
     throw error;
   }
 };
-
-// Exporta helpers si los necesitas en component

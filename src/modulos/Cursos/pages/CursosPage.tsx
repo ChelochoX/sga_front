@@ -1,5 +1,6 @@
 import { useCursos } from "../hooks/useCursos";
 import { CursoCard } from "../components/CursoCard";
+import { gridCursosStyle } from "../styles/cursos.styles";
 
 export default function CursosPage() {
   const { cursos, loading } = useCursos();
@@ -7,16 +8,16 @@ export default function CursosPage() {
   if (loading) return <p>Cargando...</p>;
 
   return (
-    <div style={{ display: "flex", flexWrap: "wrap" }}>
+    <div style={gridCursosStyle as React.CSSProperties}>
       {cursos.map((curso) => (
         <CursoCard
-          key={curso.id_curso}
+          key={curso.id_curso ?? `${curso.nombre}-${curso.fecha_inicio}`}
           curso={curso}
           onEdit={() => {
-            /* Lógica para editar */
+            /* Mostrar formulario de edición */
           }}
           onDelete={() => {
-            /* Lógica para eliminar */
+            /* Confirmar y eliminar */
           }}
         />
       ))}
