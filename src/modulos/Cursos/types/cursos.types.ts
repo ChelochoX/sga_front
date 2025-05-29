@@ -11,9 +11,16 @@ export interface Curso {
   fecha_inicio: string;
   fecha_fin: string;
   monto_matricula: number;
+  activo: boolean;
 }
 
 export interface ObtenerCursosRequest {
   fechaInicio: string; // Formato "yyyy-MM-dd"
   fechaFin?: string | null; // Opcional
+}
+
+export interface Curso {
+  id_curso: number;
+  nombre: string;
+  activo: boolean;
 }

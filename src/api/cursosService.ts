@@ -61,6 +61,7 @@ export const getCursos = async (
       fecha_inicio: formatFecha(item.fechaInicio),
       fecha_fin: formatFecha(item.fechaFin),
       monto_matricula: item.montoMatricula,
+      activo: item.activo === true || item.activo === "S" || item.activo === 1,
     }));
     return data;
   } catch (error: any) {
@@ -115,6 +116,28 @@ export const deleteCurso = async (id: number): Promise<void> => {
     await axios.delete(`${API_URL}/${id}`);
   } catch (error: any) {
     console.error("❌ Error al eliminar el curso:", error.message);
+    if (error.response) {
+      console.error("❌ Detalle del error:", error.response.data);
+    }
+    throw error;
+  }
+};
+
+// Cambiar estado de un curso
+export const cambiarEstadoCurso = async (
+  id: number,
+  activo: boolean
+): Promise<void> => {
+  try {
+    await axios.put(
+      `${API_URL}/${id}/cambiar-estado`,
+      { activo }, // payload
+      {
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  } catch (error: any) {
+    console.error("❌ Error al cambiar estado del curso:", error.message);
     if (error.response) {
       console.error("❌ Detalle del error:", error.response.data);
     }

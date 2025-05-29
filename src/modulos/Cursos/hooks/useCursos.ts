@@ -32,5 +32,5 @@ export function useCursos() {
     fetchCursos();
   }, []);
 
-  return { cursos, fetchCursos, loading };
+  return { cursos, setCursos, fetchCursos, loading };
 }
