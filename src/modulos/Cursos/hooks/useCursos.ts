@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+// src/modulos/Cursos/hooks/useCursos.ts
+import { useEffect, useState, useCallback } from "react";
 import * as cursosService from "../../../api/cursosService";
 import { Curso, ObtenerCursosRequest } from "../types/cursos.types";
 
-// Helper para obtener la fecha de hoy en yyyy-MM-dd
 function getTodayYYYYMMDD() {
   const today = new Date();
   const yyyy = today.getFullYear();
@@ -15,22 +15,21 @@ export function useCursos() {
   const [cursos, setCursos] = useState<Curso[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Permite recibir params por si luego quieres filtrar por rango
-  const fetchCursos = async (params?: ObtenerCursosRequest) => {
+  // SOLO UNA REFERENCIA
+  const fetchCursos = useCallback(async (params?: ObtenerCursosRequest) => {
     setLoading(true);
-    // Si no se pasan parámetros, usa la fecha de hoy por defecto
     const filtro: ObtenerCursosRequest = params ?? {
       fechaInicio: getTodayYYYYMMDD(),
     };
+
     const cursos = await cursosService.getCursos(filtro);
     setCursos(cursos);
     setLoading(false);
-  };
+  }, []);
 
-  // Al cargar el componente, trae los cursos de la fecha de hoy
   useEffect(() => {
     fetchCursos();
-  }, []);
+  }, []); // SOLO [] ← No pongas fetchCursos acá
 
   return { cursos, setCursos, fetchCursos, loading };
 }
