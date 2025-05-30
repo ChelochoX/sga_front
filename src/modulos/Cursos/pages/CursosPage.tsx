@@ -50,12 +50,19 @@ const CursosPage: React.FC = () => {
         display: "flex",
         flexDirection: { xs: "column", md: "row" },
         gap: 4,
-        alignItems: { xs: "stretch", md: "flex-start" },
+        alignItems: { xs: "center", md: "flex-start" }, // centrado solo en mobile
         width: "100%",
       }}
     >
       {/* Filtros a la izquierda */}
-      <Box sx={filtrosContainer}>
+      <Box
+        sx={{
+          ...filtrosContainer,
+          alignItems: { xs: "center", md: "stretch" }, // centrado solo en mobile
+          width: { xs: "100%", sm: "320px", md: "230px" },
+          minWidth: { md: "200px" },
+        }}
+      >
         <FiltroFechaCursos
           fechaInicio={fechaInicio}
           setFechaInicio={setFechaInicio}
@@ -68,6 +75,7 @@ const CursosPage: React.FC = () => {
             bgcolor: "#fc8c29",
             ":hover": { bgcolor: "#ff9500" },
             fontWeight: 600,
+            width: { xs: "100%", sm: "100%" },
           }}
           onClick={handleBuscar}
           fullWidth
@@ -80,6 +88,7 @@ const CursosPage: React.FC = () => {
             bgcolor: "#5947f5",
             ":hover": { bgcolor: "#3e2ad6" },
             fontWeight: 600,
+            width: { xs: "100%", sm: "100%" },
           }}
           fullWidth
           startIcon={<AddIcon />}
