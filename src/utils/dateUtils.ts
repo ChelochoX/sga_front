@@ -1,9 +1,15 @@
 // Formatea objeto Date a 'yyyy-MM-dd'
-export function formatDateToYYYYMMDD(date: Date | null): string | null {
+export function formatDateToYYYYMMDD(
+  date: Date | string | null | undefined
+): string | null {
   if (!date) return null;
-  const yyyy = date.getFullYear();
-  const mm = String(date.getMonth() + 1).padStart(2, "0");
-  const dd = String(date.getDate()).padStart(2, "0");
+  let dateObj: Date | null = null;
+  if (date instanceof Date) dateObj = date;
+  else if (typeof date === "string") dateObj = new Date(date);
+  if (!dateObj || isNaN(dateObj.getTime())) return null;
+  const yyyy = dateObj.getFullYear();
+  const mm = String(dateObj.getMonth() + 1).padStart(2, "0");
+  const dd = String(dateObj.getDate()).padStart(2, "0");
   return `${yyyy}-${mm}-${dd}`;
 }
 

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useCursos } from "../hooks/useCursos";
 import * as cursosService from "../../../api/cursosService";
 import { CursoCard } from "../components/CursoCard";
@@ -8,7 +8,7 @@ import {
   filtrosContainer,
   cardCursoStyle,
 } from "../styles/cursos.styles";
-import { Button, Box, Skeleton } from "@mui/material";
+import { Button, Box, Skeleton, Snackbar, Alert } from "@mui/material"; // <-- agrega Snackbar y Alert
 import AddIcon from "@mui/icons-material/Add";
 import {
   formatDateToYYYYMMDD,
@@ -17,9 +17,7 @@ import {
 import { Curso } from "../types/cursos.types";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
-
-// AGREGÁ el import de tu formulario:
-import { CursoForm } from "../components/CursoForm";
+import { CursoForm, CursoFormValues } from "../components/CursoForm";
 
 const CursosPage: React.FC = () => {
   const { cursos, setCursos, loading, fetchCursos } = useCursos();
@@ -29,6 +27,15 @@ const CursosPage: React.FC = () => {
   const [fechaInicio, setFechaInicio] = React.useState<Date | null>(null);
   const [fechaFin, setFechaFin] = React.useState<Date | null>(null);
 
+  // Estados para manejo de error bonito
+  const [error, setError] = useState("");
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+
+  // Nuevo estado para el modal de edición y curso seleccionado
+  const [openEditModal, setOpenEditModal] = React.useState(false);
+  const [cursoSeleccionado, setCursoSeleccionado] =
+    React.useState<Curso | null>(null);
+
   const handleBuscar = () => {
     fetchCursos({
       fechaInicio: formatDateToYYYYMMDD(fechaInicio) || getTodayYYYYMMDD(),
@@ -37,16 +44,89 @@ const CursosPage: React.FC = () => {
   };
 
   // AL CREAR, insertá el curso y refrescá la lista:
-  const handleCrearCurso = async (data: any) => {
+  const handleCrearCurso = async (values: CursoFormValues) => {
+    // Armá el payload en el handler:
+    const payload = {
+      nombre: values.nombre,
+      descripcion: values.descripcion,
+      duracion: values.duracion,
+      unidadDuracion: values.unidadDuracion,
+      cantidadCuota: values.cantidadCuota,
+      montoMatricula: values.montoMatricula,
+      montoCuota: values.montoCuota,
+      tienePractica: values.tienePractica ? "S" : "N",
+      costoPractica: values.costoPractica,
+      fechaInicio: values.fechaInicio
+        ? values.fechaInicio.toISOString().slice(0, 10)
+        : null,
+      fechaFin: values.fechaFin
+        ? values.fechaFin.toISOString().slice(0, 10)
+        : null,
+      activo: values.activo,
+    };
+
     try {
-      await cursosService.createCurso(data);
+      await cursosService.createCurso(payload);
       setOpenModal(false);
       fetchCursos({
         fechaInicio: formatDateToYYYYMMDD(fechaInicio) || getTodayYYYYMMDD(),
         fechaFin: formatDateToYYYYMMDD(fechaFin) || null,
       });
+    } catch (err: any) {
+      let mensaje = "❌ Ocurrió un error inesperado.";
+
+      if (!err.response) {
+        mensaje = "💔 El servidor no está respondiendo. Intenta más tarde.";
+      } else if (err.response.data?.Errors?.length > 0) {
+        mensaje = `🔒 ${err.response.data.Errors.join("\n")}`;
+      } else if (err.response.data?.message) {
+        mensaje = `⚠️ ${err.response.data.message}`;
+      }
+
+      setError(mensaje);
+      setOpenSnackbar(true);
+    }
+  };
+
+  // Handler para abrir modal de edición
+  const handleEditCurso = (curso: Curso) => {
+    setCursoSeleccionado(curso);
+    setOpenEditModal(true);
+  };
+
+  // Handler para actualizar curso
+  const handleActualizarCurso = async (data: any) => {
+    try {
+      if (!cursoSeleccionado) return;
+      // Armá el payload igual que en createCurso, respetando los nombres que espera el backend
+      const payload = {
+        nombre: data.nombre,
+        descripcion: data.descripcion,
+        duracion: data.duracion,
+        unidadDuracion: data.unidadDuracion,
+        cantidadCuota: data.cantidadCuota,
+        montoMatricula: data.montoMatricula,
+        montoCuota: data.montoCuota,
+        tienePractica: data.tienePractica ? "S" : "N",
+        costoPractica: data.costoPractica,
+        fechaInicio: data.fechaInicio
+          ? data.fechaInicio.toISOString().slice(0, 10)
+          : null,
+        fechaFin: data.fechaFin
+          ? data.fechaFin.toISOString().slice(0, 10)
+          : null,
+        activo: data.activo,
+      };
+      await cursosService.updateCurso(cursoSeleccionado.id_curso, payload);
+      setOpenEditModal(false);
+      setCursoSeleccionado(null);
+      fetchCursos({
+        fechaInicio: formatDateToYYYYMMDD(fechaInicio) || getTodayYYYYMMDD(),
+        fechaFin: formatDateToYYYYMMDD(fechaFin) || null,
+      });
     } catch (e) {
-      alert("No se pudo crear el curso.");
+      alert("No se pudo actualizar el curso.");
+      console.error(e);
     }
   };
 
@@ -94,10 +174,11 @@ const CursosPage: React.FC = () => {
         <Button
           variant="contained"
           sx={{
-            bgcolor: "#fc8c29",
-            ":hover": { bgcolor: "#ff9500" },
+            background: "#43a047", // <-- Usá "background" en vez de "bgcolor"
+            ":hover": { background: "#388e3c" },
             fontWeight: 600,
             width: { xs: "100%", sm: "100%" },
+            color: "#fff",
           }}
           onClick={handleBuscar}
           fullWidth
@@ -116,7 +197,7 @@ const CursosPage: React.FC = () => {
           startIcon={<AddIcon />}
           onClick={() => setOpenModal(true)}
         >
-          + Agregar
+          Agregar
         </Button>
       </Box>
 
@@ -182,7 +263,7 @@ const CursosPage: React.FC = () => {
                 <CursoCard
                   key={curso.id_curso}
                   curso={curso}
-                  onEdit={() => {}}
+                  onEdit={() => handleEditCurso(curso)}
                   onDelete={() => {}}
                   onToggleActivo={(checked) =>
                     handleToggleActivo(curso, checked)
@@ -203,10 +284,75 @@ const CursosPage: React.FC = () => {
           <CursoForm
             onSubmit={handleCrearCurso}
             onCancel={() => setOpenModal(false)}
+            onSuccess={() =>
+              fetchCursos({
+                fechaInicio:
+                  formatDateToYYYYMMDD(fechaInicio) || getTodayYYYYMMDD(),
+                fechaFin: formatDateToYYYYMMDD(fechaFin) || null,
+              })
+            }
             modo="crear"
           />
         </DialogContent>
       </Dialog>
+
+      {/* MODAL PARA EDITAR CURSO */}
+      <Dialog
+        open={openEditModal}
+        onClose={() => {
+          setOpenEditModal(false);
+          setCursoSeleccionado(null);
+        }}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogContent>
+          {cursoSeleccionado && (
+            <CursoForm
+              initialValues={{
+                // Asegurate de mapear correctamente todos los campos:
+                nombre: cursoSeleccionado.nombre,
+                descripcion: cursoSeleccionado.descripcion,
+                duracion: cursoSeleccionado.duracion,
+                unidadDuracion: cursoSeleccionado.unidad_duracion,
+                cantidadCuota: cursoSeleccionado.cantidad_cuota,
+                montoMatricula: cursoSeleccionado.monto_matricula,
+                montoCuota: cursoSeleccionado.monto_cuota,
+                tienePractica: cursoSeleccionado.tiene_practica,
+                costoPractica: cursoSeleccionado.costo_practica,
+                fechaInicio: cursoSeleccionado.fecha_inicio
+                  ? new Date(cursoSeleccionado.fecha_inicio)
+                  : null,
+                fechaFin: cursoSeleccionado.fecha_fin
+                  ? new Date(cursoSeleccionado.fecha_fin)
+                  : null,
+              }}
+              onSubmit={handleActualizarCurso}
+              onCancel={() => {
+                setOpenEditModal(false);
+                setCursoSeleccionado(null);
+              }}
+              modo="editar"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* SNACKBAR BONITO */}
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={null}
+        onClose={() => setOpenSnackbar(false)}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setOpenSnackbar(false)}
+          severity={error.includes("🔒") ? "warning" : "error"}
+          sx={{ width: "100%" }}
+        >
+          {error}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

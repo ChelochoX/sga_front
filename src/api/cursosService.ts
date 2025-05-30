@@ -76,10 +76,6 @@ export const getCursos = async (
 // 🔄 Crear un curso
 export const createCurso = async (curso: Partial<Curso>): Promise<number> => {
   try {
-    // Si tienes fechas, conviértelas aquí:
-    // curso.fecha_inicio = convertirFecha(curso.fecha_inicio!);
-    // curso.fecha_fin = convertirFecha(curso.fecha_fin!);
-
     const { data } = await axios.post(API_URL, curso);
     return data; // El backend retorna el id del nuevo curso
   } catch (error: any) {
@@ -97,9 +93,6 @@ export const updateCurso = async (
   curso: Partial<Curso>
 ): Promise<void> => {
   try {
-    // curso.fecha_inicio = convertirFecha(curso.fecha_inicio!);
-    // curso.fecha_fin = convertirFecha(curso.fecha_fin!);
-
     await axios.put(`${API_URL}/${id}`, curso);
   } catch (error: any) {
     console.error("❌ Error al actualizar el curso:", error.message);

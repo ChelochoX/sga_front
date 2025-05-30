@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Box,
   Button,
@@ -10,6 +10,7 @@ import {
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { es } from "date-fns/locale";
+import { createCurso } from "../../../api/cursosService";
 
 // 🔥 AGREGA el campo 'activo'
 export interface CursoFormValues {
@@ -29,8 +30,9 @@ export interface CursoFormValues {
 
 interface CursoFormProps {
   initialValues?: Partial<CursoFormValues>;
-  onSubmit: (data: CursoFormValues) => Promise<void> | void;
   onCancel: () => void;
+  onSubmit: (data: CursoFormValues) => Promise<void> | void;
+  onSuccess?: () => void;
   modo?: "crear" | "editar";
 }
 
@@ -38,11 +40,12 @@ const unidades = ["Horas", "Dias", "Semanas", "Meses"];
 
 export const CursoForm: React.FC<CursoFormProps> = ({
   initialValues,
-  onSubmit,
   onCancel,
+  onSubmit,
+  onSuccess,
   modo = "crear",
 }) => {
-  const [values, setValues] = React.useState<CursoFormValues>({
+  const [values, setValues] = useState<CursoFormValues>({
     nombre: "",
     descripcion: "",
     duracion: 0,
@@ -57,6 +60,7 @@ export const CursoForm: React.FC<CursoFormProps> = ({
     activo: true, // <--- por defecto TRUE
     ...initialValues,
   });
+  const [submitting, setSubmitting] = useState(false);
 
   // Handler para todos los TextField y Switch
   const handleChange = (
@@ -92,10 +96,20 @@ export const CursoForm: React.FC<CursoFormProps> = ({
     }));
   };
 
-  // Enviar
-  const handleSubmit = (e: React.FormEvent) => {
+  // Enviar (CREAR CURSO)
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(values);
+    setSubmitting(true);
+    try {
+      await onSubmit(values); // <-- Solo pasa los valores "puros"
+      if (onSuccess) onSuccess();
+      onCancel();
+    } catch (error) {
+      alert("Error al guardar el curso");
+      console.error(error);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -226,10 +240,15 @@ export const CursoForm: React.FC<CursoFormProps> = ({
         {/* ---- FIN AGREGADO ---- */}
       </Box>
       <DialogActions sx={{ mt: 2 }}>
-        <Button onClick={onCancel} color="secondary">
+        <Button onClick={onCancel} color="secondary" disabled={submitting}>
           Cancelar
         </Button>
-        <Button type="submit" variant="contained" color="primary">
+        <Button
+          type="submit"
+          variant="contained"
+          color="primary"
+          disabled={submitting}
+        >
           {modo === "crear" ? "Agregar" : "Guardar"}
         </Button>
       </DialogActions>
