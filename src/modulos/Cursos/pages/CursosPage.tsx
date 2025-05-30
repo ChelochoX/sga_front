@@ -174,7 +174,7 @@ const CursosPage: React.FC = () => {
         <Button
           variant="contained"
           sx={{
-            background: "#43a047", // <-- Usá "background" en vez de "bgcolor"
+            background: "#43a047",
             ":hover": { background: "#388e3c" },
             fontWeight: 600,
             width: { xs: "100%", sm: "100%" },
