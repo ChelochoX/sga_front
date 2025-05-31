@@ -8,9 +8,10 @@ import {
   TextField,
 } from "@mui/material";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import { es } from "date-fns/locale";
-import { createCurso } from "../../../api/cursosService";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import "dayjs/locale/es";
+import dayjs, { Dayjs } from "dayjs";
+import "dayjs/locale/es";
 
 // 🔥 AGREGA el campo 'activo'
 export interface CursoFormValues {
@@ -23,8 +24,8 @@ export interface CursoFormValues {
   montoCuota: number;
   tienePractica: boolean;
   costoPractica: number;
-  fechaInicio: Date | null;
-  fechaFin: Date | null;
+  fechaInicio: Dayjs | null;
+  fechaFin: Dayjs | null;
   activo: boolean; // <--- agregado
 }
 
@@ -55,9 +56,11 @@ export const CursoForm: React.FC<CursoFormProps> = ({
     montoCuota: 0,
     tienePractica: false,
     costoPractica: 0,
-    fechaInicio: null,
-    fechaFin: null,
-    activo: true, // <--- por defecto TRUE
+    fechaInicio: initialValues?.fechaInicio
+      ? dayjs(initialValues.fechaInicio)
+      : null,
+    fechaFin: initialValues?.fechaFin ? dayjs(initialValues.fechaFin) : null,
+    activo: false,
     ...initialValues,
   });
   const [submitting, setSubmitting] = useState(false);
@@ -88,7 +91,7 @@ export const CursoForm: React.FC<CursoFormProps> = ({
   // Handler para fechas
   const handleDateChange = (
     name: "fechaInicio" | "fechaFin",
-    date: Date | null
+    date: Dayjs | null
   ) => {
     setValues((prev) => ({
       ...prev,
@@ -201,11 +204,17 @@ export const CursoForm: React.FC<CursoFormProps> = ({
           required={values.tienePractica}
           disabled={!values.tienePractica}
         />
-        <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={es}>
+        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
           <DatePicker
             label="Fecha Inicio"
             value={values.fechaInicio}
-            onChange={(date) => handleDateChange("fechaInicio", date)}
+            onChange={(date) =>
+              handleDateChange(
+                "fechaInicio",
+                date && dayjs.isDayjs(date) ? date : null
+              )
+            }
+            format="DD/MM/YYYY"
             slotProps={{
               textField: {
                 required: true,
@@ -216,7 +225,13 @@ export const CursoForm: React.FC<CursoFormProps> = ({
           <DatePicker
             label="Fecha Fin"
             value={values.fechaFin}
-            onChange={(date) => handleDateChange("fechaFin", date)}
+            onChange={(date) =>
+              handleDateChange(
+                "fechaFin",
+                date && dayjs.isDayjs(date) ? date : null
+              )
+            }
+            format="DD/MM/YYYY"
             slotProps={{
               textField: {
                 required: true,
@@ -225,6 +240,7 @@ export const CursoForm: React.FC<CursoFormProps> = ({
             }}
           />
         </LocalizationProvider>
+
         {/* ---- AGREGADO: SWITCH DE ACTIVO ---- */}
         <FormControlLabel
           label="¿Curso activo?"

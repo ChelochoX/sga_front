@@ -18,9 +18,12 @@ import { Curso } from "../types/cursos.types";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import { CursoForm, CursoFormValues } from "../components/CursoForm";
+import { ConfirmDialog } from "../../../components/ConfirmDialog";
+import dayjs from "dayjs";
 
 const CursosPage: React.FC = () => {
-  const { cursos, setCursos, loading, fetchCursos } = useCursos();
+  const { cursos, setCursos, loading, eliminarCurso, fetchCursos } =
+    useCursos();
   const [openModal, setOpenModal] = React.useState(false);
 
   // Estado de los filtros de fecha
@@ -36,10 +39,28 @@ const CursosPage: React.FC = () => {
   const [cursoSeleccionado, setCursoSeleccionado] =
     React.useState<Curso | null>(null);
 
+  // Abrir Modal de Mensajes
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [cursoAEliminar, setCursoAEliminar] = useState<number | null>(null);
+
+  function getLastDayOfMonth(date: Date | null): Date | null {
+    if (!date) return null;
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  }
+
   const handleBuscar = () => {
+    let fechaInicioStr = formatDateToYYYYMMDD(fechaInicio);
+    let fechaFinStr = formatDateToYYYYMMDD(fechaFin);
+
+    // Si solo selecciona fechaInicio y no fechaFin, buscá TODO el mes
+    if (fechaInicio && !fechaFin) {
+      const lastDay = getLastDayOfMonth(fechaInicio);
+      fechaFinStr = formatDateToYYYYMMDD(lastDay);
+    }
+
     fetchCursos({
-      fechaInicio: formatDateToYYYYMMDD(fechaInicio) || getTodayYYYYMMDD(),
-      fechaFin: formatDateToYYYYMMDD(fechaFin) || null,
+      fechaInicio: fechaInicioStr || getTodayYYYYMMDD(),
+      fechaFin: fechaFinStr || null,
     });
   };
 
@@ -57,11 +78,9 @@ const CursosPage: React.FC = () => {
       tienePractica: values.tienePractica ? "S" : "N",
       costoPractica: values.costoPractica,
       fechaInicio: values.fechaInicio
-        ? values.fechaInicio.toISOString().slice(0, 10)
+        ? values.fechaInicio.format("YYYY-MM-DD")
         : null,
-      fechaFin: values.fechaFin
-        ? values.fechaFin.toISOString().slice(0, 10)
-        : null,
+      fechaFin: values.fechaFin ? values.fechaFin.format("YYYY-MM-DD") : null,
       activo: values.activo,
     };
 
@@ -110,11 +129,9 @@ const CursosPage: React.FC = () => {
         tienePractica: data.tienePractica ? "S" : "N",
         costoPractica: data.costoPractica,
         fechaInicio: data.fechaInicio
-          ? data.fechaInicio.toISOString().slice(0, 10)
+          ? data.fechaInicio.format("YYYY-MM-DD")
           : null,
-        fechaFin: data.fechaFin
-          ? data.fechaFin.toISOString().slice(0, 10)
-          : null,
+        fechaFin: data.fechaFin ? data.fechaFin.format("YYYY-MM-DD") : null,
         activo: data.activo,
       };
       await cursosService.updateCurso(cursoSeleccionado.id_curso, payload);
@@ -127,6 +144,24 @@ const CursosPage: React.FC = () => {
     } catch (e) {
       alert("No se pudo actualizar el curso.");
       console.error(e);
+    }
+  };
+
+  // Handler para eliminar
+  const handleEliminarCurso = (id: number) => {
+    setCursoAEliminar(id);
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmEliminar = async () => {
+    if (cursoAEliminar == null) return;
+    try {
+      await eliminarCurso(cursoAEliminar); // Llama al hook que borra y refresca
+    } catch (e) {
+      alert("No se pudo eliminar el curso.");
+    } finally {
+      setConfirmOpen(false);
+      setCursoAEliminar(null);
     }
   };
 
@@ -264,7 +299,7 @@ const CursosPage: React.FC = () => {
                   key={curso.id_curso}
                   curso={curso}
                   onEdit={() => handleEditCurso(curso)}
-                  onDelete={() => {}}
+                  onDelete={() => handleEliminarCurso(curso.id_curso)}
                   onToggleActivo={(checked) =>
                     handleToggleActivo(curso, checked)
                   }
@@ -321,10 +356,16 @@ const CursosPage: React.FC = () => {
                 tienePractica: cursoSeleccionado.tiene_practica,
                 costoPractica: cursoSeleccionado.costo_practica,
                 fechaInicio: cursoSeleccionado.fecha_inicio
-                  ? new Date(cursoSeleccionado.fecha_inicio)
+                  ? dayjs(cursoSeleccionado.fecha_inicio, [
+                      "YYYY-MM-DD",
+                      "DD/MM/YYYY",
+                    ])
                   : null,
                 fechaFin: cursoSeleccionado.fecha_fin
-                  ? new Date(cursoSeleccionado.fecha_fin)
+                  ? dayjs(cursoSeleccionado.fecha_fin, [
+                      "YYYY-MM-DD",
+                      "DD/MM/YYYY",
+                    ])
                   : null,
               }}
               onSubmit={handleActualizarCurso}
@@ -353,6 +394,20 @@ const CursosPage: React.FC = () => {
           {error}
         </Alert>
       </Snackbar>
+
+      {/* ------------- MODAL DE CONFIRMACIÓN ------------- */}
+      <ConfirmDialog
+        open={confirmOpen}
+        title="Eliminar curso"
+        content="¿Seguro que deseas eliminar este curso? Esta acción no se puede deshacer."
+        onConfirm={handleConfirmEliminar}
+        onCancel={() => {
+          setConfirmOpen(false);
+          setCursoAEliminar(null);
+        }}
+        confirmText="Sí, eliminar"
+        cancelText="Cancelar"
+      />
     </Box>
   );
 };

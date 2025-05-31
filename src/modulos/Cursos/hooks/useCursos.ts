@@ -15,7 +15,7 @@ export function useCursos() {
   const [cursos, setCursos] = useState<Curso[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // SOLO UNA REFERENCIA
+  // Listar cursos
   const fetchCursos = useCallback(async (params?: ObtenerCursosRequest) => {
     setLoading(true);
     const filtro: ObtenerCursosRequest = params ?? {
@@ -27,9 +27,20 @@ export function useCursos() {
     setLoading(false);
   }, []);
 
+  // Eliminar curso
+  const eliminarCurso = useCallback(
+    async (id: number) => {
+      setLoading(true);
+      await cursosService.deleteCurso(id);
+      await fetchCursos(); // refresca la lista después de borrar
+      setLoading(false);
+    },
+    [fetchCursos]
+  );
+
   useEffect(() => {
     fetchCursos();
-  }, []); // SOLO [] ← No pongas fetchCursos acá
+  }, []);
 
-  return { cursos, setCursos, fetchCursos, loading };
+  return { cursos, setCursos, fetchCursos, eliminarCurso, loading };
 }
