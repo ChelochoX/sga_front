@@ -1,0 +1,9 @@
+node_modules
+dist
+.vite
+coverage
+.eslintcache
+*.log
+.vscode
+.idea
+.DS_Store
