@@ -23,7 +23,7 @@ const FiltroFechaCursos: React.FC<Props> = ({
         <DatePicker
           label="Fecha inicio"
           value={fechaInicio}
-          onChange={setFechaInicio}
+          onChange={(value, _ctx) => setFechaInicio(value as Date | null)}
           slotProps={{
             textField: {
               size: "small",
@@ -36,7 +36,7 @@ const FiltroFechaCursos: React.FC<Props> = ({
         <DatePicker
           label="Fecha fin"
           value={fechaFin}
-          onChange={setFechaFin}
+          onChange={(value, _ctx) => setFechaFin(value as Date | null)}
           slotProps={{
             textField: {
               size: "small",
