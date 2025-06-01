@@ -7,12 +7,21 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencias y artefactos de build
 node_modules
 dist
 dist-ssr
-*.local
+.vite          # <-- Vite dev cache
+coverage       # <-- tests coverage
+storybook-static
+*.tsbuildinfo  # <-- TS incremental
+.eslintcache
 
-# Editor directories and files
+# Archivos locales
+*.local
+.env*
+
+# Directorios de IDE / sistema
 .vscode/*
 !.vscode/extensions.json
 .idea
@@ -22,5 +31,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-.env*
