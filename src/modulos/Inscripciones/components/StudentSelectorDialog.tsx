@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+// src/modulos/Inscripciones/components/StudentSelectorDialog.tsx
+import React, { useEffect, useRef, useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -11,8 +12,10 @@ import {
   TableRow,
   TableCell,
   TableBody,
+  CircularProgress,
 } from "@mui/material";
 import { Estudiante } from "../types/inscripciones.types";
+import { useInscripciones } from "../hooks/useInscripciones"; // el hook que ya maneja ambos
 
 interface Props {
   open: boolean;
@@ -20,27 +23,43 @@ interface Props {
   onSelect: (e: Estudiante) => void;
 }
 
-// mock hard‑coded students
-const mockEstudiantes: Estudiante[] = [
-  { idPersona: 21, nombres: "Ana", apellidos: "Benítez" },
-  { idPersona: 34, nombres: "Juan", apellidos: "López" },
-  { idPersona: 55, nombres: "María", apellidos: "Giménez" },
-];
-
 export default function StudentSelectorDialog({
   open,
   onClose,
   onSelect,
 }: Props) {
+  // ① Estado local para el texto de búsqueda (query)
   const [query, setQuery] = useState("");
 
-  const filtrados = mockEstudiantes.filter((s) =>
-    `${s.nombres} ${s.apellidos}`.toLowerCase().includes(query.toLowerCase())
-  );
+  // 🚀 Desestructuramos solo lo que necesitamos para estudiantes
+  const {
+    estudiantes,
+    loading,
+    refetchEstudiantes, // antes era “refetch”
+  } = useInscripciones();
+
+  const didInitialFetch = useRef(false);
+
+  useEffect(() => {
+    if (open) {
+      setQuery("");
+      refetchEstudiantes("");
+      didInitialFetch.current = true;
+    } else {
+      didInitialFetch.current = false;
+    }
+  }, [open, refetchEstudiantes, setQuery]);
+
+  useEffect(() => {
+    if (open && didInitialFetch.current) {
+      refetchEstudiantes(query);
+    }
+  }, [open, query, refetchEstudiantes]);
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>Seleccionar estudiante</DialogTitle>
+
       <DialogContent dividers>
         <TextField
           label="Buscar…"
@@ -49,31 +68,37 @@ export default function StudentSelectorDialog({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Nombres</TableCell>
-              <TableCell>Apellidos</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filtrados.map((s) => (
-              <TableRow
-                hover
-                key={s.idPersona}
-                onClick={() => {
-                  onSelect(s);
-                  onClose();
-                }}
-                sx={{ cursor: "pointer" }}
-              >
-                <TableCell>{s.nombres}</TableCell>
-                <TableCell>{s.apellidos}</TableCell>
+
+        {loading ? (
+          <CircularProgress sx={{ display: "block", mx: "auto", my: 3 }} />
+        ) : (
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>Nombres</TableCell>
+                <TableCell>Apellidos</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHead>
+            <TableBody>
+              {estudiantes.map((s) => (
+                <TableRow
+                  hover
+                  key={s.idPersona}
+                  onClick={() => {
+                    onSelect(s);
+                    onClose();
+                  }}
+                  sx={{ cursor: "pointer" }}
+                >
+                  <TableCell>{s.nombres}</TableCell>
+                  <TableCell>{s.apellidos}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </DialogContent>
+
       <DialogActions>
         <Button onClick={onClose}>Cerrar</Button>
       </DialogActions>

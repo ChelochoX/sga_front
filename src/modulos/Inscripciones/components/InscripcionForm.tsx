@@ -15,7 +15,6 @@ import PersonSearchIcon from "@mui/icons-material/PersonSearch";
 import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
 import { Estudiante, Curso } from "../types/inscripciones.types";
 import StudentSelectorDialog from "./StudentSelectorDialog";
-// Make sure CourseSelectorDialog.tsx exists in the same folder, or update the path if it's elsewhere.
 import CourseSelectorDialog from "./CourseSelectorDialog";
 
 interface Props {

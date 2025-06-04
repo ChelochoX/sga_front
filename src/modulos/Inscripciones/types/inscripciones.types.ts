@@ -7,6 +7,7 @@ export interface Estudiante {
 export interface Curso {
   idCurso: number;
   nombre: string;
+  descripcion: string;
 }
 
 export interface InscripcionRequest {
