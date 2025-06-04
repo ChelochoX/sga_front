@@ -22,13 +22,18 @@ export interface InscripcionRequest {
   motivoDescuentoMatricula: string;
 }
 
-export interface InscripcionResponse extends InscripcionRequest {
+export interface InscripcionDetalle {
   idInscripcion: number;
+  idPersona: number;
+  nombreEstudiante: string;
+  idCurso: number;
+  nombreCurso: string;
   fechaInscripcion: string; // ISO
-}
-
-// 👉 Tipo que usa la tabla: incluye nombres de estudiante y curso para mostrar.
-export interface Inscripcion extends InscripcionResponse {
-  estudiante: string;
-  curso: string;
+  estado: string;
+  montoDescuento: number;
+  motivoDescuento: string;
+  montoDescPractica: number;
+  motivoDescPractica: string;
+  montoDescMatricula: number;
+  motivoDescMatricula: string;
 }

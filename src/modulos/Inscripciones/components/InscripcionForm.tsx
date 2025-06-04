@@ -1,4 +1,3 @@
-// src/modulos/Inscripciones/components/InscripcionForm.tsx
 import React, { useState } from "react";
 import {
   Dialog,
@@ -11,160 +10,245 @@ import {
   Button,
   IconButton,
   Tooltip,
+  useMediaQuery,
+  Box,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import PersonSearchIcon from "@mui/icons-material/PersonSearch";
 import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
-import { Estudiante, Curso } from "../types/inscripciones.types";
+import {
+  Estudiante,
+  Curso,
+  InscripcionRequest,
+} from "../types/inscripciones.types";
 import StudentSelectorDialog from "./StudentSelectorDialog";
 import CourseSelectorDialog from "./CourseSelectorDialog";
+import { useInscripciones } from "../hooks/useInscripciones";
+import { toast } from "react-toastify";
 
 interface Props {
   open: boolean;
   onClose: () => void;
+  onSuccess: () => void; // callback para recargar tabla
 }
 
-export default function InscripcionForm({ open, onClose }: Props) {
+export default function InscripcionForm({ open, onClose, onSuccess }: Props) {
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
   const [studentDlg, setStudentDlg] = useState(false);
   const [courseDlg, setCourseDlg] = useState(false);
 
   const [estudiante, setEstudiante] = useState<Estudiante | null>(null);
   const [curso, setCurso] = useState<Curso | null>(null);
+  const [estado, setEstado] = useState<"Activa" | "Inactiva" | "Cancelada">(
+    "Activa"
+  );
+  const [montoDescuento, setMontoDescuento] = useState<number>(0);
+  const [motivoDescuento, setMotivoDescuento] = useState<string>("");
+  const [montoPrac, setMontoPrac] = useState<number>(0);
+  const [motivoPrac, setMotivoPrac] = useState<string>("");
+  const [montoMat, setMontoMat] = useState<number>(0);
+  const [motivoMat, setMotivoMat] = useState<string>("");
+
+  const { insertarInscripcion, loading } = useInscripciones();
+
+  const handleSubmit = async () => {
+    if (!estudiante || !curso) return;
+
+    const payload: InscripcionRequest = {
+      idPersona: estudiante.idPersona,
+      idCurso: curso.idCurso,
+      estado,
+      montoDescuento,
+      motivoDescuento,
+      montoDescuentoPractica: montoPrac,
+      motivoDescuentoPractica: motivoPrac,
+      montoDescuentoMatricula: montoMat,
+      motivoDescuentoMatricula: motivoMat,
+    };
+
+    try {
+      const id = await insertarInscripcion(payload);
+      toast.success(`Inscripción creada (ID: ${id})`);
+      onClose();
+      onSuccess();
+    } catch (error) {
+      toast.error("Error al crear la inscripción");
+    }
+  };
 
   return (
     <>
-      <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+      <Dialog
+        open={open}
+        onClose={onClose}
+        fullWidth
+        maxWidth="md"
+        fullScreen={fullScreen}
+      >
         <DialogTitle>Nueva inscripción</DialogTitle>
-        <DialogContent dividers>
-          <Grid container spacing={3} sx={{ mt: 0 }}>
-            {/* ────────────────────────────────────────────────────────────
-               Columna izquierda: Estudiante, Curso, Estado
-               ──────────────────────────────────────────────────────────── */}
-            <Grid item xs={12} md={6} container spacing={2} direction="column">
-              {/* Campo Estudiante + botón búsqueda */}
-              <Grid item sx={{ display: "flex", gap: 1 }}>
-                <TextField
-                  label="Estudiante"
-                  value={
-                    estudiante
-                      ? `${estudiante.nombres} ${estudiante.apellidos}`
-                      : ""
-                  }
-                  placeholder="Seleccionar…"
-                  fullWidth
-                  InputProps={{ readOnly: true }}
-                />
-                <Tooltip title="Buscar estudiante">
-                  <IconButton
-                    color="primary"
-                    onClick={() => setStudentDlg(true)}
-                  >
-                    <PersonSearchIcon />
-                  </IconButton>
-                </Tooltip>
+        <DialogContent>
+          <Box p={fullScreen ? 0 : 2}>
+            <Grid container spacing={2}>
+              {/* Columna izquierda */}
+              <Grid item xs={12} md={6}>
+                <Grid container spacing={1}>
+                  {/* Campo Estudiante + búsqueda */}
+                  <Grid item xs={12} container spacing={1} alignItems="center">
+                    <Grid item xs>
+                      <TextField
+                        label="Estudiante"
+                        value={
+                          estudiante
+                            ? `${estudiante.nombres} ${estudiante.apellidos}`
+                            : ""
+                        }
+                        placeholder="Seleccionar…"
+                        fullWidth
+                        InputProps={{ readOnly: true }}
+                        size="small"
+                      />
+                    </Grid>
+                    <Grid item>
+                      <Tooltip title="Buscar estudiante">
+                        <IconButton
+                          color="primary"
+                          onClick={() => setStudentDlg(true)}
+                        >
+                          <PersonSearchIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </Grid>
+                  </Grid>
+
+                  {/* Campo Curso + búsqueda */}
+                  <Grid item xs={12} container spacing={1} alignItems="center">
+                    <Grid item xs>
+                      <TextField
+                        label="Curso"
+                        value={curso ? curso.nombre : ""}
+                        placeholder="Seleccionar…"
+                        fullWidth
+                        InputProps={{ readOnly: true }}
+                        size="small"
+                      />
+                    </Grid>
+                    <Grid item>
+                      <Tooltip title="Buscar curso">
+                        <IconButton
+                          color="primary"
+                          onClick={() => setCourseDlg(true)}
+                        >
+                          <LibraryBooksIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </Grid>
+                  </Grid>
+
+                  {/* Campo Estado */}
+                  <Grid item xs={12}>
+                    <TextField
+                      label="Estado"
+                      select
+                      fullWidth
+                      size="small"
+                      value={estado}
+                      onChange={(e) => setEstado(e.target.value as any)}
+                    >
+                      <MenuItem value="Activa">Activa</MenuItem>
+                      <MenuItem value="Inactiva">Inactiva</MenuItem>
+                      <MenuItem value="Cancelada">Cancelada</MenuItem>
+                    </TextField>
+                  </Grid>
+                </Grid>
               </Grid>
 
-              {/* Campo Curso + botón búsqueda */}
-              <Grid item sx={{ display: "flex", gap: 1 }}>
-                <TextField
-                  label="Curso"
-                  value={curso ? curso.nombre : ""}
-                  placeholder="Seleccionar…"
-                  fullWidth
-                  InputProps={{ readOnly: true }}
-                />
-                <Tooltip title="Buscar curso">
-                  <IconButton
-                    color="primary"
-                    onClick={() => setCourseDlg(true)}
-                  >
-                    <LibraryBooksIcon />
-                  </IconButton>
-                </Tooltip>
-              </Grid>
-
-              {/* Campo Estado */}
-              <Grid item>
-                <TextField
-                  label="Estado"
-                  select
-                  fullWidth
-                  defaultValue="Activa"
-                >
-                  <MenuItem value="Activa">Activa</MenuItem>
-                  <MenuItem value="Inactiva">Inactiva</MenuItem>
-                  <MenuItem value="Cancelada">Cancelada</MenuItem>
-                </TextField>
+              {/* Columna derecha – descuentos */}
+              <Grid item xs={12} md={6}>
+                <Grid container spacing={1}>
+                  <Grid item xs={12}>
+                    <TextField
+                      label="Monto descuento"
+                      type="number"
+                      placeholder="0"
+                      fullWidth
+                      size="small"
+                      value={montoDescuento}
+                      onChange={(e) =>
+                        setMontoDescuento(Number(e.target.value))
+                      }
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      label="Motivo descuento"
+                      placeholder="Promoción…"
+                      fullWidth
+                      size="small"
+                      value={motivoDescuento}
+                      onChange={(e) => setMotivoDescuento(e.target.value)}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      label="Monto desc. práctica"
+                      type="number"
+                      placeholder="0"
+                      fullWidth
+                      size="small"
+                      value={montoPrac}
+                      onChange={(e) => setMontoPrac(Number(e.target.value))}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      label="Motivo desc. práctica"
+                      placeholder="Motivo…"
+                      fullWidth
+                      size="small"
+                      value={motivoPrac}
+                      onChange={(e) => setMotivoPrac(e.target.value)}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      label="Monto desc. matrícula"
+                      type="number"
+                      placeholder="0"
+                      fullWidth
+                      size="small"
+                      value={montoMat}
+                      onChange={(e) => setMontoMat(Number(e.target.value))}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      label="Motivo desc. matrícula"
+                      placeholder="Motivo…"
+                      fullWidth
+                      size="small"
+                      value={motivoMat}
+                      onChange={(e) => setMotivoMat(e.target.value)}
+                    />
+                  </Grid>
+                </Grid>
               </Grid>
             </Grid>
-
-            {/* ────────────────────────────────────────────────────────────
-               Columna derecha: Campos de descuento (solo visual)
-               ──────────────────────────────────────────────────────────── */}
-            <Grid item xs={12} md={6} container spacing={2} direction="column">
-              <Grid item>
-                <TextField
-                  label="Monto descuento"
-                  type="number"
-                  placeholder="0"
-                  fullWidth
-                />
-              </Grid>
-              <Grid item>
-                <TextField
-                  label="Motivo descuento"
-                  placeholder="Promoción…"
-                  fullWidth
-                />
-              </Grid>
-              <Grid item>
-                <TextField
-                  label="Monto desc. práctica"
-                  type="number"
-                  placeholder="0"
-                  fullWidth
-                />
-              </Grid>
-              <Grid item>
-                <TextField
-                  label="Motivo desc. práctica"
-                  placeholder="Motivo…"
-                  fullWidth
-                />
-              </Grid>
-              <Grid item>
-                <TextField
-                  label="Monto desc. matrícula"
-                  type="number"
-                  placeholder="0"
-                  fullWidth
-                />
-              </Grid>
-              <Grid item>
-                <TextField
-                  label="Motivo desc. matrícula"
-                  placeholder="Motivo…"
-                  fullWidth
-                />
-              </Grid>
-            </Grid>
-          </Grid>
+          </Box>
         </DialogContent>
-
         <DialogActions>
           <Button onClick={onClose}>Cancelar</Button>
           <Button
             variant="contained"
-            disabled={!estudiante || !curso}
-            onClick={() => {
-              /* Aquí iría tu lógica para enviar la nueva inscripción */
-            }}
+            disabled={!estudiante || !curso || loading}
+            onClick={handleSubmit}
           >
-            Inscribir
+            {loading ? "Guardando..." : "Inscribir"}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Diálogos de selección de estudiante y curso */}
+      {/* Selectores */}
       <StudentSelectorDialog
         open={studentDlg}
         onClose={() => setStudentDlg(false)}

@@ -1,63 +1,125 @@
-// src/modulos/Inscripciones/components/InscripcionesPage.tsx
 import React, { useEffect, useState } from "react";
-import { Box, Button, Typography, CircularProgress } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Button,
+  CircularProgress,
+  Grid,
+  TextField,
+  useMediaQuery,
+} from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import InscripcionesTable from "../components/InscripcionesTable";
 import InscripcionForm from "../components/InscripcionForm";
-import { Inscripcion } from "../types/inscripciones.types";
-// import { getInscripciones } from "../../../api/inscripcionesService";  <-- Quitamos por ahora
+import { useInscripciones } from "../hooks/useInscripciones";
+import { toast } from "react-toastify";
 
 export default function InscripcionesPage() {
-  const [inscripciones, setInscripciones] = useState<Inscripcion[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [openForm, setOpenForm] = useState(false);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  const fetchInscripciones = async () => {
-    setLoading(true);
-    try {
-      // Por ahora simulamos con un arreglo vacío o con datos estáticos.
-      // Cuando tengas el servicio, reemplaza esto por:
-      // const data = await getInscripciones();
-      // setInscripciones(data);
-      setInscripciones([]); // <-- Simulación: por defecto vacío
-    } catch (error) {
-      console.error("Error al obtener inscripciones:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [openForm, setOpenForm] = useState(false);
+  const [filtroAlumno, setFiltroAlumno] = useState<string>("");
+  const [filtroCurso, setFiltroCurso] = useState<string>("");
+  const [filtroDesde, setFiltroDesde] = useState<string>("");
+  const [filtroHasta, setFiltroHasta] = useState<string>("");
+
+  const { inscripciones, loading, refetchInscripciones } = useInscripciones();
 
   useEffect(() => {
-    fetchInscripciones();
+    refetchInscripciones();
   }, []);
 
-  return (
-    <Box p={2}>
-      {/* Encabezado con título y botón “Nueva” */}
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        mb={2}
-      >
-        <Typography variant="h5">Inscripciones</Typography>
-        <Button variant="contained" onClick={() => setOpenForm(true)}>
-          + Nueva
-        </Button>
-      </Box>
+  const handleBuscar = () => {
+    refetchInscripciones(filtroAlumno, filtroCurso, filtroDesde, filtroHasta);
+  };
 
-      {/* Mostrar spinner mientras carga */}
+  const handleSuccess = () => {
+    refetchInscripciones(filtroAlumno, filtroCurso, filtroDesde, filtroHasta);
+    setOpenForm(false);
+  };
+
+  return (
+    <Box p={isMobile ? 1 : 2}>
+      <Typography variant={isMobile ? "h6" : "h5"} mb={2}>
+        Inscripciones
+      </Typography>
+
+      {/* Filtros */}
+      <Grid container spacing={1} mb={2}>
+        <Grid item xs={12} sm={6} md={3}>
+          <TextField
+            label="Buscar alumno"
+            fullWidth
+            size="small"
+            value={filtroAlumno}
+            onChange={(e) => setFiltroAlumno(e.target.value)}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <TextField
+            label="Buscar curso"
+            fullWidth
+            size="small"
+            value={filtroCurso}
+            onChange={(e) => setFiltroCurso(e.target.value)}
+          />
+        </Grid>
+        <Grid item xs={6} sm={6} md={2}>
+          <TextField
+            label="Desde"
+            type="date"
+            fullWidth
+            size="small"
+            InputLabelProps={{ shrink: true }}
+            value={filtroDesde}
+            onChange={(e) => setFiltroDesde(e.target.value)}
+          />
+        </Grid>
+        <Grid item xs={6} sm={6} md={2}>
+          <TextField
+            label="Hasta"
+            type="date"
+            fullWidth
+            size="small"
+            InputLabelProps={{ shrink: true }}
+            value={filtroHasta}
+            onChange={(e) => setFiltroHasta(e.target.value)}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6} md={2}>
+          <Button fullWidth variant="contained" onClick={handleBuscar}>
+            Buscar
+          </Button>
+        </Grid>
+        <Grid
+          item
+          xs={12}
+          sm={6}
+          md={2}
+          textAlign={isMobile ? "center" : "right"}
+        >
+          <Button variant="contained" onClick={() => setOpenForm(true)}>
+            + Nueva
+          </Button>
+        </Grid>
+      </Grid>
+
+      {/* Tabla o spinner */}
       {loading ? (
         <Box display="flex" justifyContent="center" mt={4}>
           <CircularProgress />
         </Box>
       ) : (
-        // ────────────────────────────────────────────────────────────
-        // Llamamos a la tabla sin paginación
-        <InscripcionesTable datos={inscripciones} />
+        <InscripcionesTable data={inscripciones} />
       )}
 
-      {/* Dialogo para crear nueva inscripción */}
-      <InscripcionForm open={openForm} onClose={() => setOpenForm(false)} />
+      {/* Formulario modal */}
+      <InscripcionForm
+        open={openForm}
+        onClose={() => setOpenForm(false)}
+        onSuccess={handleSuccess}
+      />
     </Box>
   );
 }
