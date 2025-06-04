@@ -1,3 +1,4 @@
+// src/modulos/Inscripciones/components/InscripcionForm.tsx
 import React, { useState } from "react";
 import {
   Dialog,
@@ -35,8 +36,11 @@ export default function InscripcionForm({ open, onClose }: Props) {
         <DialogTitle>Nueva inscripción</DialogTitle>
         <DialogContent dividers>
           <Grid container spacing={3} sx={{ mt: 0 }}>
-            {/* Columna izquierda */}
+            {/* ────────────────────────────────────────────────────────────
+               Columna izquierda: Estudiante, Curso, Estado
+               ──────────────────────────────────────────────────────────── */}
             <Grid item xs={12} md={6} container spacing={2} direction="column">
+              {/* Campo Estudiante + botón búsqueda */}
               <Grid item sx={{ display: "flex", gap: 1 }}>
                 <TextField
                   label="Estudiante"
@@ -58,6 +62,8 @@ export default function InscripcionForm({ open, onClose }: Props) {
                   </IconButton>
                 </Tooltip>
               </Grid>
+
+              {/* Campo Curso + botón búsqueda */}
               <Grid item sx={{ display: "flex", gap: 1 }}>
                 <TextField
                   label="Curso"
@@ -75,6 +81,8 @@ export default function InscripcionForm({ open, onClose }: Props) {
                   </IconButton>
                 </Tooltip>
               </Grid>
+
+              {/* Campo Estado */}
               <Grid item>
                 <TextField
                   label="Estado"
@@ -89,7 +97,9 @@ export default function InscripcionForm({ open, onClose }: Props) {
               </Grid>
             </Grid>
 
-            {/* Columna derecha – descuentos (solo visual) */}
+            {/* ────────────────────────────────────────────────────────────
+               Columna derecha: Campos de descuento (solo visual)
+               ──────────────────────────────────────────────────────────── */}
             <Grid item xs={12} md={6} container spacing={2} direction="column">
               <Grid item>
                 <TextField
@@ -139,15 +149,22 @@ export default function InscripcionForm({ open, onClose }: Props) {
             </Grid>
           </Grid>
         </DialogContent>
+
         <DialogActions>
           <Button onClick={onClose}>Cancelar</Button>
-          <Button variant="contained" disabled={!estudiante || !curso}>
+          <Button
+            variant="contained"
+            disabled={!estudiante || !curso}
+            onClick={() => {
+              /* Aquí iría tu lógica para enviar la nueva inscripción */
+            }}
+          >
             Inscribir
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Selectores */}
+      {/* Diálogos de selección de estudiante y curso */}
       <StudentSelectorDialog
         open={studentDlg}
         onClose={() => setStudentDlg(false)}
