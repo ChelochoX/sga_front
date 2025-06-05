@@ -49,3 +49,7 @@ export const getInscripciones = async (
   });
   return data;
 };
+
+export const deleteInscripcion = async (id: number): Promise<void> => {
+  await instance.delete(`${API_URL}/${id}`);
+};

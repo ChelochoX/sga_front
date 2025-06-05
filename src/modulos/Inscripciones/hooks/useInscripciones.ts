@@ -10,6 +10,7 @@ import {
   getCursos,
   createInscripcion,
   getInscripciones,
+  deleteInscripcion,
 } from "../../../api/inscripcionesService";
 
 export const useInscripciones = () => {
@@ -80,6 +81,19 @@ export const useInscripciones = () => {
     }
   }, []);
 
+  const eliminarInscripcion = useCallback(async (id: number) => {
+    setLoading(true);
+    try {
+      await deleteInscripcion(id);
+      // Luego refetch para actualizar la lista
+    } catch (error) {
+      console.error("❌ Error al eliminar inscripción:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   return {
     estudiantes,
     cursos,
@@ -89,5 +103,6 @@ export const useInscripciones = () => {
     refetchCursos: fetchCursos,
     refetchInscripciones: fetchInscripciones,
     insertarInscripcion,
+    eliminarInscripcion,
   };
 };

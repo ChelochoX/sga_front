@@ -1,4 +1,8 @@
-import React, { useState } from "react";
+// ===========================================================================
+// Front-end: components/InscripcionForm.tsx
+// (Validación de campos de motivo de descuento para que no queden vacíos)
+// ===========================================================================
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -12,6 +16,7 @@ import {
   Tooltip,
   useMediaQuery,
   Box,
+  FormHelperText,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import PersonSearchIcon from "@mui/icons-material/PersonSearch";
@@ -29,15 +34,18 @@ import { toast } from "react-toastify";
 interface Props {
   open: boolean;
   onClose: () => void;
-  onSuccess: () => void; // callback para recargar tabla
+  onSuccess: () => void; // callback para recargar tabla después de insertar
 }
 
 export default function InscripcionForm({ open, onClose, onSuccess }: Props) {
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
+
+  // Diálogos de selección
   const [studentDlg, setStudentDlg] = useState(false);
   const [courseDlg, setCourseDlg] = useState(false);
 
+  // Campos del formulario
   const [estudiante, setEstudiante] = useState<Estudiante | null>(null);
   const [curso, setCurso] = useState<Curso | null>(null);
   const [estado, setEstado] = useState<"Activa" | "Inactiva" | "Cancelada">(
@@ -52,12 +60,69 @@ export default function InscripcionForm({ open, onClose, onSuccess }: Props) {
 
   const { insertarInscripcion, loading } = useInscripciones();
 
+  // Estado para errores de validación
+  const [errorMotivoDescuento, setErrorMotivoDescuento] = useState<string>("");
+  const [errorMotivoPrac, setErrorMotivoPrac] = useState<string>("");
+  const [errorMotivoMat, setErrorMotivoMat] = useState<string>("");
+
+  // Habilitar botón "Inscribir" solo si:
+  // - Estudiante y curso elegidos
+  // - Si montoDescuento > 0, motivoDescuento no vacío
+  // - Si montoPrac > 0, motivoPrac no vacío
+  // - Si montoMat > 0, motivoMat no vacío
+  const isFormValid = (): boolean => {
+    if (!estudiante || !curso) return false;
+
+    if (montoDescuento > 0 && motivoDescuento.trim() === "") return false;
+    if (montoPrac > 0 && motivoPrac.trim() === "") return false;
+    if (montoMat > 0 && motivoMat.trim() === "") return false;
+
+    return true;
+  };
+
+  // Resetear errores cada vez que cambian los montos o motivos
+  useEffect(() => {
+    if (montoDescuento > 0 && motivoDescuento.trim() === "") {
+      setErrorMotivoDescuento("Este campo es obligatorio cuando hay descuento");
+    } else {
+      setErrorMotivoDescuento("");
+    }
+
+    if (montoPrac > 0 && motivoPrac.trim() === "") {
+      setErrorMotivoPrac(
+        "Este campo es obligatorio cuando hay descuento de práctica"
+      );
+    } else {
+      setErrorMotivoPrac("");
+    }
+
+    if (montoMat > 0 && motivoMat.trim() === "") {
+      setErrorMotivoMat(
+        "Este campo es obligatorio cuando hay descuento de matrícula"
+      );
+    } else {
+      setErrorMotivoMat("");
+    }
+  }, [
+    montoDescuento,
+    motivoDescuento,
+    montoPrac,
+    motivoPrac,
+    montoMat,
+    motivoMat,
+  ]);
+
   const handleSubmit = async () => {
-    if (!estudiante || !curso) return;
+    if (!isFormValid()) {
+      toast.error(
+        "Por favor, complete los campos obligatorios de motivo de descuento."
+      );
+      return;
+    }
 
     const payload: InscripcionRequest = {
-      idPersona: estudiante.idPersona,
-      idCurso: curso.idCurso,
+      idPersona: estudiante!.idPersona,
+      idCurso: curso!.idCurso,
       estado,
       montoDescuento,
       motivoDescuento,
@@ -68,8 +133,8 @@ export default function InscripcionForm({ open, onClose, onSuccess }: Props) {
     };
 
     try {
-      const id = await insertarInscripcion(payload);
-      toast.success(`Inscripción creada (ID: ${id})`);
+      await insertarInscripcion(payload);
+      toast.success("Inscripción creada correctamente");
       onClose();
       onSuccess();
     } catch (error) {
@@ -90,7 +155,9 @@ export default function InscripcionForm({ open, onClose, onSuccess }: Props) {
         <DialogContent>
           <Box p={fullScreen ? 0 : 2}>
             <Grid container spacing={2}>
-              {/* Columna izquierda */}
+              {/* ────────────────────────────────────────────────────────────
+                  Columna izquierda: Estudiante, Curso, Estado
+                  ──────────────────────────────────────────────────────────── */}
               <Grid item xs={12} md={6}>
                 <Grid container spacing={1}>
                   {/* Campo Estudiante + búsqueda */}
@@ -163,7 +230,9 @@ export default function InscripcionForm({ open, onClose, onSuccess }: Props) {
                 </Grid>
               </Grid>
 
-              {/* Columna derecha – descuentos */}
+              {/* ────────────────────────────────────────────────────────────
+                  Columna derecha – Descuentos (con validación)
+                  ──────────────────────────────────────────────────────────── */}
               <Grid item xs={12} md={6}>
                 <Grid container spacing={1}>
                   <Grid item xs={12}>
@@ -187,7 +256,13 @@ export default function InscripcionForm({ open, onClose, onSuccess }: Props) {
                       size="small"
                       value={motivoDescuento}
                       onChange={(e) => setMotivoDescuento(e.target.value)}
+                      error={errorMotivoDescuento !== ""}
                     />
+                    {errorMotivoDescuento && (
+                      <FormHelperText error>
+                        {errorMotivoDescuento}
+                      </FormHelperText>
+                    )}
                   </Grid>
                   <Grid item xs={12}>
                     <TextField
@@ -208,7 +283,11 @@ export default function InscripcionForm({ open, onClose, onSuccess }: Props) {
                       size="small"
                       value={motivoPrac}
                       onChange={(e) => setMotivoPrac(e.target.value)}
+                      error={errorMotivoPrac !== ""}
                     />
+                    {errorMotivoPrac && (
+                      <FormHelperText error>{errorMotivoPrac}</FormHelperText>
+                    )}
                   </Grid>
                   <Grid item xs={12}>
                     <TextField
@@ -229,18 +308,23 @@ export default function InscripcionForm({ open, onClose, onSuccess }: Props) {
                       size="small"
                       value={motivoMat}
                       onChange={(e) => setMotivoMat(e.target.value)}
+                      error={errorMotivoMat !== ""}
                     />
+                    {errorMotivoMat && (
+                      <FormHelperText error>{errorMotivoMat}</FormHelperText>
+                    )}
                   </Grid>
                 </Grid>
               </Grid>
             </Grid>
           </Box>
         </DialogContent>
+
         <DialogActions>
           <Button onClick={onClose}>Cancelar</Button>
           <Button
             variant="contained"
-            disabled={!estudiante || !curso || loading}
+            disabled={!isFormValid() || loading}
             onClick={handleSubmit}
           >
             {loading ? "Guardando..." : "Inscribir"}
@@ -248,7 +332,7 @@ export default function InscripcionForm({ open, onClose, onSuccess }: Props) {
         </DialogActions>
       </Dialog>
 
-      {/* Selectores */}
+      {/* Diálogos de selección de estudiante y curso */}
       <StudentSelectorDialog
         open={studentDlg}
         onClose={() => setStudentDlg(false)}

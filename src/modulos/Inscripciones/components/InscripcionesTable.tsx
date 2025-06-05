@@ -13,15 +13,24 @@ import {
   Grid,
   useMediaQuery,
   Box,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { InscripcionDetalle } from "../types/inscripciones.types";
 
 interface Props {
   data: InscripcionDetalle[];
+  onDelete: (id: number) => void;
+  loadingDelete: boolean;
 }
 
-export default function InscripcionesTable({ data }: Props) {
+export default function InscripcionesTable({
+  data,
+  onDelete,
+  loadingDelete,
+}: Props) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -38,11 +47,6 @@ export default function InscripcionesTable({ data }: Props) {
             <Card key={row.idInscripcion} elevation={2}>
               <CardContent>
                 <Grid container spacing={1}>
-                  <Grid item xs={12}>
-                    <Typography variant="subtitle2">
-                      #{row.idInscripcion}
-                    </Typography>
-                  </Grid>
                   <Grid item xs={12}>
                     <Typography variant="body1" fontWeight={600}>
                       {row.nombreEstudiante}
@@ -72,6 +76,17 @@ export default function InscripcionesTable({ data }: Props) {
                       {row.montoDescPractica} / Descuento: {row.montoDescuento}
                     </Typography>
                   </Grid>
+                  <Grid item xs={2}>
+                    <Tooltip title="Eliminar inscripción">
+                      <IconButton
+                        color="secondary"
+                        onClick={() => onDelete(row.idInscripcion)}
+                        disabled={loadingDelete}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </Grid>
                 </Grid>
               </CardContent>
             </Card>
@@ -87,7 +102,6 @@ export default function InscripcionesTable({ data }: Props) {
       <Table stickyHeader size="small">
         <TableHead>
           <TableRow>
-            <TableCell>#</TableCell>
             <TableCell>Estudiante</TableCell>
             <TableCell>Curso</TableCell>
             <TableCell>Fecha</TableCell>
@@ -107,7 +121,6 @@ export default function InscripcionesTable({ data }: Props) {
           ) : (
             data.map((row) => (
               <TableRow key={row.idInscripcion} hover>
-                <TableCell>{row.idInscripcion}</TableCell>
                 <TableCell>{row.nombreEstudiante}</TableCell>
                 <TableCell>{row.nombreCurso}</TableCell>
                 <TableCell>
@@ -117,6 +130,17 @@ export default function InscripcionesTable({ data }: Props) {
                 <TableCell sx={{ whiteSpace: "nowrap" }}>
                   Matrícula: {row.montoDescMatricula} / Práctica:{" "}
                   {row.montoDescPractica} / Descuento: {row.montoDescuento}
+                </TableCell>
+                <TableCell align="center">
+                  <Tooltip title="Eliminar inscripción">
+                    <IconButton
+                      color="secondary"
+                      onClick={() => onDelete(row.idInscripcion)}
+                      disabled={loadingDelete}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
                 </TableCell>
               </TableRow>
             ))

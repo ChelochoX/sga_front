@@ -28,7 +28,7 @@ export const getPersonas = async (filtro: string = ""): Promise<Persona[]> => {
 };
 
 // ✅ Función para convertir "dd/MM/yyyy" → "yyyy-MM-dd"
-const formatFecha = (fecha: string): string => {
+export const formatFecha = (fecha: string): string => {
   if (!fecha.includes("/")) return fecha; // Si ya está formateado, lo dejamos
   const [day, month, year] = fecha.split("/");
   return `${year}-${month}-${day}`;

@@ -24,7 +24,8 @@ export default function InscripcionesPage() {
   const [filtroDesde, setFiltroDesde] = useState<string>("");
   const [filtroHasta, setFiltroHasta] = useState<string>("");
 
-  const { inscripciones, loading, refetchInscripciones } = useInscripciones();
+  const { inscripciones, loading, refetchInscripciones, eliminarInscripcion } =
+    useInscripciones();
 
   useEffect(() => {
     refetchInscripciones();
@@ -37,6 +38,16 @@ export default function InscripcionesPage() {
   const handleSuccess = () => {
     refetchInscripciones(filtroAlumno, filtroCurso, filtroDesde, filtroHasta);
     setOpenForm(false);
+  };
+
+  const handleDelete = async (id: number) => {
+    try {
+      await eliminarInscripcion(id);
+      toast.success("Inscripción eliminada correctamente");
+      refetchInscripciones(filtroAlumno, filtroCurso, filtroDesde, filtroHasta);
+    } catch (error) {
+      toast.error("Error al eliminar la inscripción");
+    }
   };
 
   return (
@@ -111,7 +122,11 @@ export default function InscripcionesPage() {
           <CircularProgress />
         </Box>
       ) : (
-        <InscripcionesTable data={inscripciones} />
+        <InscripcionesTable
+          data={inscripciones}
+          onDelete={handleDelete}
+          loadingDelete={loading}
+        />
       )}
 
       {/* Formulario modal */}
