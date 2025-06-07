@@ -1,19 +1,38 @@
+// Representa el detalle individual de cada cuota, vencimiento, etc.
 export interface PagoDetalleDto {
+  idDetallePago?: number;
+  concepto?: string;
+  monto?: number;
+  fechaVencimiento?: string | null;
+  fechaPago?: string | null;
+  tipoPago?: string | null;
+  referencia?: string | null;
+  voucherNumero?: string | null;
+  estado?: string;
+}
+
+export interface PagoCabeceraDto {
   idPago: number;
   idInscripcion: number;
-  idPersona: number;
   nombreEstudiante: string;
+  nombreCurso: string;
   deudaTotal: number;
   tipoCuenta: string;
   descuentoCabecera: number;
   observacion: string;
-  idDetallePago?: number;
-  concepto?: string;
-  monto?: number;
-  fechaVencimiento?: string; // ISO date string
-  fechaPago?: string; // ISO date string
-  tipoPago?: string;
-  referencia?: string;
-  voucherNumero?: string;
-  estado?: string;
+  detalles: PagoDetalleDto[];
+}
+
+// Respuesta paginada del backend
+export interface ResultadoPagos {
+  items: PagoCabeceraDto[];
+  total: number;
+}
+
+// El filtro para la búsqueda (igual que antes)
+export interface PagoFiltroRequest {
+  nombreEstudiante?: string;
+  fechaVencimiento?: string;
+  pageNumber: number;
+  pageSize: number;
 }
