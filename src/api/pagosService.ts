@@ -3,6 +3,7 @@ import {
   PagoCabeceraDto,
   PagoFiltroRequest,
   ResultadoPagos,
+  PagoDetalleDto,
 } from "../modulos/Pagos/types/pagos.types";
 
 const API_URL = "/Pagos";
@@ -26,5 +27,13 @@ export const getPagosRealizados = async (
     `${API_URL}/PagosRealizados`,
     filtro
   );
+  return data;
+};
+
+// Facturar seleccionados
+export const facturarPagos = async (
+  detalles: PagoDetalleDto[]
+): Promise<any> => {
+  const { data } = await instance.post(`/Pagos/Facturar`, { detalles });
   return data;
 };

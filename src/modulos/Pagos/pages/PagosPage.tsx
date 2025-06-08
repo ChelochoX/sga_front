@@ -116,7 +116,7 @@ export default function PagosPage() {
   return (
     <Box p={isMobile ? 1 : 2} maxWidth={1200} mx="auto">
       <Typography variant={isMobile ? "h6" : "h5"} mb={2}>
-        Pagos
+        Pagos - Cuenta Corriente
       </Typography>
       {/* Filtros */}
       <Paper

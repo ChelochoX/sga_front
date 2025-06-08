@@ -16,6 +16,7 @@ import {
   Grid,
   Collapse,
   IconButton,
+  Checkbox,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { PagoCabeceraDto } from "../types/pagos.types";
@@ -32,9 +33,13 @@ interface Props {
   onPageChange: (event: unknown, newPage: number) => void;
   onRowsPerPageChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   tab: "pendientes" | "realizados";
+  seleccionados: number[];
+  onSeleccionarDetalle: (ids: number[]) => void;
 }
 
 export default function PagosTable({
+  seleccionados,
+  onSeleccionarDetalle,
   data,
   loading = false,
   emptyText,
@@ -50,6 +55,16 @@ export default function PagosTable({
 
   // Estado para manejar apertura/cierre de filas de detalles
   const [open, setOpen] = React.useState<number | null>(null);
+
+  // Manejo de checks
+  const handleCheck = (id: number) => {
+    if (!onSeleccionarDetalle) return;
+    if (seleccionados.includes(id)) {
+      onSeleccionarDetalle(seleccionados.filter((i) => i !== id));
+    } else {
+      onSeleccionarDetalle([...seleccionados, id]);
+    }
+  };
 
   // --- VISTA MOBILE COMO CARDS ---
   if (isMobile) {
@@ -326,6 +341,9 @@ export default function PagosTable({
         onRowsPerPageChange={onRowsPerPageChange}
         labelRowsPerPage="Filas por página:"
         rowsPerPageOptions={[10, 20, 30]}
+        labelDisplayedRows={({ from, to, count }) =>
+          `${from}-${to} de ${count !== -1 ? count : `más de ${to}`}`
+        }
       />
     </Paper>
   );
