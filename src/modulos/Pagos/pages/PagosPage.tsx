@@ -33,6 +33,7 @@ export default function PagosPage() {
   // Selección de detalles para facturación
   const [seleccionados, setSeleccionados] = useState<number[]>([]);
   const [openFacturaModal, setOpenFacturaModal] = useState(false);
+  const { config, fetchConfig } = usePagos();
 
   const {
     pagosPendientes,
@@ -141,6 +142,13 @@ export default function PagosPage() {
     } catch (e) {
       alert("Error al facturar pagos");
     }
+  };
+
+  // Cuando abrís el modal
+  const handleOpenFacturaModal = async () => {
+    // Aquí podrías decidir el código según tu tipo de operación, por ejemplo:
+    await fetchConfig("33"); // 33 para factura contado
+    setOpenFacturaModal(true);
   };
 
   return (
@@ -308,16 +316,21 @@ export default function PagosPage() {
               background: "linear-gradient(90deg,#c026d3 70%,#db2777 100%)",
               color: "#fff",
               fontWeight: 700,
-              borderRadius: "24px",
-              ml: 2,
-              px: 4,
-              py: 1.1,
+              borderRadius: "999px", // igual que las tabs
+              height: 40, // <- AJUSTA AQUÍ según tus ToggleButton (normalmente 38-42px)
+              px: 3, // Padding horizontal, similar al de las tabs
+              py: 0, // Padding vertical igual que ToggleButton
+              minWidth: 120, // ajusta para que no sea gigante
               boxShadow: "0 2px 12px #db277750",
-              fontSize: "1.1rem",
+              fontSize: "0.96rem", // igual que ToggleButton
               letterSpacing: 1,
+              transition: "all 0.2s",
+              ml: 2,
               "&:hover": {
                 background: "linear-gradient(90deg,#a21caf 70%,#db2777 100%)",
               },
+              // Opcional: border o borde para aún más similaridad
+              // border: "1px solid #e0e0e0",
             }}
           >
             Facturar seleccionados
@@ -360,13 +373,16 @@ export default function PagosPage() {
             background: "linear-gradient(90deg,#c026d3 70%,#db2777 100%)",
             color: "#fff",
             fontWeight: 700,
-            borderRadius: "40px",
-            px: 4,
-            py: 1.2,
+            borderRadius: "999px", // Igual que desktop
+            height: 40,
+            px: 3,
+            py: 0,
+            minWidth: 120,
+            fontSize: "0.96rem",
+            letterSpacing: 1,
             zIndex: 1200,
             boxShadow: "0 2px 12px #db277750",
-            fontSize: "1.13rem",
-            letterSpacing: 1,
+            transition: "all 0.2s",
             "&:hover": {
               background: "linear-gradient(90deg,#a21caf 70%,#db2777 100%)",
             },
@@ -381,11 +397,15 @@ export default function PagosPage() {
         open={openFacturaModal}
         onClose={() => setOpenFacturaModal(false)}
         detalles={detallesSeleccionados.map((d) => ({
-          idDetallePago: d.idDetallePago ?? 0,
           concepto: d.concepto ?? "",
           monto: d.monto ?? 0,
-          // agrega los campos que pida tu DetalleItem, con fallback
+          // agrega otros campos si tu DetalleItem lo necesita
         }))}
+        config={config}
+        tipoFactura={tipoFactura} // O el tipo correspondiente
+        fechaEmision={new Date().toLocaleDateString("es-PY")}
+        loading={false} // Puedes ligar a un estado de loading si lo tienes
+        onConfirmar={handleFacturar} // O llama a tu función que hace la facturación
         onFacturar={handleFacturar}
       />
 

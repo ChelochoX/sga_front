@@ -23,6 +23,19 @@ import { useTheme } from "@mui/material/styles";
 interface DetalleItem {
   concepto: string;
   monto: number;
+  iva?: number;
+  tipoIva?: string; // "10%", "5%", "Exenta", etc.
+}
+
+interface ConfigDocumento {
+  NumeroActual?: string;
+  Timbrado?: string;
+  RazonSocialEmisor?: string;
+  RucEmisor?: string;
+  DireccionEmisor?: string;
+  VigenciaInicio?: string;
+  VigenciaFin?: string;
+  // agrega más si tu backend lo trae
 }
 
 interface Props {
@@ -30,27 +43,36 @@ interface Props {
   onClose: () => void;
   onConfirmar: () => void;
   detalles: DetalleItem[];
-  nroFactura: string;
+  config?: ConfigDocumento | null;
   tipoFactura: string;
   fechaEmision?: string;
   loading?: boolean;
-  onFacturar: () => Promise<void>;
 }
 
-export const FacturacionModal: React.FC<Props> = ({
+const FacturacionModal: React.FC<Props> = ({
   open,
   onClose,
   onConfirmar,
   detalles,
-  nroFactura,
+  config,
   tipoFactura,
   fechaEmision,
   loading = false,
-  onFacturar,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const total = detalles.reduce((sum, d) => sum + (d.monto || 0), 0);
+
+  // Calcular totales de IVA y exentas
+  const totalIva10 = detalles
+    .filter((d) => d.tipoIva === "10%")
+    .reduce((sum, d) => sum + (d.iva || 0), 0);
+  const totalIva5 = detalles
+    .filter((d) => d.tipoIva === "5%")
+    .reduce((sum, d) => sum + (d.iva || 0), 0);
+  const totalExenta = detalles
+    .filter((d) => d.tipoIva === "Exenta")
+    .reduce((sum, d) => sum + (d.monto || 0), 0);
 
   return (
     <Dialog
@@ -64,31 +86,47 @@ export const FacturacionModal: React.FC<Props> = ({
         <Typography fontWeight={700}>Confirmar Facturación</Typography>
       </DialogTitle>
       <DialogContent>
-        <Box
-          display="flex"
-          flexDirection={isMobile ? "column" : "row"}
-          gap={2}
-          mb={2}
-        >
-          <Chip
-            label={<b>Nro. Factura: {nroFactura}</b>}
-            color="secondary"
-            sx={{ fontWeight: 600, fontSize: "1rem" }}
-          />
-          <Chip
-            label={<b>Tipo: {tipoFactura}</b>}
-            color="info"
-            sx={{ fontWeight: 600, fontSize: "1rem" }}
-          />
-          {fechaEmision && (
+        {/* Encabezado de la factura */}
+        {config && (
+          <Box
+            display="flex"
+            flexDirection={isMobile ? "column" : "row"}
+            gap={2}
+            mb={2}
+          >
             <Chip
-              label={<b>Fecha: {fechaEmision}</b>}
-              color="default"
-              sx={{ fontWeight: 500, fontSize: "1rem" }}
+              label={<b>Nro. Factura: {config.NumeroActual ?? "A DEFINIR"}</b>}
+              color="secondary"
+              sx={{ fontWeight: 600, fontSize: "1rem" }}
             />
-          )}
+            <Chip
+              label={<b>Timbrado: {config.Timbrado ?? "No definido"}</b>}
+              color="info"
+              sx={{ fontWeight: 600, fontSize: "1rem" }}
+            />
+            <Chip
+              label={<b>Tipo: {tipoFactura}</b>}
+              color="success"
+              sx={{ fontWeight: 600, fontSize: "1rem" }}
+            />
+            {fechaEmision && (
+              <Chip
+                label={<b>Fecha: {fechaEmision}</b>}
+                color="default"
+                sx={{ fontWeight: 500, fontSize: "1rem" }}
+              />
+            )}
+          </Box>
+        )}
+        <Box mb={1}>
+          <Typography fontWeight={600}>Cliente:</Typography>
+          {/* Aquí ponés los datos del alumno o podés pasar el objeto cliente por prop */}
+          <Typography>
+            Nombre del alumno, RUC/Cédula, dirección (pendiente de integración)
+          </Typography>
         </Box>
         <Divider sx={{ mb: 2 }} />
+
         <Typography fontWeight={600} mb={1}>
           Detalles a facturar:
         </Typography>
@@ -97,6 +135,7 @@ export const FacturacionModal: React.FC<Props> = ({
             <TableRow>
               <TableCell>Concepto</TableCell>
               <TableCell align="right">Monto</TableCell>
+              <TableCell align="center">IVA</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -110,11 +149,57 @@ export const FacturacionModal: React.FC<Props> = ({
                     minimumFractionDigits: 0,
                   })}
                 </TableCell>
+                <TableCell align="center">{item.tipoIva || "-"}</TableCell>
               </TableRow>
             ))}
             <TableRow>
               <TableCell align="right">
-                <b>Total:</b>
+                <b>Total Exenta</b>
+              </TableCell>
+              <TableCell align="right">
+                <b>
+                  {totalExenta.toLocaleString("es-PY", {
+                    style: "currency",
+                    currency: "PYG",
+                    minimumFractionDigits: 0,
+                  })}
+                </b>
+              </TableCell>
+              <TableCell />
+            </TableRow>
+            <TableRow>
+              <TableCell align="right">
+                <b>Total IVA 5%</b>
+              </TableCell>
+              <TableCell align="right">
+                <b>
+                  {totalIva5.toLocaleString("es-PY", {
+                    style: "currency",
+                    currency: "PYG",
+                    minimumFractionDigits: 0,
+                  })}
+                </b>
+              </TableCell>
+              <TableCell />
+            </TableRow>
+            <TableRow>
+              <TableCell align="right">
+                <b>Total IVA 10%</b>
+              </TableCell>
+              <TableCell align="right">
+                <b>
+                  {totalIva10.toLocaleString("es-PY", {
+                    style: "currency",
+                    currency: "PYG",
+                    minimumFractionDigits: 0,
+                  })}
+                </b>
+              </TableCell>
+              <TableCell />
+            </TableRow>
+            <TableRow>
+              <TableCell align="right">
+                <b>Total General</b>
               </TableCell>
               <TableCell align="right">
                 <b>
@@ -125,6 +210,7 @@ export const FacturacionModal: React.FC<Props> = ({
                   })}
                 </b>
               </TableCell>
+              <TableCell />
             </TableRow>
           </TableBody>
         </Table>
@@ -146,4 +232,5 @@ export const FacturacionModal: React.FC<Props> = ({
     </Dialog>
   );
 };
+
 export default FacturacionModal;

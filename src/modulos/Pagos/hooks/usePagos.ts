@@ -2,6 +2,7 @@ import { useState } from "react";
 import {
   getPagosPendientes,
   getPagosRealizados,
+  getConfigDocumentoFiscal,
 } from "../../../api/pagosService";
 import { PagoCabeceraDto, PagoFiltroRequest } from "../types/pagos.types";
 
@@ -10,6 +11,7 @@ export const usePagos = () => {
   const [pagosRealizados, setPagosRealizados] = useState<PagoCabeceraDto[]>([]);
   const [totalPendientes, setTotalPendientes] = useState(0);
   const [totalRealizados, setTotalRealizados] = useState(0);
+  const [config, setConfig] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,6 +43,16 @@ export const usePagos = () => {
     }
   };
 
+  const fetchConfig = async (codigoDocumento: string) => {
+    setLoading(true);
+    try {
+      const data = await getConfigDocumentoFiscal(codigoDocumento);
+      setConfig(data);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     pagosPendientes,
     pagosRealizados,
@@ -50,5 +62,7 @@ export const usePagos = () => {
     error,
     fetchPagosPendientes,
     fetchPagosRealizados,
+    config,
+    fetchConfig,
   };
 };
