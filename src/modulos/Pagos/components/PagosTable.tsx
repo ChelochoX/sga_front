@@ -13,7 +13,6 @@ import {
   useMediaQuery,
   Card,
   CardContent,
-  Grid,
   Collapse,
   IconButton,
   Checkbox,
@@ -53,10 +52,8 @@ export default function PagosTable({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  // Estado para manejar apertura/cierre de filas de detalles
   const [open, setOpen] = React.useState<number | null>(null);
 
-  // Manejo de checks
   const handleCheck = (id: number) => {
     if (!onSeleccionarDetalle) return;
     if (seleccionados.includes(id)) {
@@ -66,7 +63,7 @@ export default function PagosTable({
     }
   };
 
-  // --- VISTA MOBILE COMO CARDS ---
+  // --- MOBILE ---
   if (isMobile) {
     return (
       <Box display="flex" flexDirection="column" gap={2}>
@@ -113,47 +110,61 @@ export default function PagosTable({
                         p={1}
                         bgcolor="#f3f0ff"
                         borderRadius={2}
+                        display="flex"
+                        alignItems="center"
+                        gap={1}
                       >
-                        <Typography fontWeight={500}>{det.concepto}</Typography>
-                        <Typography variant="body2">
-                          Monto:{" "}
-                          {det.monto?.toLocaleString("es-PY", {
-                            style: "currency",
-                            currency: "PYG",
-                          })}
-                        </Typography>
-                        <Typography variant="body2">
-                          Vencimiento:{" "}
-                          {det.fechaVencimiento
-                            ? new Date(det.fechaVencimiento).toLocaleDateString(
-                                "es-PY"
-                              )
-                            : "-"}
-                        </Typography>
-                        {tab === "realizados" && (
-                          <>
-                            <Typography variant="body2">
-                              Pago:{" "}
-                              {det.fechaPago
-                                ? new Date(det.fechaPago).toLocaleDateString(
-                                    "es-PY"
-                                  )
-                                : "-"}
-                            </Typography>
-                            <Typography variant="body2">
-                              Tipo Pago: {det.tipoPago || "-"}
-                            </Typography>
-                            <Typography variant="body2">
-                              Referencia: {det.referencia || "-"}
-                            </Typography>
-                            <Typography variant="body2">
-                              Voucher: {det.voucherNumero || "-"}
-                            </Typography>
-                          </>
+                        {tab === "pendientes" && (
+                          <Checkbox
+                            checked={seleccionados.includes(det.idDetallePago!)}
+                            onChange={() => handleCheck(det.idDetallePago!)}
+                            disabled={det.estado !== "Pendiente"}
+                          />
                         )}
-                        <Typography variant="body2">
-                          Estado: {det.estado}
-                        </Typography>
+                        <Box>
+                          <Typography fontWeight={500}>
+                            {det.concepto}
+                          </Typography>
+                          <Typography variant="body2">
+                            Monto:{" "}
+                            {det.monto?.toLocaleString("es-PY", {
+                              style: "currency",
+                              currency: "PYG",
+                            })}
+                          </Typography>
+                          <Typography variant="body2">
+                            Vencimiento:{" "}
+                            {det.fechaVencimiento
+                              ? new Date(
+                                  det.fechaVencimiento
+                                ).toLocaleDateString("es-PY")
+                              : "-"}
+                          </Typography>
+                          {tab === "realizados" && (
+                            <>
+                              <Typography variant="body2">
+                                Pago:{" "}
+                                {det.fechaPago
+                                  ? new Date(det.fechaPago).toLocaleDateString(
+                                      "es-PY"
+                                    )
+                                  : "-"}
+                              </Typography>
+                              <Typography variant="body2">
+                                Tipo Pago: {det.tipoPago || "-"}
+                              </Typography>
+                              <Typography variant="body2">
+                                Referencia: {det.referencia || "-"}
+                              </Typography>
+                              <Typography variant="body2">
+                                Voucher: {det.voucherNumero || "-"}
+                              </Typography>
+                            </>
+                          )}
+                          <Typography variant="body2">
+                            Estado: {det.estado}
+                          </Typography>
+                        </Box>
                       </Box>
                     ))
                   )}
@@ -166,7 +177,7 @@ export default function PagosTable({
     );
   }
 
-  // --- VISTA DESKTOP: TABLE AGRUPADA ---
+  // --- DESKTOP ---
   return (
     <Paper>
       <TableContainer>
@@ -202,7 +213,6 @@ export default function PagosTable({
             ) : (
               data.map((cabecera, idx) => (
                 <React.Fragment key={cabecera.idPago}>
-                  {/* Cabecera */}
                   <TableRow
                     sx={{
                       background: "#faf9ff",
@@ -259,6 +269,7 @@ export default function PagosTable({
                           <Table size="small" sx={{ background: "#fff" }}>
                             <TableHead>
                               <TableRow>
+                                {tab === "pendientes" && <TableCell />}
                                 <TableCell>Concepto</TableCell>
                                 <TableCell>Monto</TableCell>
                                 <TableCell>Vencimiento</TableCell>
@@ -283,6 +294,21 @@ export default function PagosTable({
                                     },
                                   }}
                                 >
+                                  {tab === "pendientes" && (
+                                    <TableCell>
+                                      <Checkbox
+                                        checked={seleccionados.includes(
+                                          detalle.idDetallePago!
+                                        )}
+                                        onChange={() =>
+                                          handleCheck(detalle.idDetallePago!)
+                                        }
+                                        disabled={
+                                          detalle.estado !== "Pendiente"
+                                        }
+                                      />
+                                    </TableCell>
+                                  )}
                                   <TableCell>{detalle.concepto}</TableCell>
                                   <TableCell>
                                     {detalle.monto?.toLocaleString("es-PY", {

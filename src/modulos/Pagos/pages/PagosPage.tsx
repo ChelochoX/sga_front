@@ -14,8 +14,10 @@ import {
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import PagosTable from "../components/PagosTable";
+import FacturaModal from "../components/FacturaModal";
 import { usePagos } from "../hooks/usePagos";
 import { formatFecha } from "../../../utils/dateUtils";
+import { facturarPagos } from "../../../api/pagosService";
 
 export default function PagosPage() {
   const theme = useTheme();
@@ -27,6 +29,10 @@ export default function PagosPage() {
   const [pageSize, setPageSize] = useState<number>(10);
   const [tab, setTab] = useState<"pendientes" | "realizados">("pendientes");
   const [busquedaActiva, setBusquedaActiva] = useState(false);
+
+  // Selección de detalles para facturación
+  const [seleccionados, setSeleccionados] = useState<number[]>([]);
+  const [openFacturaModal, setOpenFacturaModal] = useState(false);
 
   const {
     pagosPendientes,
@@ -59,6 +65,7 @@ export default function PagosPage() {
     } else {
       fetchPagosRealizados({ ...filtro, pageNumber: 1, pageSize });
     }
+    setSeleccionados([]);
   };
 
   const handlePageChange = (_: unknown, newPage: number) => {
@@ -76,6 +83,7 @@ export default function PagosPage() {
         });
       }
     }
+    setSeleccionados([]);
   };
 
   const handleRowsPerPageChange = (
@@ -99,6 +107,7 @@ export default function PagosPage() {
         });
       }
     }
+    setSeleccionados([]);
   };
 
   const handleTabChange = (_: any, value: "pendientes" | "realizados") => {
@@ -110,6 +119,27 @@ export default function PagosPage() {
       } else {
         fetchPagosRealizados({ ...filtro, pageNumber: 1, pageSize });
       }
+    }
+    setSeleccionados([]);
+  };
+
+  // Pagos seleccionados (detalles) para facturar
+  const detallesSeleccionados = pagosPendientes
+    .flatMap((cab) => cab.detalles)
+    .filter((d) => seleccionados.includes(d.idDetallePago!));
+
+  const handleFacturar = async () => {
+    if (detallesSeleccionados.length === 0) return;
+    try {
+      await facturarPagos(detallesSeleccionados);
+      setOpenFacturaModal(false);
+      setSeleccionados([]);
+      // Refresca la lista (mejor llamar fetchPagosPendientes)
+      if (tab === "pendientes") {
+        fetchPagosPendientes({ ...filtro, pageNumber: 1, pageSize });
+      }
+    } catch (e) {
+      alert("Error al facturar pagos");
     }
   };
 
@@ -214,12 +244,13 @@ export default function PagosPage() {
           </Box>
         )}
 
-      {/* Tabs */}
+      {/* Tabs y Botón facturar */}
       <Box
         mt={2}
         mb={3}
         display="flex"
-        justifyContent={isMobile ? "center" : "flex-start"}
+        justifyContent={isMobile ? "center" : "space-between"}
+        alignItems="center"
       >
         <ToggleButtonGroup
           value={tab}
@@ -269,7 +300,31 @@ export default function PagosPage() {
             Realizados
           </ToggleButton>
         </ToggleButtonGroup>
+        {!isMobile && tab === "pendientes" && (
+          <Button
+            onClick={() => setOpenFacturaModal(true)}
+            disabled={seleccionados.length === 0}
+            sx={{
+              background: "linear-gradient(90deg,#c026d3 70%,#db2777 100%)",
+              color: "#fff",
+              fontWeight: 700,
+              borderRadius: "24px",
+              ml: 2,
+              px: 4,
+              py: 1.1,
+              boxShadow: "0 2px 12px #db277750",
+              fontSize: "1.1rem",
+              letterSpacing: 1,
+              "&:hover": {
+                background: "linear-gradient(90deg,#a21caf 70%,#db2777 100%)",
+              },
+            }}
+          >
+            Facturar seleccionados
+          </Button>
+        )}
       </Box>
+
       {/* Tabla/card de pagos */}
       {loading ? (
         <Box display="flex" justifyContent="center" mt={4}>
@@ -288,8 +343,52 @@ export default function PagosPage() {
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
           tab={tab}
+          seleccionados={seleccionados}
+          onSeleccionarDetalle={setSeleccionados}
         />
       )}
+
+      {/* Botón facturar para móvil */}
+      {isMobile && tab === "pendientes" && (
+        <Button
+          onClick={() => setOpenFacturaModal(true)}
+          disabled={seleccionados.length === 0}
+          sx={{
+            position: "fixed",
+            bottom: 24,
+            right: 24,
+            background: "linear-gradient(90deg,#c026d3 70%,#db2777 100%)",
+            color: "#fff",
+            fontWeight: 700,
+            borderRadius: "40px",
+            px: 4,
+            py: 1.2,
+            zIndex: 1200,
+            boxShadow: "0 2px 12px #db277750",
+            fontSize: "1.13rem",
+            letterSpacing: 1,
+            "&:hover": {
+              background: "linear-gradient(90deg,#a21caf 70%,#db2777 100%)",
+            },
+          }}
+        >
+          Facturar seleccionados
+        </Button>
+      )}
+
+      {/* Modal de factura */}
+      <FacturaModal
+        open={openFacturaModal}
+        onClose={() => setOpenFacturaModal(false)}
+        detalles={detallesSeleccionados.map((d) => ({
+          idDetallePago: d.idDetallePago ?? 0,
+          concepto: d.concepto ?? "",
+          monto: d.monto ?? 0,
+          // agrega los campos que pida tu DetalleItem, con fallback
+        }))}
+        onFacturar={handleFacturar}
+      />
+
       {/* Mensaje de error */}
       {error && (
         <Box mt={2} textAlign="center">
