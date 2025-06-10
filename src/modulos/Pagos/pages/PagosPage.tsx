@@ -34,6 +34,9 @@ export default function PagosPage() {
   const [seleccionados, setSeleccionados] = useState<number[]>([]);
   const [openFacturaModal, setOpenFacturaModal] = useState(false);
   const { config, fetchConfig } = usePagos();
+  const [tipoFactura, setTipoFactura] = useState<"CONTADO" | "CREDITO">(
+    "CONTADO"
+  );
 
   const {
     pagosPendientes,
@@ -124,10 +127,21 @@ export default function PagosPage() {
     setSeleccionados([]);
   };
 
+  const cabeceraSeleccionada = pagosPendientes.find((cab) =>
+    cab.detalles.some((d) => seleccionados.includes(d.idDetallePago!))
+  );
+
   // Pagos seleccionados (detalles) para facturar
   const detallesSeleccionados = pagosPendientes
     .flatMap((cab) => cab.detalles)
     .filter((d) => seleccionados.includes(d.idDetallePago!));
+
+  const detallesMapeados = detallesSeleccionados.map((d) => ({
+    concepto: d.concepto ?? "",
+    monto: d.monto ?? 0,
+    iva: d.monto ? d.monto * 0.1 : 0,
+    tipoIva: "10%",
+  }));
 
   const handleFacturar = async () => {
     if (detallesSeleccionados.length === 0) return;
@@ -396,17 +410,15 @@ export default function PagosPage() {
       <FacturaModal
         open={openFacturaModal}
         onClose={() => setOpenFacturaModal(false)}
-        detalles={detallesSeleccionados.map((d) => ({
-          concepto: d.concepto ?? "",
-          monto: d.monto ?? 0,
-          // agrega otros campos si tu DetalleItem lo necesita
-        }))}
+        detalles={detallesMapeados}
         config={config}
-        tipoFactura={tipoFactura} // O el tipo correspondiente
         fechaEmision={new Date().toLocaleDateString("es-PY")}
-        loading={false} // Puedes ligar a un estado de loading si lo tienes
-        onConfirmar={handleFacturar} // O llama a tu función que hace la facturación
-        onFacturar={handleFacturar}
+        loading={false}
+        onConfirmar={handleFacturar}
+        estudiante={cabeceraSeleccionada?.nombreEstudiante ?? ""}
+        direccion={cabeceraSeleccionada?.direccionEstudiante ?? "-"}
+        ruc={cabeceraSeleccionada?.rucEstudiante ?? "-"}
+        telefono={cabeceraSeleccionada?.telefonoEstudiante ?? "-"}
       />
 
       {/* Mensaje de error */}

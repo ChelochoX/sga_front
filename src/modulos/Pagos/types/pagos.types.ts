@@ -15,6 +15,9 @@ export interface PagoCabeceraDto {
   idPago: number;
   idInscripcion: number;
   nombreEstudiante: string;
+  direccionEstudiante: string;
+  rucEstudiante: string;
+  telefonoEstudiante: string;
   nombreCurso: string;
   deudaTotal: number;
   tipoCuenta: string;

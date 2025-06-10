@@ -1,5 +1,4 @@
-// src/components/FacturacionModal.tsx
-import React from "react";
+import React, { useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -15,8 +14,11 @@ import {
   TableCell,
   CircularProgress,
   Divider,
-  Chip,
+  Grid,
   useMediaQuery,
+  Checkbox,
+  FormControlLabel,
+  Paper,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 
@@ -24,7 +26,7 @@ interface DetalleItem {
   concepto: string;
   monto: number;
   iva?: number;
-  tipoIva?: string; // "10%", "5%", "Exenta", etc.
+  tipoIva?: string;
 }
 
 interface ConfigDocumento {
@@ -33,37 +35,44 @@ interface ConfigDocumento {
   RazonSocialEmisor?: string;
   RucEmisor?: string;
   DireccionEmisor?: string;
-  VigenciaInicio?: string;
-  VigenciaFin?: string;
-  // agrega más si tu backend lo trae
+  VigenciaDesde?: string;
+  VigenciaHasta?: string;
 }
 
 interface Props {
   open: boolean;
   onClose: () => void;
-  onConfirmar: () => void;
+  onConfirmar: (tipoFactura: string) => void;
   detalles: DetalleItem[];
   config?: ConfigDocumento | null;
-  tipoFactura: string;
   fechaEmision?: string;
   loading?: boolean;
+  estudiante: string;
+  direccion: string;
+  ruc: string;
+  telefono: string;
 }
 
-const FacturacionModal: React.FC<Props> = ({
+const FacturaModal: React.FC<Props> = ({
   open,
   onClose,
   onConfirmar,
   detalles,
   config,
-  tipoFactura,
   fechaEmision,
   loading = false,
+  estudiante,
+  direccion,
+  ruc,
+  telefono,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const total = detalles.reduce((sum, d) => sum + (d.monto || 0), 0);
+  const [tipoFactura, setTipoFactura] = useState<"CONTADO" | "CREDITO">(
+    "CONTADO"
+  );
 
-  // Calcular totales de IVA y exentas
+  const total = detalles.reduce((sum, d) => sum + (d.monto || 0), 0);
   const totalIva10 = detalles
     .filter((d) => d.tipoIva === "10%")
     .reduce((sum, d) => sum + (d.iva || 0), 0);
@@ -73,144 +82,158 @@ const FacturacionModal: React.FC<Props> = ({
   const totalExenta = detalles
     .filter((d) => d.tipoIva === "Exenta")
     .reduce((sum, d) => sum + (d.monto || 0), 0);
+  const totalIva = totalIva10 + totalIva5;
+  const subtotal = total - totalIva;
+
+  const concepto = detalles[0]?.concepto || "";
+  const nombreEstudiante = concepto.split(" - ")[1] ?? "";
 
   return (
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="sm"
+      maxWidth="md"
       fullWidth
       fullScreen={isMobile}
     >
       <DialogTitle>
-        <Typography fontWeight={700}>Confirmar Facturación</Typography>
+        <Typography fontWeight={700}>Factura</Typography>
       </DialogTitle>
       <DialogContent>
-        {/* Encabezado de la factura */}
-        {config && (
-          <Box
-            display="flex"
-            flexDirection={isMobile ? "column" : "row"}
-            gap={2}
-            mb={2}
-          >
-            <Chip
-              label={<b>Nro. Factura: {config.NumeroActual ?? "A DEFINIR"}</b>}
-              color="secondary"
-              sx={{ fontWeight: 600, fontSize: "1rem" }}
-            />
-            <Chip
-              label={<b>Timbrado: {config.Timbrado ?? "No definido"}</b>}
-              color="info"
-              sx={{ fontWeight: 600, fontSize: "1rem" }}
-            />
-            <Chip
-              label={<b>Tipo: {tipoFactura}</b>}
-              color="success"
-              sx={{ fontWeight: 600, fontSize: "1rem" }}
-            />
-            {fechaEmision && (
-              <Chip
-                label={<b>Fecha: {fechaEmision}</b>}
-                color="default"
-                sx={{ fontWeight: 500, fontSize: "1rem" }}
-              />
-            )}
-          </Box>
-        )}
-        <Box mb={1}>
-          <Typography fontWeight={600}>Cliente:</Typography>
-          {/* Aquí ponés los datos del alumno o podés pasar el objeto cliente por prop */}
-          <Typography>
-            Nombre del alumno, RUC/Cédula, dirección (pendiente de integración)
-          </Typography>
-        </Box>
-        <Divider sx={{ mb: 2 }} />
+        {/* Grupo 1: Datos del emisor reorganizados */}
+        <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <Typography variant="body2">
+                Fecha de Emisión: {fechaEmision}
+              </Typography>
+              <Typography variant="body2">RUC: {config?.RucEmisor}</Typography>
+              <Typography variant="body2">
+                Vigencia: {config?.VigenciaDesde?.split("T")[0]} al{" "}
+                {config?.VigenciaHasta?.split("T")[0]}
+              </Typography>
+            </Grid>
+            <Grid item xs={12} sm={6} textAlign="right">
+              <Typography variant="h6" fontWeight={700}>
+                Factura Nro: {config?.NumeroActual ?? "A definir"}
+              </Typography>
+              <Typography variant="body2">
+                Timbrado: {config?.Timbrado}
+              </Typography>
+            </Grid>
+          </Grid>
+        </Paper>
 
+        {/* Grupo 2: Datos del cliente y condición de venta */}
+        <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <Typography variant="body2">
+                <b>Cliente:</b> {estudiante}
+              </Typography>
+              <Typography variant="body2">
+                <b>Dirección:</b> {direccion}
+              </Typography>
+              <Typography variant="body2">
+                <b>RUC:</b> {ruc}
+              </Typography>
+              <Typography variant="body2">
+                <b>Teléfono:</b> {telefono}
+              </Typography>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <Typography variant="body2" fontWeight={600}>
+                Condición de Venta:
+              </Typography>
+              <Box display="flex" gap={2} alignItems="center" mb={1}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={tipoFactura === "CONTADO"}
+                      onChange={() => setTipoFactura("CONTADO")}
+                      size="small"
+                    />
+                  }
+                  label="Contado"
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={tipoFactura === "CREDITO"}
+                      onChange={() => setTipoFactura("CREDITO")}
+                      size="small"
+                    />
+                  }
+                  label="Crédito"
+                />
+              </Box>
+              <Typography variant="body2">
+                <b>Tipo de Transacción:</b> Venta de servicios educativos
+              </Typography>
+            </Grid>
+          </Grid>
+        </Paper>
+        {/* Detalles */}
         <Typography fontWeight={600} mb={1}>
-          Detalles a facturar:
+          Detalles
         </Typography>
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell>Concepto</TableCell>
-              <TableCell align="right">Monto</TableCell>
-              <TableCell align="center">IVA</TableCell>
+              <TableCell>Código</TableCell>
+              <TableCell>Descripción</TableCell>
+              <TableCell>Unidad</TableCell>
+              <TableCell align="right">Cantidad</TableCell>
+              <TableCell align="right">Precio Unitario</TableCell>
+              <TableCell align="right">Descuento</TableCell>
+              <TableCell align="right">Exentas</TableCell>
+              <TableCell align="right">5%</TableCell>
+              <TableCell align="right">10%</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {detalles.map((item, idx) => (
               <TableRow key={idx}>
+                <TableCell>4900270{idx + 1}</TableCell>
                 <TableCell>{item.concepto}</TableCell>
+                <TableCell>Unidad</TableCell>
+                <TableCell align="right">1</TableCell>
                 <TableCell align="right">
-                  {item.monto.toLocaleString("es-PY", {
-                    style: "currency",
-                    currency: "PYG",
-                    minimumFractionDigits: 0,
-                  })}
+                  {item.monto.toLocaleString("es-PY")}
                 </TableCell>
-                <TableCell align="center">{item.tipoIva || "-"}</TableCell>
+                <TableCell align="right">0</TableCell>
+                <TableCell align="right">
+                  {item.tipoIva === "Exenta"
+                    ? item.monto.toLocaleString("es-PY")
+                    : 0}
+                </TableCell>
+                <TableCell align="right">
+                  {item.tipoIva === "5%"
+                    ? item.monto.toLocaleString("es-PY")
+                    : 0}
+                </TableCell>
+                <TableCell align="right">
+                  {item.tipoIva === "10%"
+                    ? item.monto.toLocaleString("es-PY")
+                    : 0}
+                </TableCell>
               </TableRow>
             ))}
             <TableRow>
-              <TableCell align="right">
-                <b>Total Exenta</b>
+              <TableCell colSpan={8} align="right">
+                <b>Total IVA:</b>
               </TableCell>
               <TableCell align="right">
-                <b>
-                  {totalExenta.toLocaleString("es-PY", {
-                    style: "currency",
-                    currency: "PYG",
-                    minimumFractionDigits: 0,
-                  })}
-                </b>
+                {totalIva.toLocaleString("es-PY")}
               </TableCell>
-              <TableCell />
             </TableRow>
             <TableRow>
-              <TableCell align="right">
-                <b>Total IVA 5%</b>
+              <TableCell colSpan={8} align="right">
+                <b>Total General:</b>
               </TableCell>
               <TableCell align="right">
-                <b>
-                  {totalIva5.toLocaleString("es-PY", {
-                    style: "currency",
-                    currency: "PYG",
-                    minimumFractionDigits: 0,
-                  })}
-                </b>
+                {total.toLocaleString("es-PY")}
               </TableCell>
-              <TableCell />
-            </TableRow>
-            <TableRow>
-              <TableCell align="right">
-                <b>Total IVA 10%</b>
-              </TableCell>
-              <TableCell align="right">
-                <b>
-                  {totalIva10.toLocaleString("es-PY", {
-                    style: "currency",
-                    currency: "PYG",
-                    minimumFractionDigits: 0,
-                  })}
-                </b>
-              </TableCell>
-              <TableCell />
-            </TableRow>
-            <TableRow>
-              <TableCell align="right">
-                <b>Total General</b>
-              </TableCell>
-              <TableCell align="right">
-                <b>
-                  {total.toLocaleString("es-PY", {
-                    style: "currency",
-                    currency: "PYG",
-                    minimumFractionDigits: 0,
-                  })}
-                </b>
-              </TableCell>
-              <TableCell />
             </TableRow>
           </TableBody>
         </Table>
@@ -220,7 +243,7 @@ const FacturacionModal: React.FC<Props> = ({
           Cancelar
         </Button>
         <Button
-          onClick={onConfirmar}
+          onClick={() => onConfirmar(tipoFactura)}
           variant="contained"
           color="primary"
           disabled={loading}
@@ -233,4 +256,4 @@ const FacturacionModal: React.FC<Props> = ({
   );
 };
 
-export default FacturacionModal;
+export default FacturaModal;
