@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -29,14 +29,9 @@ export default function PagosPage() {
   const [pageSize, setPageSize] = useState<number>(10);
   const [tab, setTab] = useState<"pendientes" | "realizados">("pendientes");
   const [busquedaActiva, setBusquedaActiva] = useState(false);
-
-  // Selección de detalles para facturación
   const [seleccionados, setSeleccionados] = useState<number[]>([]);
   const [openFacturaModal, setOpenFacturaModal] = useState(false);
-  const { config, fetchConfig } = usePagos();
-  const [tipoFactura, setTipoFactura] = useState<"CONTADO" | "CREDITO">(
-    "CONTADO"
-  );
+  const [documentoConfig, setDocumentoConfig] = useState<any>(null);
 
   const {
     pagosPendientes,
@@ -47,7 +42,18 @@ export default function PagosPage() {
     error,
     fetchPagosPendientes,
     fetchPagosRealizados,
+    fetchConfig,
+    config,
   } = usePagos();
+
+  useEffect(() => {
+    fetchConfig("33");
+  }, []);
+
+  useEffect(() => {
+    if (config) {
+    }
+  }, [config]);
 
   const filtro = {
     nombreEstudiante: filtroAlumno || undefined,
@@ -156,13 +162,6 @@ export default function PagosPage() {
     } catch (e) {
       alert("Error al facturar pagos");
     }
-  };
-
-  // Cuando abrís el modal
-  const handleOpenFacturaModal = async () => {
-    // Aquí podrías decidir el código según tu tipo de operación, por ejemplo:
-    await fetchConfig("33"); // 33 para factura contado
-    setOpenFacturaModal(true);
   };
 
   return (

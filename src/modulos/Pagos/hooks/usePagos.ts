@@ -47,7 +47,9 @@ export const usePagos = () => {
     setLoading(true);
     try {
       const data = await getConfigDocumentoFiscal(codigoDocumento);
-      setConfig(data);
+      setConfig(data); // Esto lo guarda en el state
+    } catch (err) {
+      console.error("Error al obtener configuración del documento fiscal", err);
     } finally {
       setLoading(false);
     }

@@ -30,13 +30,15 @@ interface DetalleItem {
 }
 
 interface ConfigDocumento {
-  NumeroActual?: string;
-  Timbrado?: string;
-  RazonSocialEmisor?: string;
-  RucEmisor?: string;
-  DireccionEmisor?: string;
-  VigenciaDesde?: string;
-  VigenciaHasta?: string;
+  numeroActual?: string;
+  timbrado?: string;
+  razonSocialEmisor?: string;
+  rucEmisor?: string;
+  direccionEmisor?: string;
+  vigenciaDesde?: string;
+  vigenciaHasta?: string;
+  sucursal?: string;
+  puntoExpedicion?: string;
 }
 
 interface Props {
@@ -88,6 +90,12 @@ const FacturaModal: React.FC<Props> = ({
   const concepto = detalles[0]?.concepto || "";
   const nombreEstudiante = concepto.split(" - ")[1] ?? "";
 
+  const facturaNro = config
+    ? `${config.sucursal}-${config.puntoExpedicion}-${String(
+        config.numeroActual
+      ).padStart(7, "0")}`
+    : "A definir";
+
   return (
     <Dialog
       open={open}
@@ -107,18 +115,18 @@ const FacturaModal: React.FC<Props> = ({
               <Typography variant="body2">
                 Fecha de Emisión: {fechaEmision}
               </Typography>
-              <Typography variant="body2">RUC: {config?.RucEmisor}</Typography>
+              <Typography variant="body2">RUC: {config?.rucEmisor}</Typography>
               <Typography variant="body2">
-                Vigencia: {config?.VigenciaDesde?.split("T")[0]} al{" "}
-                {config?.VigenciaHasta?.split("T")[0]}
+                Vigencia: {config?.vigenciaDesde?.split("T")[0]} al{" "}
+                {config?.vigenciaHasta?.split("T")[0]}
               </Typography>
             </Grid>
             <Grid item xs={12} sm={6} textAlign="right">
               <Typography variant="h6" fontWeight={700}>
-                Factura Nro: {config?.NumeroActual ?? "A definir"}
+                Factura Nro: {facturaNro}
               </Typography>
               <Typography variant="body2">
-                Timbrado: {config?.Timbrado}
+                Timbrado: {config?.timbrado}
               </Typography>
             </Grid>
           </Grid>

@@ -39,3 +39,19 @@ export interface PagoFiltroRequest {
   pageNumber: number;
   pageSize: number;
 }
+
+export interface DocumentoFiscalConfig {
+  id: number;
+  tipoDocumento: string;
+  sucursal: string;
+  puntoExpedicion: string;
+  timbrado: string;
+  numeroActual: number;
+  numeroInicio: number;
+  numeroFin: number;
+  vigenciaDesde: string;
+  vigenciaHasta: string;
+  rucEmisor: string;
+  razonSocialEmisor: string;
+  direccionEmisor: string;
+}

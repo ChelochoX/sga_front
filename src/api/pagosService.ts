@@ -34,15 +34,18 @@ export const getPagosRealizados = async (
 export const facturarPagos = async (
   detalles: PagoDetalleDto[]
 ): Promise<any> => {
-  const { data } = await instance.post(`/RegistrarFacturaContado`, {
+  const { data } = await instance.post(`${API_URL}/RegistrarFacturaContado`, {
     detalles,
   });
   return data;
 };
 
 export const getConfigDocumentoFiscal = async (codigoDocumento: string) => {
-  const { data } = await instance.get(`/ConfiguracionDocumentoFiscal`, {
-    params: { codigoDocumento },
-  });
+  const { data } = await instance.get(
+    `${API_URL}/ConfiguracionDocumentoFiscal`,
+    {
+      params: { codigoDocumento },
+    }
+  );
   return data;
 };
