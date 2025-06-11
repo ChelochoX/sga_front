@@ -13,7 +13,6 @@ import {
   TableRow,
   TableCell,
   CircularProgress,
-  Divider,
   Grid,
   useMediaQuery,
   Checkbox,
@@ -21,12 +20,16 @@ import {
   Paper,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import { FacturaContadoRequest } from "../types/pagos.types";
 
 interface DetalleItem {
   concepto: string;
   monto: number;
   iva?: number;
   tipoIva?: string;
+
+  idPago: number;
+  idDetallePago: number;
 }
 
 interface ConfigDocumento {
@@ -44,7 +47,7 @@ interface ConfigDocumento {
 interface Props {
   open: boolean;
   onClose: () => void;
-  onConfirmar: (tipoFactura: string) => void;
+  onConfirmar: (payload: FacturaContadoRequest) => void;
   detalles: DetalleItem[];
   config?: ConfigDocumento | null;
   fechaEmision?: string;
@@ -113,13 +116,12 @@ const FacturaModal: React.FC<Props> = ({
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
               <Typography variant="body2">
-                Fecha de Emisión: {fechaEmision}
+                Fecha de Emisión:{" "}
+                {fechaEmision
+                  ? new Date(fechaEmision).toLocaleDateString("es-PY")
+                  : ""}
               </Typography>
               <Typography variant="body2">RUC: {config?.rucEmisor}</Typography>
-              <Typography variant="body2">
-                Vigencia: {config?.vigenciaDesde?.split("T")[0]} al{" "}
-                {config?.vigenciaHasta?.split("T")[0]}
-              </Typography>
             </Grid>
             <Grid item xs={12} sm={6} textAlign="right">
               <Typography variant="h6" fontWeight={700}>
@@ -127,6 +129,16 @@ const FacturaModal: React.FC<Props> = ({
               </Typography>
               <Typography variant="body2">
                 Timbrado: {config?.timbrado}
+              </Typography>
+              <Typography variant="body2">
+                Vigencia:{" "}
+                {config?.vigenciaDesde && config?.vigenciaHasta
+                  ? `${new Date(config.vigenciaDesde).toLocaleDateString(
+                      "es-PY"
+                    )} al ${new Date(config.vigenciaHasta).toLocaleDateString(
+                      "es-PY"
+                    )}`
+                  : ""}
               </Typography>
             </Grid>
           </Grid>
@@ -251,7 +263,35 @@ const FacturaModal: React.FC<Props> = ({
           Cancelar
         </Button>
         <Button
-          onClick={() => onConfirmar(tipoFactura)}
+          onClick={() => {
+            if (!config) return;
+
+            const payload: FacturaContadoRequest = {
+              sucursal: config.sucursal ?? "",
+              caja: config.puntoExpedicion ?? "",
+              numero: String(config.numeroActual ?? ""),
+              rucCliente: ruc,
+              nombreCliente: estudiante,
+              tipoFactura, // ✅ viene del estado de los checkboxes
+              totalFactura: total, // ✅ total con IVA
+              totalIva10, // ✅ suma de los IVAs calculados abajo
+              totalIva5: 0, // si más adelante usás otros tipos
+              totalExenta: totalExenta, // por ahora puede ser 0
+              observacion:
+                "Generación de pagos desde el módulo de pagos - cuenta corriente",
+              detalles: detalles.map((d, idx) => ({
+                concepto: d.concepto,
+                monto: d.monto,
+                iva: d.iva ?? 0,
+                tipoIva: d.tipoIva ?? "Iva10%",
+                idPago: d.idPago,
+                idDetallePago: d.idDetallePago,
+                observacion: "",
+              })),
+            };
+
+            onConfirmar(payload);
+          }}
           variant="contained"
           color="primary"
           disabled={loading}

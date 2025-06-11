@@ -18,6 +18,7 @@ import FacturaModal from "../components/FacturaModal";
 import { usePagos } from "../hooks/usePagos";
 import { formatFecha } from "../../../utils/dateUtils";
 import { facturarPagos } from "../../../api/pagosService";
+import { FacturaContadoRequest } from "../types/pagos.types";
 
 export default function PagosPage() {
   const theme = useTheme();
@@ -142,20 +143,22 @@ export default function PagosPage() {
     .flatMap((cab) => cab.detalles)
     .filter((d) => seleccionados.includes(d.idDetallePago!));
 
-  const detallesMapeados = detallesSeleccionados.map((d) => ({
+  const detallesMapeados = detallesSeleccionados.map((d, idx) => ({
+    codigo: `4900270${idx + 1}`,
     concepto: d.concepto ?? "",
     monto: d.monto ?? 0,
-    iva: d.monto ? d.monto * 0.1 : 0,
-    tipoIva: "10%",
+    iva: d.monto ? Math.round(d.monto / 11) : 0,
+    tipoIva: "10%", // ajustable si más adelante tenés 5% o Exenta
+    idPago: cabeceraSeleccionada?.idPago ?? 0,
+    idDetallePago: d.idDetallePago ?? 0,
   }));
 
-  const handleFacturar = async () => {
-    if (detallesSeleccionados.length === 0) return;
+  const handleConfirmarFactura = async (payload: FacturaContadoRequest) => {
     try {
-      await facturarPagos(detallesSeleccionados);
+      console.log("📦 Payload de factura:", payload);
+      await facturarPagos(payload);
       setOpenFacturaModal(false);
       setSeleccionados([]);
-      // Refresca la lista (mejor llamar fetchPagosPendientes)
       if (tab === "pendientes") {
         fetchPagosPendientes({ ...filtro, pageNumber: 1, pageSize });
       }
@@ -413,7 +416,7 @@ export default function PagosPage() {
         config={config}
         fechaEmision={new Date().toLocaleDateString("es-PY")}
         loading={false}
-        onConfirmar={handleFacturar}
+        onConfirmar={handleConfirmarFactura}
         estudiante={cabeceraSeleccionada?.nombreEstudiante ?? ""}
         direccion={cabeceraSeleccionada?.direccionEstudiante ?? "-"}
         ruc={cabeceraSeleccionada?.rucEstudiante ?? "-"}

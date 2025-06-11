@@ -55,3 +55,30 @@ export interface DocumentoFiscalConfig {
   razonSocialEmisor: string;
   direccionEmisor: string;
 }
+
+// Representa el detalle enviado al backend para la generación de factura
+export interface FacturaDetalleRequest {
+  concepto: string;
+  monto: number;
+  iva: number; // 👈 nuevo
+  tipoIva: string; // 👈 nuevo ("10%", "5%", "Exenta")
+  idPago: number;
+  idDetallePago: number;
+  observacion: string;
+}
+
+// Representa la cabecera de la factura para el endpoint /RegistrarFacturaContado
+export interface FacturaContadoRequest {
+  sucursal: string;
+  caja: string;
+  numero: string;
+  rucCliente: string;
+  nombreCliente: string;
+  tipoFactura: string; // 👈 nuevo ("CONTADO" o "CREDITO")
+  totalFactura: number;
+  totalIva10: number; // 👈 nuevo
+  totalIva5?: number; // opcional si en el sistema todavía no se usa
+  totalExenta?: number; // opcional también
+  observacion: string;
+  detalles: FacturaDetalleRequest[];
+}

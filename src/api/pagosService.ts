@@ -1,6 +1,6 @@
 import instance from "./axiosInstance";
 import {
-  PagoCabeceraDto,
+  FacturaContadoRequest,
   PagoFiltroRequest,
   ResultadoPagos,
   PagoDetalleDto,
@@ -30,16 +30,6 @@ export const getPagosRealizados = async (
   return data;
 };
 
-// Facturar seleccionados
-export const facturarPagos = async (
-  detalles: PagoDetalleDto[]
-): Promise<any> => {
-  const { data } = await instance.post(`${API_URL}/RegistrarFacturaContado`, {
-    detalles,
-  });
-  return data;
-};
-
 export const getConfigDocumentoFiscal = async (codigoDocumento: string) => {
   const { data } = await instance.get(
     `${API_URL}/ConfiguracionDocumentoFiscal`,
@@ -47,5 +37,13 @@ export const getConfigDocumentoFiscal = async (codigoDocumento: string) => {
       params: { codigoDocumento },
     }
   );
+  return data;
+};
+
+// Facturar seleccionados
+export const facturarPagos = async (
+  payload: FacturaContadoRequest
+): Promise<any> => {
+  const { data } = await instance.post(`${API_URL}/RegistrarFactura`, payload);
   return data;
 };
