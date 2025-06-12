@@ -157,7 +157,6 @@ export default function PagosPage() {
 
   const handleConfirmarFactura = async (payload: FacturaContadoRequest) => {
     try {
-      console.log("📦 Payload de factura:", payload);
       await facturarPagos(payload);
       setOpenFacturaModal(false);
       setSeleccionados([]);

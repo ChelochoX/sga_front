@@ -28,6 +28,8 @@ import {
   Settings as SettingsIcon,
   GppGood as PermisoIcon,
 } from "@mui/icons-material";
+import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import HistoryIcon from "@mui/icons-material/History";
 import { NavLink } from "react-router-dom";
 import { drawerWidth, collapsedDrawerWidth } from "./Sidebar.styles";
 
@@ -45,8 +47,9 @@ const Sidebar: React.FC<SidebarProps> = ({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [configOpen, setConfigOpen] = useState(false);
-
   const handleConfigClick = () => setConfigOpen(!configOpen);
+  const [cajaOpen, setCajaOpen] = useState(false);
+  const handleCajaClick = () => setCajaOpen(!cajaOpen);
 
   return (
     <Drawer
@@ -178,16 +181,55 @@ const Sidebar: React.FC<SidebarProps> = ({
           handleDrawerToggle={handleDrawerToggle}
           currentPath={currentPath}
         />
-        <SidebarItem
-          open={open}
-          icon={<AccountBalanceIcon />}
-          label="Caja"
-          to="/dashboard/caja"
-          isMobile={isMobile}
-          handleDrawerToggle={handleDrawerToggle}
-          currentPath={currentPath}
-        />
       </List>
+
+      <ListItem disablePadding sx={{ display: "block" }}>
+        <ListItemButton
+          onClick={handleCajaClick} // crear este handler
+          sx={{
+            minHeight: 48,
+            justifyContent: open ? "initial" : "center",
+            px: 2.5,
+          }}
+        >
+          <ListItemIcon
+            sx={{
+              minWidth: 0,
+              mr: open ? 3 : "auto",
+              justifyContent: "center",
+            }}
+          >
+            <AccountBalanceIcon />
+          </ListItemIcon>
+          {open && <ListItemText primary="Caja" />}
+          {open && (cajaOpen ? <ExpandLess /> : <ExpandMore />)}
+        </ListItemButton>
+      </ListItem>
+
+      <Collapse in={cajaOpen} timeout="auto" unmountOnExit>
+        <List component="div" disablePadding>
+          <SidebarItem
+            open={open}
+            icon={<ReceiptLongIcon />} // <-- importalo desde @mui/icons-material
+            label="Movimientos"
+            to="/dashboard/caja/movimientos"
+            isMobile={isMobile}
+            nested
+            handleDrawerToggle={handleDrawerToggle}
+            currentPath={currentPath}
+          />
+          <SidebarItem
+            open={open}
+            icon={<HistoryIcon />} // <-- importalo también
+            label="Historial de Anulaciones"
+            to="/dashboard/caja/anulaciones"
+            isMobile={isMobile}
+            nested
+            handleDrawerToggle={handleDrawerToggle}
+            currentPath={currentPath}
+          />
+        </List>
+      </Collapse>
     </Drawer>
   );
 };
