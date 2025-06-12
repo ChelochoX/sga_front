@@ -34,9 +34,14 @@ import { drawerWidth, collapsedDrawerWidth } from "./Sidebar.styles";
 interface SidebarProps {
   open: boolean;
   handleDrawerToggle: () => void;
+  currentPath: string;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ open, handleDrawerToggle }) => {
+const Sidebar: React.FC<SidebarProps> = ({
+  open,
+  handleDrawerToggle,
+  currentPath,
+}) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [configOpen, setConfigOpen] = useState(false);
@@ -79,7 +84,6 @@ const Sidebar: React.FC<SidebarProps> = ({ open, handleDrawerToggle }) => {
       <Divider />
 
       <List>
-        {/* Personas */}
         <SidebarItem
           open={open}
           icon={<PeopleIcon />}
@@ -87,8 +91,8 @@ const Sidebar: React.FC<SidebarProps> = ({ open, handleDrawerToggle }) => {
           to="/dashboard/personas"
           isMobile={isMobile}
           handleDrawerToggle={handleDrawerToggle}
+          currentPath={currentPath}
         />
-        {/* Usuarios */}
         <SidebarItem
           open={open}
           icon={<PersonIcon />}
@@ -96,9 +100,9 @@ const Sidebar: React.FC<SidebarProps> = ({ open, handleDrawerToggle }) => {
           to="/dashboard/usuarios"
           isMobile={isMobile}
           handleDrawerToggle={handleDrawerToggle}
+          currentPath={currentPath}
         />
 
-        {/* Configuración (submenu) */}
         <ListItem disablePadding sx={{ display: "block" }}>
           <ListItemButton
             onClick={handleConfigClick}
@@ -132,6 +136,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, handleDrawerToggle }) => {
               isMobile={isMobile}
               nested
               handleDrawerToggle={handleDrawerToggle}
+              currentPath={currentPath}
             />
             <SidebarItem
               open={open}
@@ -141,11 +146,11 @@ const Sidebar: React.FC<SidebarProps> = ({ open, handleDrawerToggle }) => {
               isMobile={isMobile}
               nested
               handleDrawerToggle={handleDrawerToggle}
+              currentPath={currentPath}
             />
           </List>
         </Collapse>
 
-        {/* Otros módulos */}
         <SidebarItem
           open={open}
           icon={<SchoolIcon />}
@@ -153,6 +158,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, handleDrawerToggle }) => {
           to="/dashboard/cursos"
           isMobile={isMobile}
           handleDrawerToggle={handleDrawerToggle}
+          currentPath={currentPath}
         />
         <SidebarItem
           open={open}
@@ -161,6 +167,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, handleDrawerToggle }) => {
           to="/dashboard/inscripciones"
           isMobile={isMobile}
           handleDrawerToggle={handleDrawerToggle}
+          currentPath={currentPath}
         />
         <SidebarItem
           open={open}
@@ -169,6 +176,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, handleDrawerToggle }) => {
           to="/dashboard/pagos"
           isMobile={isMobile}
           handleDrawerToggle={handleDrawerToggle}
+          currentPath={currentPath}
         />
         <SidebarItem
           open={open}
@@ -177,6 +185,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, handleDrawerToggle }) => {
           to="/dashboard/caja"
           isMobile={isMobile}
           handleDrawerToggle={handleDrawerToggle}
+          currentPath={currentPath}
         />
       </List>
     </Drawer>
@@ -191,6 +200,7 @@ interface SidebarItemProps {
   nested?: boolean;
   isMobile: boolean;
   handleDrawerToggle: () => void;
+  currentPath: string;
 }
 
 const SidebarItem: React.FC<SidebarItemProps> = ({
@@ -201,7 +211,10 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
   nested = false,
   isMobile,
   handleDrawerToggle,
+  currentPath,
 }) => {
+  const isSelected = to === currentPath;
+
   return (
     <ListItem disablePadding sx={{ display: "block" }}>
       <ListItemButton
@@ -212,6 +225,8 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
           minHeight: 48,
           justifyContent: open ? "initial" : "center",
           px: nested ? (open ? 4 : 2.5) : 2.5,
+          backgroundColor: isSelected ? "#ede7f6" : "transparent",
+          "&:hover": { backgroundColor: "#f3e8ff" },
         }}
       >
         <ListItemIcon
@@ -219,6 +234,7 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
             minWidth: 0,
             mr: open ? 3 : "auto",
             justifyContent: "center",
+            color: isSelected ? "primary.main" : "inherit",
           }}
         >
           {icon}
