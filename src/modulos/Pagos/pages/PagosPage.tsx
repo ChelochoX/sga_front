@@ -11,6 +11,8 @@ import {
   CircularProgress,
   Paper,
   Chip,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import PagosTable from "../components/PagosTable";
@@ -33,6 +35,9 @@ export default function PagosPage() {
   const [seleccionados, setSeleccionados] = useState<number[]>([]);
   const [openFacturaModal, setOpenFacturaModal] = useState(false);
   const [documentoConfig, setDocumentoConfig] = useState<any>(null);
+  const [mensajeErrorConfig, setMensajeErrorConfig] = useState<string | null>(
+    null
+  );
 
   const {
     pagosPendientes,
@@ -40,16 +45,13 @@ export default function PagosPage() {
     totalPendientes,
     totalRealizados,
     loading,
+    loadingConfig,
     error,
     fetchPagosPendientes,
     fetchPagosRealizados,
     fetchConfig,
     config,
   } = usePagos();
-
-  useEffect(() => {
-    fetchConfig("33");
-  }, []);
 
   useEffect(() => {
     if (config) {
@@ -326,7 +328,14 @@ export default function PagosPage() {
         </ToggleButtonGroup>
         {!isMobile && tab === "pendientes" && (
           <Button
-            onClick={() => setOpenFacturaModal(true)}
+            onClick={async () => {
+              const mensaje = await fetchConfig("33");
+              if (mensaje) {
+                setMensajeErrorConfig(mensaje);
+                return;
+              }
+              setOpenFacturaModal(true);
+            }}
             disabled={seleccionados.length === 0}
             sx={{
               background: "linear-gradient(90deg,#c026d3 70%,#db2777 100%)",
@@ -355,7 +364,7 @@ export default function PagosPage() {
       </Box>
 
       {/* Tabla/card de pagos */}
-      {loading ? (
+      {loading || loadingConfig ? (
         <Box display="flex" justifyContent="center" mt={4}>
           <CircularProgress />
         </Box>
@@ -380,7 +389,14 @@ export default function PagosPage() {
       {/* Botón facturar para móvil */}
       {isMobile && tab === "pendientes" && (
         <Button
-          onClick={() => setOpenFacturaModal(true)}
+          onClick={async () => {
+            const mensaje = await fetchConfig("33");
+            if (mensaje) {
+              setMensajeErrorConfig(mensaje);
+              return;
+            }
+            setOpenFacturaModal(true);
+          }}
           disabled={seleccionados.length === 0}
           sx={{
             position: "fixed",
@@ -429,6 +445,33 @@ export default function PagosPage() {
           <Typography color="error">{error}</Typography>
         </Box>
       )}
+
+      <Snackbar
+        open={!!mensajeErrorConfig}
+        onClose={() => setMensajeErrorConfig(null)}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setMensajeErrorConfig(null)}
+          severity="error"
+          variant="filled"
+          sx={{
+            width: "100%",
+            background: "#ef4444", // rojo pálido
+            color: "#fff", // blanco brillante
+            fontWeight: "bold",
+            fontSize: "1rem",
+            letterSpacing: "0.5px",
+          }}
+          iconMapping={{
+            error: (
+              <span style={{ fontSize: "1.4rem", marginRight: 8 }}>❗</span>
+            ),
+          }}
+        >
+          {mensajeErrorConfig}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

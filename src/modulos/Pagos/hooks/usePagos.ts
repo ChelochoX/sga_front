@@ -13,6 +13,7 @@ export const usePagos = () => {
   const [totalRealizados, setTotalRealizados] = useState(0);
   const [config, setConfig] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingConfig, setLoadingConfig] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchPagosPendientes = async (filtro: PagoFiltroRequest) => {
@@ -43,15 +44,22 @@ export const usePagos = () => {
     }
   };
 
-  const fetchConfig = async (codigoDocumento: string) => {
-    setLoading(true);
+  const fetchConfig = async (
+    codigoDocumento: string
+  ): Promise<string | null> => {
+    setLoadingConfig(true);
     try {
       const data = await getConfigDocumentoFiscal(codigoDocumento);
-      setConfig(data); // Esto lo guarda en el state
-    } catch (err) {
-      console.error("Error al obtener configuración del documento fiscal", err);
+      setConfig(data);
+      return null;
+    } catch (err: any) {
+      const mensaje =
+        err?.response?.data?.Errors?.[0] ||
+        err?.response?.data?.Message ||
+        "Error al obtener la configuración fiscal.";
+      return mensaje;
     } finally {
-      setLoading(false);
+      setLoadingConfig(false);
     }
   };
 
@@ -61,6 +69,7 @@ export const usePagos = () => {
     totalPendientes,
     totalRealizados,
     loading,
+    loadingConfig,
     error,
     fetchPagosPendientes,
     fetchPagosRealizados,
