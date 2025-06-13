@@ -7,4 +7,5 @@ export interface CajaMovimientoDto {
   usuario: string;
   referencia: string;
   fechaCreacion: string;
+  idFactura: number;
 }

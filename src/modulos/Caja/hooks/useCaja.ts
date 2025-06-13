@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getMovimientosCaja } from "../../../api/cajaService";
+import { getMovimientosCaja, deleteFactura } from "../../../api/cajaService";
 import { CajaMovimientoDto } from "../types/caja.types";
 
 // ✅ Interfaz para los filtros de fecha
@@ -39,6 +39,20 @@ export const useCajaMovimientos = () => {
     }
   };
 
+  // función para anular
+  const anularFactura = async (idFactura: number) => {
+    try {
+      setLoading(true);
+      await deleteFactura(idFactura); // <- llamada al backend
+      await buscarMovimientos(); // <- refresca la lista
+    } catch (error) {
+      console.error("❌ Error al anular factura:", error);
+      setError("Ocurrió un error al intentar anular la factura.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     buscarMovimientos(); // cargar al iniciar
   }, []);
@@ -50,5 +64,6 @@ export const useCajaMovimientos = () => {
     filtros,
     setFiltros,
     buscarMovimientos,
+    anularFactura,
   };
 };

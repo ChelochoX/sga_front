@@ -23,6 +23,7 @@ const CajaMovimientosPage: React.FC = () => {
     filtros,
     setFiltros,
     buscarMovimientos,
+    anularFactura,
   } = useCajaMovimientos();
 
   const theme = useTheme();
@@ -55,9 +56,7 @@ const CajaMovimientosPage: React.FC = () => {
                     <CalendarMonthIcon />
                   </InputAdornment>
                 ),
-                sx: {
-                  borderRadius: 5,
-                },
+                sx: { borderRadius: 5 },
               }}
             />
           </Grid>
@@ -76,9 +75,7 @@ const CajaMovimientosPage: React.FC = () => {
                     <CalendarMonthIcon />
                   </InputAdornment>
                 ),
-                sx: {
-                  borderRadius: 5,
-                },
+                sx: { borderRadius: 5 },
               }}
             />
           </Grid>
@@ -102,7 +99,10 @@ const CajaMovimientosPage: React.FC = () => {
       ) : error ? (
         <Typography color="error">{error}</Typography>
       ) : (
-        <CajaMovimientosTable movimientos={movimientos} />
+        <CajaMovimientosTable
+          movimientos={movimientos}
+          onAnular={anularFactura}
+        />
       )}
     </Box>
   );

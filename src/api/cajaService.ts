@@ -21,3 +21,7 @@ export const getMovimientosCaja = async (
     throw error;
   }
 };
+
+export const deleteFactura = async (idFactura: number): Promise<void> => {
+  await instance.delete(`/Caja/anular-factura/${idFactura}`);
+};
