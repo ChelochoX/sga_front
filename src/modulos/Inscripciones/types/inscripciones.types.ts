@@ -14,6 +14,7 @@ export interface InscripcionRequest {
   idPersona: number;
   idCurso: number;
   estado: "Activa" | "Inactiva" | "Cancelada";
+  fechaInscripcion?: string;
   montoDescuento: number;
   motivoDescuento: string;
   montoDescuentoPractica: number;

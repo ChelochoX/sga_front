@@ -21,6 +21,7 @@ import {
 import { useTheme } from "@mui/material/styles";
 import PersonSearchIcon from "@mui/icons-material/PersonSearch";
 import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
+import { DatePicker } from "@mui/x-date-pickers";
 import {
   Estudiante,
   Curso,
@@ -30,6 +31,11 @@ import StudentSelectorDialog from "./StudentSelectorDialog";
 import CourseSelectorDialog from "./CourseSelectorDialog";
 import { useInscripciones } from "../hooks/useInscripciones";
 import { toast } from "react-toastify";
+import dayjs, { Dayjs } from "dayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import "dayjs/locale/es";
+dayjs.locale("es");
 
 interface Props {
   open: boolean;
@@ -64,6 +70,9 @@ export default function InscripcionForm({ open, onClose, onSuccess }: Props) {
   const [errorMotivoDescuento, setErrorMotivoDescuento] = useState<string>("");
   const [errorMotivoPrac, setErrorMotivoPrac] = useState<string>("");
   const [errorMotivoMat, setErrorMotivoMat] = useState<string>("");
+  const [fechaInscripcion, setFechaInscripcion] = useState<Dayjs | null>(
+    dayjs()
+  );
 
   // Habilitar botón "Inscribir" solo si:
   // - Estudiante y curso elegidos
@@ -124,6 +133,7 @@ export default function InscripcionForm({ open, onClose, onSuccess }: Props) {
       idPersona: estudiante!.idPersona,
       idCurso: curso!.idCurso,
       estado,
+      fechaInscripcion: fechaInscripcion?.toDate().toISOString(),
       montoDescuento,
       motivoDescuento,
       montoDescuentoPractica: montoPrac,
@@ -144,205 +154,235 @@ export default function InscripcionForm({ open, onClose, onSuccess }: Props) {
 
   return (
     <>
-      <Dialog
-        open={open}
-        onClose={onClose}
-        fullWidth
-        maxWidth="md"
-        fullScreen={fullScreen}
-      >
-        <DialogTitle>Nueva inscripción</DialogTitle>
-        <DialogContent>
-          <Box p={fullScreen ? 0 : 2}>
-            <Grid container spacing={2}>
-              {/* ────────────────────────────────────────────────────────────
+      <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
+        <Dialog
+          open={open}
+          onClose={onClose}
+          fullWidth
+          maxWidth="md"
+          fullScreen={fullScreen}
+        >
+          <DialogTitle>Nueva inscripción</DialogTitle>
+          <DialogContent>
+            <Box p={fullScreen ? 0 : 2}>
+              <Grid container spacing={2}>
+                {/* ────────────────────────────────────────────────────────────
                   Columna izquierda: Estudiante, Curso, Estado
                   ──────────────────────────────────────────────────────────── */}
-              <Grid item xs={12} md={6}>
-                <Grid container spacing={1}>
-                  {/* Campo Estudiante + búsqueda */}
-                  <Grid item xs={12} container spacing={1} alignItems="center">
-                    <Grid item xs>
-                      <TextField
-                        label="Estudiante"
-                        value={
-                          estudiante
-                            ? `${estudiante.nombres} ${estudiante.apellidos}`
-                            : ""
-                        }
-                        placeholder="Seleccionar…"
-                        fullWidth
-                        InputProps={{ readOnly: true }}
-                        size="small"
-                      />
-                    </Grid>
-                    <Grid item>
-                      <Tooltip title="Buscar estudiante">
-                        <IconButton
-                          color="primary"
-                          onClick={() => setStudentDlg(true)}
-                        >
-                          <PersonSearchIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </Grid>
-                  </Grid>
-
-                  {/* Campo Curso + búsqueda */}
-                  <Grid item xs={12} container spacing={1} alignItems="center">
-                    <Grid item xs>
-                      <TextField
-                        label="Curso"
-                        value={curso ? curso.nombre : ""}
-                        placeholder="Seleccionar…"
-                        fullWidth
-                        InputProps={{ readOnly: true }}
-                        size="small"
-                      />
-                    </Grid>
-                    <Grid item>
-                      <Tooltip title="Buscar curso">
-                        <IconButton
-                          color="primary"
-                          onClick={() => setCourseDlg(true)}
-                        >
-                          <LibraryBooksIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </Grid>
-                  </Grid>
-
-                  {/* Campo Estado */}
-                  <Grid item xs={12}>
-                    <TextField
-                      label="Estado"
-                      select
-                      fullWidth
-                      size="small"
-                      value={estado}
-                      onChange={(e) => setEstado(e.target.value as any)}
+                <Grid item xs={12} md={6}>
+                  <Grid container spacing={1}>
+                    {/* Campo Estudiante + búsqueda */}
+                    <Grid
+                      item
+                      xs={12}
+                      container
+                      spacing={1}
+                      alignItems="center"
                     >
-                      <MenuItem value="Activa">Activa</MenuItem>
-                      <MenuItem value="Inactiva">Inactiva</MenuItem>
-                      <MenuItem value="Cancelada">Cancelada</MenuItem>
-                    </TextField>
+                      <Grid item xs>
+                        <TextField
+                          label="Estudiante"
+                          value={
+                            estudiante
+                              ? `${estudiante.nombres} ${estudiante.apellidos}`
+                              : ""
+                          }
+                          placeholder="Seleccionar…"
+                          fullWidth
+                          InputProps={{ readOnly: true }}
+                          size="small"
+                        />
+                      </Grid>
+                      <Grid item>
+                        <Tooltip title="Buscar estudiante">
+                          <IconButton
+                            color="primary"
+                            onClick={() => setStudentDlg(true)}
+                          >
+                            <PersonSearchIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </Grid>
+                    </Grid>
+
+                    {/* Campo Curso + búsqueda */}
+                    <Grid
+                      item
+                      xs={12}
+                      container
+                      spacing={1}
+                      alignItems="center"
+                    >
+                      <Grid item xs>
+                        <TextField
+                          label="Curso"
+                          value={curso ? curso.nombre : ""}
+                          placeholder="Seleccionar…"
+                          fullWidth
+                          InputProps={{ readOnly: true }}
+                          size="small"
+                        />
+                      </Grid>
+                      <Grid item>
+                        <Tooltip title="Buscar curso">
+                          <IconButton
+                            color="primary"
+                            onClick={() => setCourseDlg(true)}
+                          >
+                            <LibraryBooksIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </Grid>
+                    </Grid>
+
+                    {/* Campo Estado */}
+                    <Grid item xs={12}>
+                      <TextField
+                        label="Estado"
+                        select
+                        fullWidth
+                        size="small"
+                        value={estado}
+                        onChange={(e) => setEstado(e.target.value as any)}
+                      >
+                        <MenuItem value="Activa">Activa</MenuItem>
+                        <MenuItem value="Inactiva">Inactiva</MenuItem>
+                        <MenuItem value="Cancelada">Cancelada</MenuItem>
+                      </TextField>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <DatePicker
+                        label="Fecha de inscripción"
+                        value={fechaInscripcion}
+                        onChange={(value) =>
+                          setFechaInscripcion(value as Dayjs | null)
+                        }
+                        format="DD/MM/YYYY"
+                        slotProps={{
+                          textField: {
+                            fullWidth: true,
+                            size: "small",
+                          },
+                        }}
+                      />
+                    </Grid>
                   </Grid>
                 </Grid>
-              </Grid>
 
-              {/* ────────────────────────────────────────────────────────────
+                {/* ────────────────────────────────────────────────────────────
                   Columna derecha – Descuentos (con validación)
                   ──────────────────────────────────────────────────────────── */}
-              <Grid item xs={12} md={6}>
-                <Grid container spacing={1}>
-                  <Grid item xs={12}>
-                    <TextField
-                      label="Monto descuento"
-                      type="number"
-                      placeholder="0"
-                      fullWidth
-                      size="small"
-                      value={montoDescuento}
-                      onChange={(e) =>
-                        setMontoDescuento(Number(e.target.value))
-                      }
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      label="Motivo descuento"
-                      placeholder="Promoción…"
-                      fullWidth
-                      size="small"
-                      value={motivoDescuento}
-                      onChange={(e) => setMotivoDescuento(e.target.value)}
-                      error={errorMotivoDescuento !== ""}
-                    />
-                    {errorMotivoDescuento && (
-                      <FormHelperText error>
-                        {errorMotivoDescuento}
-                      </FormHelperText>
-                    )}
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      label="Monto desc. práctica"
-                      type="number"
-                      placeholder="0"
-                      fullWidth
-                      size="small"
-                      value={montoPrac}
-                      onChange={(e) => setMontoPrac(Number(e.target.value))}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      label="Motivo desc. práctica"
-                      placeholder="Motivo…"
-                      fullWidth
-                      size="small"
-                      value={motivoPrac}
-                      onChange={(e) => setMotivoPrac(e.target.value)}
-                      error={errorMotivoPrac !== ""}
-                    />
-                    {errorMotivoPrac && (
-                      <FormHelperText error>{errorMotivoPrac}</FormHelperText>
-                    )}
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      label="Monto desc. matrícula"
-                      type="number"
-                      placeholder="0"
-                      fullWidth
-                      size="small"
-                      value={montoMat}
-                      onChange={(e) => setMontoMat(Number(e.target.value))}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      label="Motivo desc. matrícula"
-                      placeholder="Motivo…"
-                      fullWidth
-                      size="small"
-                      value={motivoMat}
-                      onChange={(e) => setMotivoMat(e.target.value)}
-                      error={errorMotivoMat !== ""}
-                    />
-                    {errorMotivoMat && (
-                      <FormHelperText error>{errorMotivoMat}</FormHelperText>
-                    )}
+                <Grid item xs={12} md={6}>
+                  <Grid container spacing={1}>
+                    <Grid item xs={12}>
+                      <TextField
+                        label="Monto descuento"
+                        type="number"
+                        placeholder="0"
+                        fullWidth
+                        size="small"
+                        value={montoDescuento}
+                        onChange={(e) =>
+                          setMontoDescuento(Number(e.target.value))
+                        }
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <TextField
+                        label="Motivo descuento"
+                        placeholder="Promoción…"
+                        fullWidth
+                        size="small"
+                        value={motivoDescuento}
+                        onChange={(e) => setMotivoDescuento(e.target.value)}
+                        error={errorMotivoDescuento !== ""}
+                      />
+                      {errorMotivoDescuento && (
+                        <FormHelperText error>
+                          {errorMotivoDescuento}
+                        </FormHelperText>
+                      )}
+                    </Grid>
+                    <Grid item xs={12}>
+                      <TextField
+                        label="Monto desc. práctica"
+                        type="number"
+                        placeholder="0"
+                        fullWidth
+                        size="small"
+                        value={montoPrac}
+                        onChange={(e) => setMontoPrac(Number(e.target.value))}
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <TextField
+                        label="Motivo desc. práctica"
+                        placeholder="Motivo…"
+                        fullWidth
+                        size="small"
+                        value={motivoPrac}
+                        onChange={(e) => setMotivoPrac(e.target.value)}
+                        error={errorMotivoPrac !== ""}
+                      />
+                      {errorMotivoPrac && (
+                        <FormHelperText error>{errorMotivoPrac}</FormHelperText>
+                      )}
+                    </Grid>
+                    <Grid item xs={12}>
+                      <TextField
+                        label="Monto desc. matrícula"
+                        type="number"
+                        placeholder="0"
+                        fullWidth
+                        size="small"
+                        value={montoMat}
+                        onChange={(e) => setMontoMat(Number(e.target.value))}
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <TextField
+                        label="Motivo desc. matrícula"
+                        placeholder="Motivo…"
+                        fullWidth
+                        size="small"
+                        value={motivoMat}
+                        onChange={(e) => setMotivoMat(e.target.value)}
+                        error={errorMotivoMat !== ""}
+                      />
+                      {errorMotivoMat && (
+                        <FormHelperText error>{errorMotivoMat}</FormHelperText>
+                      )}
+                    </Grid>
                   </Grid>
                 </Grid>
               </Grid>
-            </Grid>
-          </Box>
-        </DialogContent>
+            </Box>
+          </DialogContent>
 
-        <DialogActions>
-          <Button onClick={onClose}>Cancelar</Button>
-          <Button
-            variant="contained"
-            disabled={!isFormValid() || loading}
-            onClick={handleSubmit}
-          >
-            {loading ? "Guardando..." : "Inscribir"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          <DialogActions>
+            <Button onClick={onClose}>Cancelar</Button>
+            <Button
+              variant="contained"
+              disabled={!isFormValid() || loading}
+              onClick={handleSubmit}
+            >
+              {loading ? "Guardando..." : "Inscribir"}
+            </Button>
+          </DialogActions>
+        </Dialog>
 
-      {/* Diálogos de selección de estudiante y curso */}
-      <StudentSelectorDialog
-        open={studentDlg}
-        onClose={() => setStudentDlg(false)}
-        onSelect={setEstudiante}
-      />
-      <CourseSelectorDialog
-        open={courseDlg}
-        onClose={() => setCourseDlg(false)}
-        onSelect={setCurso}
-      />
+        {/* Diálogos de selección de estudiante y curso */}
+        <StudentSelectorDialog
+          open={studentDlg}
+          onClose={() => setStudentDlg(false)}
+          onSelect={setEstudiante}
+        />
+        <CourseSelectorDialog
+          open={courseDlg}
+          onClose={() => setCourseDlg(false)}
+          onSelect={setCurso}
+        />
+      </LocalizationProvider>
     </>
   );
 }
