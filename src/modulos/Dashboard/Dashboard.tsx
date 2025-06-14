@@ -13,7 +13,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar/Sidebar";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import {
   drawerWidth,
   collapsedDrawerWidth,
@@ -24,6 +24,7 @@ const Dashboard: React.FC = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [open, setOpen] = useState(!isMobile);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleDrawerToggle = () => {
     setOpen(!open);
@@ -71,7 +72,11 @@ const Dashboard: React.FC = () => {
           </IconButton>
         </Toolbar>
       </AppBar>
-      <Sidebar open={open} handleDrawerToggle={handleDrawerToggle} />
+      <Sidebar
+        open={open}
+        handleDrawerToggle={handleDrawerToggle}
+        currentPath={location.pathname}
+      />
       <Box
         component="main"
         sx={{

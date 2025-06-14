@@ -8,9 +8,10 @@ import Usuarios from "./modulos/Usuarios/pages/UsuariosPage";
 import RolesPage from "./modulos/Permisos/pages/RolesPage";
 import PermisosPage from "./modulos/Permisos/pages/PermisosPage";
 import Cursos from "./modulos/Cursos/pages/CursosPage";
-// import Inscripciones from "./modulos/Inscripciones/pages/InscripcionesPage";
-// import Pagos from "./modulos/Pagos/pages/PagosPage";
-// import Caja from "./modulos/Caja/pages/CajaPage";
+import Inscripciones from "./modulos/Inscripciones/pages/InscripcionesPage";
+import Pagos from "./modulos/Pagos/pages/PagosPage";
+import CajaMovimientos from "./modulos/Caja/pages/CajaMovimientosPage";
+import CajaAnulaciones from "./modulos/Caja/pages/CajaAnulacionesPage";
 
 // 🟣 Toastify
 import { ToastContainer } from "react-toastify";
@@ -29,9 +30,12 @@ const App: React.FC = () => {
           <Route path="roles" element={<RolesPage />} />
           <Route path="permisos" element={<PermisosPage />} />
           <Route path="cursos" element={<Cursos />} />
-          {/*<Route path="inscripciones" element={<Inscripciones />} />
+          <Route path="inscripciones" element={<Inscripciones />} />
           <Route path="pagos" element={<Pagos />} />
-          <Route path="caja" element={<Caja />} />*/}
+          <Route path="caja">
+            <Route path="movimientos" element={<CajaMovimientos />} />
+            <Route path="anulaciones" element={<CajaAnulaciones />} />
+          </Route>
         </Route>
       </Routes>
 

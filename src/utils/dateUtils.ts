@@ -18,3 +18,20 @@ export function getTodayYYYYMMDD(): string {
   const today = new Date();
   return formatDateToYYYYMMDD(today)!;
 }
+
+export const formatFecha = (fecha: string): string => {
+  if (!fecha || typeof fecha !== "string") return "";
+  if (fecha.includes("-")) return fecha; // Ya está OK
+  if (!fecha.includes("/")) return fecha; // No formato válido, lo dejamos
+
+  const partes = fecha.split("/");
+  if (partes.length !== 3) return ""; // <-- chequeo extra
+
+  const [day, month, year] = partes;
+  if (!day || !month || !year) return ""; // <-- chequeo seguro
+
+  return `${year.padStart(4, "0")}-${month.padStart(2, "0")}-${day.padStart(
+    2,
+    "0"
+  )}`;
+};
