@@ -168,6 +168,8 @@ export default function PagosPage() {
     }
   };
 
+  const fechaActual = new Date().toISOString(); // formato válido
+
   return (
     <Box p={isMobile ? 1 : 2} maxWidth={1200} mx="auto">
       <Typography variant={isMobile ? "h6" : "h5"} mb={2}>
@@ -429,7 +431,7 @@ export default function PagosPage() {
         onClose={() => setOpenFacturaModal(false)}
         detalles={detallesMapeados}
         config={config}
-        fechaEmision={new Date().toLocaleDateString("es-PY")}
+        fechaEmision={fechaActual}
         loading={false}
         onConfirmar={handleConfirmarFactura}
         estudiante={cabeceraSeleccionada?.nombreEstudiante ?? ""}
