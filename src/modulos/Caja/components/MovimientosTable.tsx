@@ -14,16 +14,19 @@ import {
   useTheme,
   Stack,
   Divider,
-  Snackbar,
-  Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
   Button,
+  TextField,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { CajaMovimientoDto } from "../types/caja.types";
 
 interface Props {
   movimientos: CajaMovimientoDto[];
-  onAnular: (idFactura: number) => void;
+  onAnular: (idMovimiento: number, motivo: string) => void;
 }
 
 const formatFecha = (fecha: string): string => {
@@ -35,56 +38,65 @@ const formatFecha = (fecha: string): string => {
   });
 };
 
-const CajaMovimientosTable: React.FC<Props> = ({ movimientos, onAnular }) => {
+const CajaMovimientosTable: React.FC<Props> = ({
+  movimientos = [],
+  onAnular,
+}) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [accionConfirmada, setAccionConfirmada] = useState<null | {
-    idMovimiento: number;
-    idFactura: number | null;
-  }>(null);
+  const [accionConfirmada, setAccionConfirmada] = useState<number | null>(null);
+  const [motivoAnulacion, setMotivoAnulacion] = useState("");
 
-  const handleAnular = (idMovimiento: number, idFactura: number | null) => {
-    setAccionConfirmada({ idMovimiento, idFactura });
+  const handleAnular = (idMovimiento: number) => {
+    setAccionConfirmada(idMovimiento);
     setSnackbarOpen(true);
   };
 
   const confirmarAnulacion = () => {
-    if (!accionConfirmada?.idFactura) return;
-    onAnular(accionConfirmada.idFactura);
+    if (!accionConfirmada || !motivoAnulacion.trim()) return;
+    onAnular(accionConfirmada, motivoAnulacion.trim());
     setSnackbarOpen(false);
+    setMotivoAnulacion("");
     setAccionConfirmada(null);
   };
 
   return (
     <Box>
-      <Snackbar
+      <Dialog
         open={snackbarOpen}
-        autoHideDuration={6000}
         onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        maxWidth="sm"
+        fullWidth
       >
-        <Alert
-          severity="warning"
-          variant="filled"
-          action={
-            <>
-              <Button color="inherit" size="small" onClick={confirmarAnulacion}>
-                Anular
-              </Button>
-              <Button
-                color="inherit"
-                size="small"
-                onClick={() => setSnackbarOpen(false)}
-              >
-                Cancelar
-              </Button>
-            </>
-          }
-        >
-          ¿Estás seguro que deseas anular esta factura?
-        </Alert>
-      </Snackbar>
+        <DialogTitle>Confirmar anulación</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            fullWidth
+            margin="dense"
+            label="Motivo de anulación"
+            value={motivoAnulacion}
+            onChange={(e) => setMotivoAnulacion(e.target.value)}
+          />
+          <Typography variant="body2" sx={{ mt: 2 }}>
+            ¿Estás seguro que deseas anular esta factura?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setSnackbarOpen(false)} color="secondary">
+            Cancelar
+          </Button>
+          <Button
+            onClick={confirmarAnulacion}
+            color="error"
+            variant="contained"
+            disabled={!motivoAnulacion.trim()}
+          >
+            Anular
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {isMobile ? (
         <Stack spacing={2}>
@@ -113,9 +125,7 @@ const CajaMovimientosTable: React.FC<Props> = ({ movimientos, onAnular }) => {
                 <Box display="flex" justifyContent="flex-end">
                   <IconButton
                     color="error"
-                    onClick={() =>
-                      handleAnular(mov.idMovimiento, mov.idFactura ?? null)
-                    }
+                    onClick={() => handleAnular(mov.idMovimiento)}
                   >
                     <DeleteIcon />
                   </IconButton>
@@ -150,9 +160,7 @@ const CajaMovimientosTable: React.FC<Props> = ({ movimientos, onAnular }) => {
                   <TableCell align="center">
                     <IconButton
                       color="error"
-                      onClick={() =>
-                        handleAnular(mov.idMovimiento, mov.idFactura ?? null)
-                      }
+                      onClick={() => handleAnular(mov.idMovimiento)}
                     >
                       <DeleteIcon />
                     </IconButton>

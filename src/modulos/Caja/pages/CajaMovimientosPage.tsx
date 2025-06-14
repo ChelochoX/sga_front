@@ -24,6 +24,7 @@ const CajaMovimientosPage: React.FC = () => {
     setFiltros,
     buscarMovimientos,
     anularFactura,
+    totalDelDia,
   } = useCajaMovimientos();
 
   const theme = useTheme();
@@ -99,13 +100,18 @@ const CajaMovimientosPage: React.FC = () => {
       ) : error ? (
         <Typography color="error">{error}</Typography>
       ) : (
-        <CajaMovimientosTable
-          movimientos={movimientos}
-          onAnular={anularFactura}
-        />
+        <>
+          <Typography variant="subtitle1" fontWeight="bold" mb={2}>
+            Total del día:{" "}
+            {totalDelDia !== undefined ? totalDelDia.toLocaleString() : "0"}
+          </Typography>
+          <CajaMovimientosTable
+            movimientos={movimientos}
+            onAnular={anularFactura}
+          />
+        </>
       )}
     </Box>
   );
 };
-
 export default CajaMovimientosPage;

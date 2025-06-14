@@ -7,21 +7,21 @@ const API_URL = `/Caja`;
 export const getMovimientosCaja = async (
   desde: string,
   hasta: string
-): Promise<CajaMovimientoDto[]> => {
-  try {
-    const { data } = await instance.get(`${API_URL}/movimientos`, {
-      params: { desde, hasta },
-    });
-    return data;
-  } catch (error: any) {
-    console.error("❌ Error al obtener movimientos de caja:", error.message);
-    if (error.response) {
-      console.error("❌ Detalle del error:", error.response.data);
-    }
-    throw error;
-  }
+): Promise<{ movimientos: CajaMovimientoDto[]; total: number }> => {
+  const { data } = await instance.get(`${API_URL}/movimientos`, {
+    params: { desde, hasta },
+  });
+
+  const movimientos: CajaMovimientoDto[] = Array.isArray(data) ? data : [data]; // por si viene un solo objeto
+
+  const total = movimientos.reduce((acc, cur) => acc + cur.monto, 0);
+
+  return { movimientos, total };
 };
 
-export const deleteFactura = async (idFactura: number): Promise<void> => {
-  await instance.delete(`/Caja/anular-factura/${idFactura}`);
+export const anularMovimiento = async (payload: {
+  idMovimiento: number;
+  motivo: string;
+}): Promise<void> => {
+  await instance.post(`${API_URL}/anular-movimiento`, payload);
 };
