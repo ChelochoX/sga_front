@@ -9,3 +9,11 @@ export interface CajaMovimientoDto {
   fechaCreacion: string;
   idFactura: number;
 }
+
+export interface CajaAnulacionDto {
+  idAnulacion: number;
+  idMovimiento: number;
+  motivo: string;
+  usuarioAnulacion: string;
+  fechaAnulacion: string;
+}

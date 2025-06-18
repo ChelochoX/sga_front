@@ -1,12 +1,17 @@
 import { useEffect, useState } from "react";
-import { getMovimientosCaja, anularMovimiento } from "../../../api/cajaService";
-import { CajaMovimientoDto } from "../types/caja.types";
+import {
+  getMovimientosCaja,
+  anularMovimiento,
+  getAnulacionesCaja,
+} from "../../../api/cajaService";
+import { CajaMovimientoDto, CajaAnulacionDto } from "../types/caja.types";
 
 export const useCajaMovimientos = () => {
   const [movimientos, setMovimientos] = useState<CajaMovimientoDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [totalDelDia, setTotalDelDia] = useState<number>(0);
+  const [anulaciones, setAnulaciones] = useState<CajaAnulacionDto[]>([]);
 
   interface FiltrosFecha {
     desde: string;
@@ -55,6 +60,24 @@ export const useCajaMovimientos = () => {
     buscarMovimientos();
   }, []);
 
+  const buscarAnulaciones = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getAnulacionesCaja(filtros.desde, filtros.hasta);
+      setAnulaciones(data);
+    } catch (err) {
+      console.error("Error al obtener anulaciones:", err);
+      setError("No se pudo obtener la lista de anulaciones.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    buscarAnulaciones();
+  }, []);
+
   return {
     movimientos,
     loading,
@@ -64,5 +87,7 @@ export const useCajaMovimientos = () => {
     buscarMovimientos,
     anularFactura,
     totalDelDia,
+    buscarAnulaciones,
+    anulaciones,
   };
 };

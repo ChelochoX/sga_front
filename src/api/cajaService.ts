@@ -1,5 +1,8 @@
 import instance from "./axiosInstance";
-import { CajaMovimientoDto } from "../modulos/Caja/types/caja.types";
+import {
+  CajaMovimientoDto,
+  CajaAnulacionDto,
+} from "../modulos/Caja/types/caja.types";
 
 const API_URL = `/Caja`;
 
@@ -24,4 +27,15 @@ export const anularMovimiento = async (payload: {
   motivo: string;
 }): Promise<void> => {
   await instance.post(`${API_URL}/anular-movimiento`, payload);
+};
+
+export const getAnulacionesCaja = async (
+  desde: string,
+  hasta: string
+): Promise<CajaAnulacionDto[]> => {
+  const { data } = await instance.get(`${API_URL}/anulaciones`, {
+    params: { desde, hasta },
+  });
+
+  return data;
 };
