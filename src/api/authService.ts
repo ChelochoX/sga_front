@@ -40,3 +40,10 @@ export const changePassword = async (data: ChangePasswordRequest) => {
     throw error;
   }
 };
+
+export const obtenerPermisosPorUsuario = async (nombreUsuario: string) => {
+  const response = await instance.get("/Roles/usuarios/detalle-roles", {
+    params: { nombreUsuario },
+  });
+  return response.data;
+};

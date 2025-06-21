@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Drawer,
   List,
@@ -51,6 +51,25 @@ const Sidebar: React.FC<SidebarProps> = ({
   const [cajaOpen, setCajaOpen] = useState(false);
   const handleCajaClick = () => setCajaOpen(!cajaOpen);
 
+  const [modulosVisibles, setModulosVisibles] = useState<string[]>([]);
+
+  useEffect(() => {
+    const permisosRaw = localStorage.getItem("permisos_usuario");
+    if (permisosRaw) {
+      try {
+        const permisos = JSON.parse(permisosRaw);
+        const modulos = permisos.flatMap((rol: any) =>
+          rol.entidades.map((e: any) => e.nombreEntidad)
+        );
+        setModulosVisibles(Array.from(new Set(modulos)));
+      } catch (error) {
+        console.error("Error al procesar permisos del usuario:", error);
+      }
+    }
+  }, []);
+
+  const puedeVer = (modulo: string) => modulosVisibles.includes(modulo);
+
   return (
     <Drawer
       variant={isMobile ? "temporary" : "permanent"}
@@ -87,149 +106,169 @@ const Sidebar: React.FC<SidebarProps> = ({
       <Divider />
 
       <List>
-        <SidebarItem
-          open={open}
-          icon={<PeopleIcon />}
-          label="Personas"
-          to="/dashboard/personas"
-          isMobile={isMobile}
-          handleDrawerToggle={handleDrawerToggle}
-          currentPath={currentPath}
-        />
-        <SidebarItem
-          open={open}
-          icon={<PersonIcon />}
-          label="Usuarios"
-          to="/dashboard/usuarios"
-          isMobile={isMobile}
-          handleDrawerToggle={handleDrawerToggle}
-          currentPath={currentPath}
-        />
+        {puedeVer("Personas") && (
+          <SidebarItem
+            open={open}
+            icon={<PeopleIcon />}
+            label="Personas"
+            to="/dashboard/personas"
+            isMobile={isMobile}
+            handleDrawerToggle={handleDrawerToggle}
+            currentPath={currentPath}
+          />
+        )}
+        {puedeVer("Usuarios") && (
+          <SidebarItem
+            open={open}
+            icon={<PersonIcon />}
+            label="Usuarios"
+            to="/dashboard/usuarios"
+            isMobile={isMobile}
+            handleDrawerToggle={handleDrawerToggle}
+            currentPath={currentPath}
+          />
+        )}
 
-        <ListItem disablePadding sx={{ display: "block" }}>
-          <ListItemButton
-            onClick={handleConfigClick}
-            sx={{
-              minHeight: 48,
-              justifyContent: open ? "initial" : "center",
-              px: 2.5,
-            }}
-          >
-            <ListItemIcon
+        {(puedeVer("Roles") || puedeVer("Permisos")) && (
+          <ListItem disablePadding sx={{ display: "block" }}>
+            <ListItemButton
+              onClick={handleConfigClick}
               sx={{
-                minWidth: 0,
-                mr: open ? 3 : "auto",
-                justifyContent: "center",
+                minHeight: 48,
+                justifyContent: open ? "initial" : "center",
+                px: 2.5,
               }}
             >
-              <SettingsIcon />
-            </ListItemIcon>
-            {open && <ListItemText primary="Configuración" />}
-            {open && (configOpen ? <ExpandLess /> : <ExpandMore />)}
-          </ListItemButton>
-        </ListItem>
+              <ListItemIcon
+                sx={{
+                  minWidth: 0,
+                  mr: open ? 3 : "auto",
+                  justifyContent: "center",
+                }}
+              >
+                <SettingsIcon />
+              </ListItemIcon>
+              {open && <ListItemText primary="Configuración" />}
+              {open && (configOpen ? <ExpandLess /> : <ExpandMore />)}
+            </ListItemButton>
+          </ListItem>
+        )}
 
         <Collapse in={configOpen} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
-            <SidebarItem
-              open={open}
-              icon={<SecurityIcon />}
-              label="Roles"
-              to="/dashboard/roles"
-              isMobile={isMobile}
-              nested
-              handleDrawerToggle={handleDrawerToggle}
-              currentPath={currentPath}
-            />
-            <SidebarItem
-              open={open}
-              icon={<PermisoIcon />}
-              label="Permisos"
-              to="/dashboard/permisos"
-              isMobile={isMobile}
-              nested
-              handleDrawerToggle={handleDrawerToggle}
-              currentPath={currentPath}
-            />
+            {puedeVer("Roles") && (
+              <SidebarItem
+                open={open}
+                icon={<SecurityIcon />}
+                label="Roles"
+                to="/dashboard/roles"
+                isMobile={isMobile}
+                nested
+                handleDrawerToggle={handleDrawerToggle}
+                currentPath={currentPath}
+              />
+            )}
+            {puedeVer("Permisos") && (
+              <SidebarItem
+                open={open}
+                icon={<PermisoIcon />}
+                label="Permisos"
+                to="/dashboard/permisos"
+                isMobile={isMobile}
+                nested
+                handleDrawerToggle={handleDrawerToggle}
+                currentPath={currentPath}
+              />
+            )}
           </List>
         </Collapse>
 
-        <SidebarItem
-          open={open}
-          icon={<SchoolIcon />}
-          label="Cursos"
-          to="/dashboard/cursos"
-          isMobile={isMobile}
-          handleDrawerToggle={handleDrawerToggle}
-          currentPath={currentPath}
-        />
-        <SidebarItem
-          open={open}
-          icon={<AssignmentIcon />}
-          label="Inscripciones"
-          to="/dashboard/inscripciones"
-          isMobile={isMobile}
-          handleDrawerToggle={handleDrawerToggle}
-          currentPath={currentPath}
-        />
-        <SidebarItem
-          open={open}
-          icon={<PaymentIcon />}
-          label="Pagos"
-          to="/dashboard/pagos"
-          isMobile={isMobile}
-          handleDrawerToggle={handleDrawerToggle}
-          currentPath={currentPath}
-        />
+        {puedeVer("Cursos") && (
+          <SidebarItem
+            open={open}
+            icon={<SchoolIcon />}
+            label="Cursos"
+            to="/dashboard/cursos"
+            isMobile={isMobile}
+            handleDrawerToggle={handleDrawerToggle}
+            currentPath={currentPath}
+          />
+        )}
+        {puedeVer("Inscripciones") && (
+          <SidebarItem
+            open={open}
+            icon={<AssignmentIcon />}
+            label="Inscripciones"
+            to="/dashboard/inscripciones"
+            isMobile={isMobile}
+            handleDrawerToggle={handleDrawerToggle}
+            currentPath={currentPath}
+          />
+        )}
+        {puedeVer("Pagos") && (
+          <SidebarItem
+            open={open}
+            icon={<PaymentIcon />}
+            label="Pagos"
+            to="/dashboard/pagos"
+            isMobile={isMobile}
+            handleDrawerToggle={handleDrawerToggle}
+            currentPath={currentPath}
+          />
+        )}
       </List>
 
-      <ListItem disablePadding sx={{ display: "block" }}>
-        <ListItemButton
-          onClick={handleCajaClick} // crear este handler
-          sx={{
-            minHeight: 48,
-            justifyContent: open ? "initial" : "center",
-            px: 2.5,
-          }}
-        >
-          <ListItemIcon
-            sx={{
-              minWidth: 0,
-              mr: open ? 3 : "auto",
-              justifyContent: "center",
-            }}
-          >
-            <AccountBalanceIcon />
-          </ListItemIcon>
-          {open && <ListItemText primary="Caja" />}
-          {open && (cajaOpen ? <ExpandLess /> : <ExpandMore />)}
-        </ListItemButton>
-      </ListItem>
+      {puedeVer("Caja") && (
+        <>
+          <ListItem disablePadding sx={{ display: "block" }}>
+            <ListItemButton
+              onClick={handleCajaClick}
+              sx={{
+                minHeight: 48,
+                justifyContent: open ? "initial" : "center",
+                px: 2.5,
+              }}
+            >
+              <ListItemIcon
+                sx={{
+                  minWidth: 0,
+                  mr: open ? 3 : "auto",
+                  justifyContent: "center",
+                }}
+              >
+                <AccountBalanceIcon />
+              </ListItemIcon>
+              {open && <ListItemText primary="Caja" />}
+              {open && (cajaOpen ? <ExpandLess /> : <ExpandMore />)}
+            </ListItemButton>
+          </ListItem>
 
-      <Collapse in={cajaOpen} timeout="auto" unmountOnExit>
-        <List component="div" disablePadding>
-          <SidebarItem
-            open={open}
-            icon={<ReceiptLongIcon />} // <-- importalo desde @mui/icons-material
-            label="Movimientos"
-            to="/dashboard/caja/movimientos"
-            isMobile={isMobile}
-            nested
-            handleDrawerToggle={handleDrawerToggle}
-            currentPath={currentPath}
-          />
-          <SidebarItem
-            open={open}
-            icon={<HistoryIcon />} // <-- importalo también
-            label="Historial de Anulaciones"
-            to="/dashboard/caja/anulaciones"
-            isMobile={isMobile}
-            nested
-            handleDrawerToggle={handleDrawerToggle}
-            currentPath={currentPath}
-          />
-        </List>
-      </Collapse>
+          <Collapse in={cajaOpen} timeout="auto" unmountOnExit>
+            <List component="div" disablePadding>
+              <SidebarItem
+                open={open}
+                icon={<ReceiptLongIcon />}
+                label="Movimientos"
+                to="/dashboard/caja/movimientos"
+                isMobile={isMobile}
+                nested
+                handleDrawerToggle={handleDrawerToggle}
+                currentPath={currentPath}
+              />
+              <SidebarItem
+                open={open}
+                icon={<HistoryIcon />}
+                label="Historial de Anulaciones"
+                to="/dashboard/caja/anulaciones"
+                isMobile={isMobile}
+                nested
+                handleDrawerToggle={handleDrawerToggle}
+                currentPath={currentPath}
+              />
+            </List>
+          </Collapse>
+        </>
+      )}
     </Drawer>
   );
 };
