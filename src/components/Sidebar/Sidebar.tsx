@@ -168,7 +168,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 currentPath={currentPath}
               />
             )}
-            {puedeVer("Permisos") && (
+            {puedeVer("Roles") && (
               <SidebarItem
                 open={open}
                 icon={<PermisoIcon />}
