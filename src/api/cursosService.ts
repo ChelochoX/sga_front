@@ -1,11 +1,11 @@
-import axios from "axios";
+import instance from "./axiosInstance";
 import {
   ObtenerCursosRequest,
   Curso,
 } from "../modulos/Cursos/types/cursos.types";
 
 // ⚡ Usando variables de entorno
-const API_URL = `${import.meta.env.VITE_API_URL}/Cursos`;
+const API_URL = `/Cursos`;
 
 // ✅ Función para convertir "dd/MM/yyyy" → "yyyy-MM-dd"
 const convertirFecha = (fecha: string): string => {
@@ -42,7 +42,7 @@ export const getCursos = async (
   params: ObtenerCursosRequest
 ): Promise<Curso[]> => {
   try {
-    const response = await axios.post(`${API_URL}/obtener-cursos`, params, {
+    const response = await instance.post(`${API_URL}/obtener-cursos`, params, {
       headers: {
         "Content-Type": "application/json",
       },
@@ -76,7 +76,7 @@ export const getCursos = async (
 // 🔄 Crear un curso
 export const createCurso = async (curso: Partial<Curso>): Promise<number> => {
   try {
-    const { data } = await axios.post(API_URL, curso);
+    const { data } = await instance.post(API_URL, curso);
     return data; // El backend retorna el id del nuevo curso
   } catch (error: any) {
     console.error("❌ Error al crear el curso:", error.message);
@@ -93,7 +93,7 @@ export const updateCurso = async (
   curso: Partial<Curso>
 ): Promise<void> => {
   try {
-    await axios.put(`${API_URL}/${id}`, curso);
+    await instance.put(`${API_URL}/${id}`, curso);
   } catch (error: any) {
     console.error("❌ Error al actualizar el curso:", error.message);
     if (error.response) {
@@ -106,7 +106,7 @@ export const updateCurso = async (
 // 🔄 Eliminar curso
 export const deleteCurso = async (id: number): Promise<void> => {
   try {
-    await axios.delete(`${API_URL}/${id}`);
+    await instance.delete(`${API_URL}/${id}`);
   } catch (error: any) {
     console.error("❌ Error al eliminar el curso:", error.message);
     if (error.response) {
@@ -122,7 +122,7 @@ export const cambiarEstadoCurso = async (
   activo: boolean
 ): Promise<void> => {
   try {
-    await axios.put(
+    await instance.put(
       `${API_URL}/${id}/cambiar-estado`,
       { activo }, // payload
       {

@@ -6,8 +6,8 @@ import {
 } from "../modulos/Permisos/types/permisos.types";
 
 // ✅ Base API desde .env
-const API_URL = `${import.meta.env.VITE_API_URL}/Roles`;
-const API_URL_Permisos = `${import.meta.env.VITE_API_URL}/Permisos`;
+const API_URL = `/Roles`;
+const API_URL_Permisos = `/Permisos`;
 
 // 🟢 Obtener roles con permisos por nombre de usuario
 export const getRolesDetalleByUsuarioNombre = async (
