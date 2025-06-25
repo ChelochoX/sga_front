@@ -1,4 +1,4 @@
-import axios from "axios";
+import instance from "./axiosInstance";
 import { RolDetalle, RolCatalogo } from "../modulos/Permisos/types/roles.types";
 import {
   EntidadConRecursos,
@@ -13,7 +13,7 @@ const API_URL_Permisos = `${import.meta.env.VITE_API_URL}/Permisos`;
 export const getRolesDetalleByUsuarioNombre = async (
   filtro: string
 ): Promise<RolDetalle[]> => {
-  const response = await axios.get(`${API_URL}/usuarios/detalle-roles`, {
+  const response = await instance.get(`${API_URL}/usuarios/detalle-roles`, {
     params: { nombreUsuario: filtro },
   });
   return response.data;
@@ -22,7 +22,7 @@ export const getRolesDetalleByUsuarioNombre = async (
 // ✅ catálogo de roles
 export const getRolesCatalogo = async (): Promise<RolCatalogo[]> => {
   try {
-    const { data } = await axios.get(`${API_URL}/obtener-todos`);
+    const { data } = await instance.get(`${API_URL}/obtener-todos`);
 
     // Validar que data sea array
     if (!Array.isArray(data)) {
@@ -42,7 +42,7 @@ export const actualizarRolesUsuario = async (
   idsRoles: number[]
 ): Promise<void> => {
   try {
-    await axios.post(`${API_URL}/actualizar-roles`, {
+    await instance.post(`${API_URL}/actualizar-roles`, {
       nombreUsuario,
       idsRoles,
     });
@@ -56,7 +56,7 @@ export const actualizarRolesUsuario = async (
 export const obtenerEntidadesConRecursos = async (): Promise<
   EntidadConRecursos[]
 > => {
-  const response = await axios.get(
+  const response = await instance.get(
     `${API_URL_Permisos}/entidades-con-recursos`
   );
   return response.data;
@@ -65,5 +65,5 @@ export const obtenerEntidadesConRecursos = async (): Promise<
 export const asignarPermisosARol = async (
   request: AsignarPermisosRequest
 ): Promise<void> => {
-  await axios.post(`${API_URL_Permisos}/asignar-permisos`, request);
+  await instance.post(`${API_URL_Permisos}/asignar-permisos`, request);
 };
