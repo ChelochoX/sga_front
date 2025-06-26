@@ -2,7 +2,7 @@ import instance from "./axiosInstance";
 import { Persona } from "../modulos/Personas/types/personas.types";
 
 // ✅ Usando variable de entorno del .env.development
-const API_URL = `${import.meta.env.VITE_API_URL}/Personas`;
+const API_URL = `/Personas`;
 
 // Obtener todas las personas
 export const getPersonas = async (filtro: string = ""): Promise<Persona[]> => {
