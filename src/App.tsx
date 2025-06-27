@@ -18,6 +18,7 @@ import Inscripciones from "./modulos/Inscripciones/pages/InscripcionesPage";
 import Pagos from "./modulos/Pagos/pages/PagosPage";
 import CajaMovimientos from "./modulos/Caja/pages/CajaMovimientosPage";
 import CajaAnulaciones from "./modulos/Caja/pages/CajaAnulacionesPage";
+import AccesoDenegado from "./utils/accesoDenegado";
 
 // 🟣 Toastify
 import { ToastContainer } from "react-toastify";
@@ -30,6 +31,7 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/cambiar-contrasena" element={<ChangePassword />} />
+          <Route path="/acceso-denegado" element={<AccesoDenegado />} />
 
           <Route path="/dashboard" element={<Dashboard />}>
             <Route path="personas" element={<Personas />} />

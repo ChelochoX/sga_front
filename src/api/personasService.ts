@@ -1,7 +1,7 @@
 import instance from "./axiosInstance";
 import { Persona } from "../modulos/Personas/types/personas.types";
+import { handleApiError } from "../utils/errorHandler";
 
-// ✅ Usando variable de entorno del .env.development
 const API_URL = `/Personas`;
 
 // Obtener todas las personas
@@ -23,6 +23,7 @@ export const getPersonas = async (filtro: string = ""): Promise<Persona[]> => {
     return personas;
   } catch (error) {
     console.error("❌ Error al obtener personas:", error);
+    handleApiError(error);
     throw error;
   }
 };
