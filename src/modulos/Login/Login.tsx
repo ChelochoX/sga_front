@@ -81,7 +81,6 @@ const Login: React.FC = () => {
       if (result.parTokens) {
         const permisosResult = await cargarPermisos(credentials.Usuario);
         const permisos = permisosResult || [];
-        localStorage.setItem("permisos_usuario", JSON.stringify(permisos));
 
         const modulos = permisos.flatMap((rol: any) =>
           (rol.entidades || []).map((ent: any) =>

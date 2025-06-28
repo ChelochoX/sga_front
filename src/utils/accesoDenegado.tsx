@@ -1,24 +1,51 @@
-// src/pages/AccesoDenegado.tsx
+// src/utils/accesoDenegado.tsx
 import React from "react";
-import { Box, Typography, Button } from "@mui/material";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Button, Typography, Box } from "@mui/material";
+import BlockIcon from "@mui/icons-material/Block";
+import { useNavigate } from "react-router-dom";
 
 const AccesoDenegado: React.FC = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const mensaje = searchParams.get("mensaje") || "No tenés permisos...";
 
   return (
-    <Box textAlign="center" mt={10}>
+    <Box
+      display="flex"
+      flexDirection="column"
+      alignItems="center"
+      justifyContent="center"
+      height="100vh"
+      bgcolor="#fafafa"
+      textAlign="center"
+      px={2}
+    >
+      <BlockIcon sx={{ fontSize: 80, color: "red", mb: 2 }} />
       <Typography variant="h4" color="error" gutterBottom>
-        🚫 Acceso denegado
+        Acceso denegado
       </Typography>
-      <Typography variant="body1" gutterBottom>
-        {mensaje}
+      <Typography variant="subtitle1" sx={{ maxWidth: 500 }}>
+        No tenés permisos para acceder al sistema. Por favor, contactá al
+        administrador si creés que esto es un error.
       </Typography>
-      <Button variant="contained" color="primary" onClick={() => navigate("/")}>
-        Ir al inicio
-      </Button>
+
+      <Box mt={6}>
+        <Button
+          variant="contained"
+          onClick={() => navigate("/")}
+          sx={{
+            px: 4,
+            py: 1.5,
+            borderRadius: "8px",
+            fontSize: "1rem",
+            background: "linear-gradient(to right, #6a11cb, #2575fc)",
+            color: "#fff",
+            "&:hover": {
+              background: "linear-gradient(to right, #5f10b8, #1f63da)",
+            },
+          }}
+        >
+          Ir al inicio
+        </Button>
+      </Box>
     </Box>
   );
 };

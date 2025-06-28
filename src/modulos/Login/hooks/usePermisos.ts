@@ -8,6 +8,8 @@ export function usePermisosLogin() {
   const cargarPermisos = async (nombreUsuario: string) => {
     const data = await obtenerPermisosPorUsuario(nombreUsuario);
     setPermisos(data);
+
+    localStorage.setItem("permisos", JSON.stringify(data));
     return data; // ✅ Esto es necesario
   };
 

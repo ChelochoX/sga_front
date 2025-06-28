@@ -1,5 +1,6 @@
 // src/api/axiosInstance.ts
 import axios from "axios";
+import { handleApiError } from "../utils/errorHandler";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -18,6 +19,11 @@ instance.interceptors.request.use(
     return request;
   },
   (error) => Promise.reject(error)
+);
+
+instance.interceptors.response.use(
+  (response) => response,
+  (error) => handleApiError(error)
 );
 
 export default instance;

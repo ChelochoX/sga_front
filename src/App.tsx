@@ -19,6 +19,7 @@ import Pagos from "./modulos/Pagos/pages/PagosPage";
 import CajaMovimientos from "./modulos/Caja/pages/CajaMovimientosPage";
 import CajaAnulaciones from "./modulos/Caja/pages/CajaAnulacionesPage";
 import AccesoDenegado from "./utils/accesoDenegado";
+import RutaProtegida from "./components/RutaProtegida";
 
 // 🟣 Toastify
 import { ToastContainer } from "react-toastify";
@@ -34,16 +35,37 @@ const App: React.FC = () => {
           <Route path="/acceso-denegado" element={<AccesoDenegado />} />
 
           <Route path="/dashboard" element={<Dashboard />}>
-            <Route path="personas" element={<Personas />} />
-            <Route path="usuarios" element={<Usuarios />} />
-            <Route path="roles" element={<RolesPage />} />
-            <Route path="permisos" element={<PermisosPage />} />
-            <Route path="cursos" element={<Cursos />} />
-            <Route path="inscripciones" element={<Inscripciones />} />
-            <Route path="pagos" element={<Pagos />} />
-            <Route path="caja">
-              <Route path="movimientos" element={<CajaMovimientos />} />
-              <Route path="anulaciones" element={<CajaAnulaciones />} />
+            <Route element={<RutaProtegida modulo="personas" />}>
+              <Route path="personas" element={<Personas />} />
+            </Route>
+
+            <Route element={<RutaProtegida modulo="usuarios" />}>
+              <Route path="usuarios" element={<Usuarios />} />
+            </Route>
+
+            <Route element={<RutaProtegida modulo="roles" />}>
+              <Route path="roles" element={<RolesPage />} />
+            </Route>
+
+            <Route element={<RutaProtegida modulo="roles" />}>
+              <Route path="permisos" element={<PermisosPage />} />
+            </Route>
+
+            <Route element={<RutaProtegida modulo="cursos" />}>
+              <Route path="cursos" element={<Cursos />} />
+            </Route>
+
+            <Route element={<RutaProtegida modulo="inscripciones" />}>
+              <Route path="inscripciones" element={<Inscripciones />} />
+            </Route>
+
+            <Route element={<RutaProtegida modulo="pagos" />}>
+              <Route path="pagos" element={<Pagos />} />
+            </Route>
+
+            <Route element={<RutaProtegida modulo="caja" />}>
+              <Route path="caja/movimientos" element={<CajaMovimientos />} />
+              <Route path="caja/anulaciones" element={<CajaAnulaciones />} />
             </Route>
           </Route>
         </Routes>

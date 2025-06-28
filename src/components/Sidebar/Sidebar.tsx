@@ -32,6 +32,7 @@ import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import HistoryIcon from "@mui/icons-material/History";
 import { NavLink } from "react-router-dom";
 import { drawerWidth, collapsedDrawerWidth } from "./Sidebar.styles";
+import { puedeVerModulo } from "../../api/authService";
 
 interface SidebarProps {
   open: boolean;
@@ -51,24 +52,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const [cajaOpen, setCajaOpen] = useState(false);
   const handleCajaClick = () => setCajaOpen(!cajaOpen);
 
-  const [modulosVisibles, setModulosVisibles] = useState<string[]>([]);
-
-  useEffect(() => {
-    const permisosRaw = localStorage.getItem("permisos_usuario");
-    if (permisosRaw) {
-      try {
-        const permisos = JSON.parse(permisosRaw);
-        const modulos = permisos.flatMap((rol: any) =>
-          rol.entidades.map((e: any) => e.nombreEntidad)
-        );
-        setModulosVisibles(Array.from(new Set(modulos)));
-      } catch (error) {
-        console.error("Error al procesar permisos del usuario:", error);
-      }
-    }
-  }, []);
-
-  const puedeVer = (modulo: string) => modulosVisibles.includes(modulo);
+  const puedeVer = puedeVerModulo;
 
   return (
     <Drawer
