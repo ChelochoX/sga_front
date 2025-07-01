@@ -1,14 +1,14 @@
-import axios from "axios";
+import instance from "./axiosInstance";
 import { Persona } from "../modulos/Personas/types/personas.types";
+import { handleApiError } from "../utils/errorHandler";
 
-// ✅ Usando variable de entorno del .env.development
-const API_URL = `${import.meta.env.VITE_API_URL}/Personas`;
+const API_URL = `/Personas`;
 
 // Obtener todas las personas
 export const getPersonas = async (filtro: string = ""): Promise<Persona[]> => {
   try {
     // 👇 Enviamos el filtro como query param
-    const response = await axios.get(API_URL, {
+    const response = await instance.get(API_URL, {
       params: {
         filtro,
       },
@@ -23,6 +23,7 @@ export const getPersonas = async (filtro: string = ""): Promise<Persona[]> => {
     return personas;
   } catch (error) {
     console.error("❌ Error al obtener personas:", error);
+    handleApiError(error);
     throw error;
   }
 };
@@ -52,7 +53,7 @@ export const createPersona = async (persona: Persona): Promise<Persona> => {
     }
 
     // 🔥 Enviamos al backend con las fechas ya formateadas
-    const response = await axios.post(API_URL, personaRequest);
+    const response = await instance.post(API_URL, personaRequest);
     return response.data;
   } catch (error) {
     console.error("❌ Error creando la persona:", error);
@@ -80,7 +81,7 @@ export const updatePersona = async (
       fechaRegistro: convertirFecha(persona.fechaRegistro),
     };
 
-    await axios.put(`${API_URL}/${id}`, formattedPersona);
+    await instance.put(`${API_URL}/${id}`, formattedPersona);
   } catch (error: any) {
     console.error(
       "❌ Error actualizando la persona:",
@@ -93,7 +94,7 @@ export const updatePersona = async (
 // Eliminar una persona
 export const deletePersona = async (id: number): Promise<void> => {
   try {
-    await axios.delete(`${API_URL}/${id}`);
+    await instance.delete(`${API_URL}/${id}`);
   } catch (error) {
     console.error("❌ Error eliminando la persona:", error);
     throw error;

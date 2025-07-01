@@ -15,6 +15,8 @@ import {
   LoginSuccessResponse,
   CambioContrasenaResponse,
 } from "../../types/auth";
+import { usePermisosLogin } from "./hooks/usePermisos";
+
 type LoginResponse = LoginSuccessResponse | CambioContrasenaResponse;
 
 const Login: React.FC = () => {
@@ -23,8 +25,9 @@ const Login: React.FC = () => {
   const [error, setError] = useState("");
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
-
   const navigate = useNavigate();
+
+  const { cargarPermisos } = usePermisosLogin();
 
   // Limpieza de inputs al cargar el componente
   useEffect(() => {
@@ -76,8 +79,16 @@ const Login: React.FC = () => {
       const result = await login(credentials);
 
       if (result.parTokens) {
-        // Usuario activo, redirigir a dashboard
-        navigate("/dashboard/personas");
+        const permisosResult = await cargarPermisos(credentials.Usuario);
+        const permisos = permisosResult || [];
+
+        const modulos = permisos.flatMap((rol: any) =>
+          (rol.entidades || []).map((ent: any) =>
+            ent.nombreEntidad?.toLowerCase()
+          )
+        );
+        const primerModulo = modulos[0] || "personas";
+        navigate(`/dashboard/${primerModulo}`);
       } else if (result.requiereCambioContrasena) {
         // Usuario necesita cambiar contraseña, redirigir a cambio
         navigate("/cambiar-contrasena", {

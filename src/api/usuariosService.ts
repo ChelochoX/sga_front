@@ -1,7 +1,7 @@
-import axios from "axios";
+import instance from "./axiosInstance";
 import { Usuario } from "../modulos/Usuarios/types/usuarios.types";
 
-const API_URL = `${import.meta.env.VITE_API_URL}/Usuarios`;
+const API_URL = `/Usuarios`;
 
 // ✅ Función para convertir "dd/MM/yyyy" → "yyyy-MM-dd"
 const convertirFecha = (fecha: string): string => {
@@ -37,7 +37,7 @@ const formatFecha = (fecha: string | null | undefined): string => {
 // Activar o desactivar usuario
 export const cambiarEstadoUsuario = async (id: number): Promise<void> => {
   try {
-    await axios.put(
+    await instance.put(
       `${API_URL}/cambiar-estado/${id}`,
       {},
       {
@@ -63,7 +63,7 @@ export const getUsuarios = async (
 ): Promise<Usuario[]> => {
   try {
     // 🔄 Hacemos el request al endpoint correcto
-    const response = await axios.get(`${API_URL}/obtener-usuarios`, {
+    const response = await instance.get(`${API_URL}/obtener-usuarios`, {
       params: {
         filtro,
         pageNumber,
@@ -83,7 +83,7 @@ export const actualizarUsuario = async (
   usuario: Partial<Usuario>
 ): Promise<void> => {
   try {
-    await axios.put(`${API_URL}/editar-usuario`, usuario);
+    await instance.put(`${API_URL}/editar-usuario`, usuario);
   } catch (error: any) {
     console.error("❌ Error al actualizar el usuario:", error.message);
     if (error.response) {

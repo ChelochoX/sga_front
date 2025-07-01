@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   AppBar,
   Box,
@@ -18,6 +18,7 @@ import {
   drawerWidth,
   collapsedDrawerWidth,
 } from "../../components/Sidebar/Sidebar.styles";
+import { logout, getUsuario, isAuthenticated } from "../../api/authService";
 
 const Dashboard: React.FC = () => {
   const theme = useTheme();
@@ -26,16 +27,22 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      navigate("/acceso-denegado");
+    }
+  }, []);
+
   const handleDrawerToggle = () => {
     setOpen(!open);
   };
 
   const handleLogout = () => {
-    // Eliminar el token de autenticación
-    localStorage.removeItem("userToken"); // Ajusta la clave según tu implementación
-    // Redirigir al login
+    logout();
     navigate("/");
   };
+
+  const usuario = getUsuario();
 
   return (
     <Box sx={{ display: "flex" }}>
