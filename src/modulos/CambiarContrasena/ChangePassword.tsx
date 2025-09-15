@@ -126,13 +126,7 @@ const ChangePassword: React.FC = () => {
             value={usuario}
             onChange={(e) => setUsuario(e.target.value)}
             required
-            InputProps={{ readOnly: true }}
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                borderRadius: "10px",
-                backgroundColor: "#f5f5f5",
-              },
-            }}
+            placeholder="Ingrese su usuario"
           />
           <TextField
             label="Nueva Contraseña"
