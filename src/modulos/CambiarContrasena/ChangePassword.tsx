@@ -224,8 +224,9 @@ const ChangePassword: React.FC = () => {
       >
         <Alert
           onClose={() => setOpenSnackbar(false)}
-          severity="error"
+          severity={error ? "error" : "success"}
           sx={{ width: "100%" }}
+          variant="filled"
         >
           {error || mensaje}
         </Alert>
