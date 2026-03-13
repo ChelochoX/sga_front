@@ -14,6 +14,10 @@ const theme = createTheme(
         main: "#2575fc",
         contrastText: "#ffffff",
       },
+      error: {
+        main: "#d32f2f",
+        contrastText: "#ffffff",
+      },
       background: {
         default: "#f3f3f3",
         paper: "#ffffff",
@@ -61,17 +65,27 @@ const theme = createTheme(
           root: {
             borderRadius: "30px",
             fontWeight: 600,
-            background: "linear-gradient(135deg, #6a11cb, #2575fc)",
+            textTransform: "none",
+          },
+          containedPrimary: {
+            backgroundColor: "#1976d2",
             color: "#fff",
             "&:hover": {
-              background: "linear-gradient(135deg, #2575fc, #6a11cb)",
+              backgroundColor: "#1565c0",
+            },
+          },
+          containedError: {
+            backgroundColor: "#d32f2f",
+            color: "#fff",
+            "&:hover": {
+              backgroundColor: "#b71c1c",
             },
           },
         },
       },
     },
   },
-  dataGridEsES // 👈 Aplicar español al DataGrid
+  dataGridEsES,
 );
 
 export default theme;

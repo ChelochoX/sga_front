@@ -18,12 +18,16 @@ instance.interceptors.request.use(
     }
     return request;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
+// Interceptor de respuesta: maneja lógica global y relanza el error
 instance.interceptors.response.use(
   (response) => response,
-  (error) => handleApiError(error)
+  (error) => {
+    handleApiError(error);
+    return Promise.reject(error);
+  },
 );
 
 export default instance;

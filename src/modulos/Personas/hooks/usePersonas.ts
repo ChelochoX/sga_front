@@ -6,48 +6,28 @@ import {
   updatePersona,
   deletePersona,
 } from "../../../api/personasService";
+import { formatDateToDisplay } from "../../../utils/dateUtils";
 
 export const usePersonas = () => {
   const [personas, setPersonas] = useState<Persona[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [filter, setFilter] = useState<string>("");
 
-  // ✅ Función para formatear fechas correctamente
-  const formatFecha = (fecha: string | Date | null | undefined) => {
-    if (!fecha || fecha === "") return "Sin Fecha";
-    try {
-      // Convertimos la fecha a un objeto Date
-      const dateObj = new Date(fecha);
-      if (isNaN(dateObj.getTime())) {
-        // Si la fecha es inválida, retornamos "Sin Fecha"
-        return "Sin Fecha";
-      }
-      return new Intl.DateTimeFormat("es-ES", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      }).format(dateObj);
-    } catch (error) {
-      console.error("Error al formatear la fecha: ", error);
-      return "Sin Fecha";
-    }
-  };
-
   const fetchPersonas = async () => {
     setLoading(true);
     try {
       const data = await getPersonas(filter);
 
-      // ✅ Preprocesamos los datos para formatear fechas
       const formattedData = data.map((persona) => ({
         ...persona,
-        fechaNacimiento: formatFecha(persona.fechaNacimiento),
-        fechaRegistro: formatFecha(persona.fechaRegistro),
+        fechaNacimiento: formatDateToDisplay(persona.fechaNacimiento),
+        fechaRegistro: formatDateToDisplay(persona.fechaRegistro),
       }));
 
       setPersonas(formattedData);
     } catch (error) {
       console.error("Error fetching personas:", error);
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -57,8 +37,10 @@ export const usePersonas = () => {
     try {
       const newPersona = await createPersona(persona);
       setPersonas((prev) => [...prev, newPersona]);
+      return newPersona;
     } catch (error) {
       console.error("Error creating persona:", error);
+      throw error;
     }
   };
 
@@ -66,10 +48,11 @@ export const usePersonas = () => {
     try {
       await updatePersona(id, persona);
       setPersonas((prev) =>
-        prev.map((p) => (p.id === id ? { ...persona, id } : p))
+        prev.map((p) => (p.id === id ? { ...persona, id } : p)),
       );
     } catch (error) {
       console.error("Error updating persona:", error);
+      throw error;
     }
   };
 
@@ -79,11 +62,14 @@ export const usePersonas = () => {
       setPersonas((prev) => prev.filter((p) => p.id !== id));
     } catch (error) {
       console.error("Error deleting persona:", error);
+      throw error;
     }
   };
 
   useEffect(() => {
-    fetchPersonas();
+    fetchPersonas().catch((error) => {
+      console.error("Error inicial cargando personas:", error);
+    });
   }, [filter]);
 
   return {

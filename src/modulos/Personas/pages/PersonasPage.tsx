@@ -20,7 +20,6 @@ import { Persona } from "../types/personas.types";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
-import { createPersona, updatePersona } from "../../../api/personasService";
 import Swal from "sweetalert2";
 import SearchIcon from "@mui/icons-material/Search";
 
@@ -28,14 +27,16 @@ const PersonasPage: React.FC = () => {
   const {
     personas,
     loading,
+    addPersona,
     editPersona,
     removePersona,
     fetchPersonas,
     setFilter,
   } = usePersonas();
+
   const [openForm, setOpenForm] = useState(false);
   const [selectedPersona, setSelectedPersona] = useState<Persona | undefined>(
-    undefined
+    undefined,
   );
 
   const isMobile = useMediaQuery("(max-width:768px)");
@@ -60,39 +61,43 @@ const PersonasPage: React.FC = () => {
       cancelButtonColor: "#d33",
       confirmButtonText: "Sí, eliminar",
       cancelButtonText: "Cancelar",
-    }).then((result) => {
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        removePersona(id);
-        Swal.fire("Eliminado!", "La persona ha sido eliminada.", "success");
+        try {
+          await removePersona(id);
+          Swal.fire("Eliminado", "La persona ha sido eliminada.", "success");
+        } catch (error: any) {
+          Swal.fire(
+            "Error",
+            error?.message || "No se pudo eliminar la persona.",
+            "error",
+          );
+        }
       }
     });
   };
 
-  const handleSave = async (persona: Persona) => {
-    try {
-      if (persona.id) {
-        await editPersona(persona.id, persona);
-        Swal.fire(
-          "Actualizado",
-          "La persona ha sido actualizada correctamente.",
-          "success"
-        );
-      } else {
-        await createPersona(persona);
-        Swal.fire(
-          "Agregado",
-          "La persona ha sido agregada correctamente.",
-          "success"
-        );
-      }
-      fetchPersonas();
-    } catch (error) {
-      Swal.fire("Error", "Hubo un problema al guardar la persona.", "error");
+  const handleSave = async (persona: Persona): Promise<void> => {
+    if (persona.id) {
+      await editPersona(persona.id, persona);
+      Swal.fire(
+        "Actualizado",
+        "La persona ha sido actualizada correctamente.",
+        "success",
+      );
+    } else {
+      await addPersona(persona);
+      Swal.fire(
+        "Agregado",
+        "La persona ha sido agregada correctamente.",
+        "success",
+      );
     }
+
+    await fetchPersonas();
     setOpenForm(false);
   };
 
-  // ✅ Columnas del DataGrid con TODOS los datos y las fechas formateadas:
   const columns: GridColDef[] = [
     { field: "nombres", headerName: "Nombres", width: 150 },
     { field: "apellidos", headerName: "Apellidos", width: 150 },
@@ -149,6 +154,7 @@ const PersonasPage: React.FC = () => {
           gap: 2,
           mb: 2,
           flexDirection: isMobile ? "column" : "row",
+          alignItems: isMobile ? "stretch" : "center",
         }}
       >
         <TextField
@@ -182,6 +188,7 @@ const PersonasPage: React.FC = () => {
             borderRadius: "25px",
             height: "40px",
             background: "linear-gradient(45deg, #6a11cb, #2575fc)",
+            minWidth: isMobile ? "100%" : "180px",
           }}
         >
           Agregar Persona
@@ -203,7 +210,6 @@ const PersonasPage: React.FC = () => {
                   overflow: "hidden",
                 }}
               >
-                {/* 🔍 Iconos de acciones */}
                 <Box
                   sx={{
                     position: "absolute",
@@ -232,53 +238,14 @@ const PersonasPage: React.FC = () => {
                     {persona.nombres} {persona.apellidos}
                   </Typography>
 
-                  <Box
-                    sx={{ display: "flex", justifyContent: "space-between" }}
-                  >
-                    <Typography>📧 {persona.email}</Typography>
-                  </Box>
-
-                  <Box
-                    sx={{ display: "flex", justifyContent: "space-between" }}
-                  >
-                    <Typography>📞 {persona.telefono}</Typography>
-                  </Box>
-
-                  <Box
-                    sx={{ display: "flex", justifyContent: "space-between" }}
-                  >
-                    <Typography>📍 {persona.direccion}</Typography>
-                  </Box>
-
-                  <Box
-                    sx={{ display: "flex", justifyContent: "space-between" }}
-                  >
-                    <Typography>🎂 {persona.fechaNacimiento}</Typography>
-                  </Box>
-
-                  <Box
-                    sx={{ display: "flex", justifyContent: "space-between" }}
-                  >
-                    <Typography>🗓️ {persona.fechaRegistro}</Typography>
-                  </Box>
-
-                  <Box
-                    sx={{ display: "flex", justifyContent: "space-between" }}
-                  >
-                    <Typography>🆔 {persona.cedula}</Typography>
-                  </Box>
-
-                  <Box
-                    sx={{ display: "flex", justifyContent: "space-between" }}
-                  >
-                    <Typography>🏷️ RUC: {persona.ruc}</Typography>
-                  </Box>
-
-                  <Box
-                    sx={{ display: "flex", justifyContent: "space-between" }}
-                  >
-                    <Typography>🔢 DV: {persona.digitoVerificador}</Typography>
-                  </Box>
+                  <Typography>📧 {persona.email}</Typography>
+                  <Typography>📞 {persona.telefono}</Typography>
+                  <Typography>📍 {persona.direccion}</Typography>
+                  <Typography>🎂 {persona.fechaNacimiento}</Typography>
+                  <Typography>🗓️ {persona.fechaRegistro}</Typography>
+                  <Typography>🆔 {persona.cedula}</Typography>
+                  <Typography>🏷️ RUC: {persona.ruc}</Typography>
+                  <Typography>🔢 DV: {persona.digitoVerificador}</Typography>
                 </CardContent>
               </Card>
             </Grid>
@@ -290,6 +257,7 @@ const PersonasPage: React.FC = () => {
           columns={columns}
           getRowId={(row) => row.id}
           autoHeight
+          pageSizeOptions={[10, 25, 50, 100]}
         />
       )}
 

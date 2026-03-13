@@ -18,10 +18,6 @@ import {
   Card,
   CardContent,
   useMediaQuery,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
 } from "@mui/material";
 import {
   Search,
@@ -34,6 +30,8 @@ import {
 } from "@mui/icons-material";
 import { useUsuarios } from "../hooks/useUsuarios";
 import { useTheme } from "@mui/material/styles";
+import UsuarioForm from "../components/UsuarioForm";
+import { Usuario } from "../types/usuarios.types";
 
 const UsuariosPage: React.FC = () => {
   const {
@@ -52,61 +50,46 @@ const UsuariosPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  // ✏️ Estado para el modal de edición
   const [openEdit, setOpenEdit] = useState(false);
-  const [selectedUsuario, setSelectedUsuario] = useState<any>(null);
-  const [newNombreUsuario, setNewNombreUsuario] = useState<string>("");
+  const [selectedUsuario, setSelectedUsuario] = useState<Usuario | undefined>(
+    undefined,
+  );
 
-  // 🔄 Función para manejar la búsqueda
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchText(e.target.value);
     setFilter(e.target.value);
   };
 
-  const handleChangePage = (event: unknown, newPage: number) => {
+  const handleChangePage = (_event: unknown, newPage: number) => {
     setPageNumber(newPage + 1);
   };
 
   const handleChangeRowsPerPage = (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     setPageSize(parseInt(event.target.value, 10));
     setPageNumber(1);
   };
 
-  // ✏️ Función para abrir el modal y setear el usuario
-  const handleEditClick = (usuario: any) => {
+  const handleEditClick = (usuario: Usuario) => {
     setSelectedUsuario(usuario);
-    setNewNombreUsuario(usuario.nombreUsuario);
     setOpenEdit(true);
   };
 
-  // 🔄 Función para guardar cambios
-  const handleSaveEdit = async () => {
-    if (selectedUsuario) {
-      await editUsuario({
-        idUsuario: selectedUsuario.idUsuario,
-        nombreUsuario: newNombreUsuario,
-        fechaModificacion: new Date().toISOString(),
-      });
-
-      setOpenEdit(false);
-      fetchUsuarios();
-    }
+  const handleSaveEdit = async (
+    updatedData: Partial<Usuario>,
+  ): Promise<void> => {
+    await editUsuario(updatedData);
+    await fetchUsuarios();
+    setOpenEdit(false);
   };
 
-  // ✅ Función para formatear fecha (sin hora)
   const formatFecha = (fecha: string | null | undefined) => {
     if (!fecha) return "Sin Fecha";
 
-    // 🔄 Convertimos el string ISO a Date
     const dateObj = new Date(fecha);
+    if (isNaN(dateObj.getTime())) return "Fecha inválida";
 
-    if (isNaN(dateObj.getTime())) {
-      return "Fecha inválida";
-    }
-
-    // 🔍 Mostramos solo la fecha (sin la hora)
     return dateObj.toLocaleDateString("es-ES");
   };
 
@@ -249,12 +232,12 @@ const UsuariosPage: React.FC = () => {
                           }
                           fullWidth
                           sx={{
-                            background:
+                            backgroundColor:
                               usuario.estado === "Activo"
                                 ? "#ff4d4d"
                                 : "#4caf50",
                             "&:hover": {
-                              background:
+                              backgroundColor:
                                 usuario.estado === "Activo"
                                   ? "#ff1a1a"
                                   : "#45a049",
@@ -268,7 +251,7 @@ const UsuariosPage: React.FC = () => {
 
                         <Button
                           onClick={() => handleEditClick(usuario)}
-                          variant="outlined"
+                          variant="contained"
                           color="primary"
                           fullWidth
                           startIcon={<EditIcon />}
@@ -344,13 +327,13 @@ const UsuariosPage: React.FC = () => {
                             variant="contained"
                             fullWidth
                             sx={{
-                              background:
+                              backgroundColor:
                                 usuario.estado === "Activo"
                                   ? "#ff4d4d"
                                   : "#4caf50",
                               color: "white",
                               "&:hover": {
-                                background:
+                                backgroundColor:
                                   usuario.estado === "Activo"
                                     ? "#ff1a1a"
                                     : "#45a049",
@@ -364,17 +347,9 @@ const UsuariosPage: React.FC = () => {
 
                           <Button
                             onClick={() => handleEditClick(usuario)}
-                            variant="outlined"
+                            variant="contained"
+                            color="primary"
                             fullWidth
-                            sx={{
-                              background:
-                                "linear-gradient(45deg, #6a11cb, #2575fc)",
-                              color: "white", // 🔄 Letra en blanco
-                              "&:hover": {
-                                background:
-                                  "linear-gradient(45deg, #5b10b0, #1d66e0)",
-                              },
-                            }}
                             startIcon={<EditIcon />}
                           >
                             Editar
@@ -385,31 +360,28 @@ const UsuariosPage: React.FC = () => {
                   ))}
                 </TableBody>
               </Table>
+
+              <TablePagination
+                component="div"
+                count={total}
+                page={0}
+                onPageChange={handleChangePage}
+                rowsPerPage={10}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+                rowsPerPageOptions={[10, 25, 50]}
+                labelRowsPerPage="Filas por página:"
+              />
             </TableContainer>
           )}
         </>
       )}
 
-      {/* ✅ Modal para editar */}
-      <Dialog open={openEdit} onClose={() => setOpenEdit(false)}>
-        <DialogTitle>Editar Usuario</DialogTitle>
-        <DialogContent>
-          <TextField
-            label="Nombre de Usuario"
-            value={newNombreUsuario}
-            onChange={(e) => setNewNombreUsuario(e.target.value)}
-            fullWidth
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenEdit(false)} color="secondary">
-            Cancelar
-          </Button>
-          <Button onClick={handleSaveEdit} color="primary">
-            Guardar
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <UsuarioForm
+        open={openEdit}
+        onClose={() => setOpenEdit(false)}
+        onSave={handleSaveEdit}
+        initialData={selectedUsuario}
+      />
     </Box>
   );
 };

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
+  Alert,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -8,14 +9,24 @@ import {
   TextField,
   useMediaQuery,
   Grid,
+  FormControl,
+  FormLabel,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
+  FormHelperText,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import { Persona } from "../types/personas.types";
 import { useTheme } from "@mui/material/styles";
+import { formatDateToYYYYMMDD } from "../../../utils/dateUtils";
 
 interface PersonaFormProps {
   open: boolean;
   onClose: () => void;
-  onSave: (persona: Persona) => void;
+  onSave: (persona: Persona) => Promise<void>;
   initialData?: Persona;
 }
 
@@ -29,7 +40,7 @@ const initialState: Persona = {
   fechaNacimiento: "",
   fechaRegistro: "",
   cedula: "",
-  ruc: "",
+  ruc: "N",
   digitoVerificador: 0,
 };
 
@@ -41,87 +52,223 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
 }) => {
   const [persona, setPersona] = useState<Persona>(initialState);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [formError, setFormError] = useState<string>("");
+  const [saving, setSaving] = useState(false);
+
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  // ✅ Cada vez que se abre el form con datos, se setean en el estado
-  useEffect(() => {
-    if (initialData) {
-      setPersona(initialData);
-    } else {
-      setPersona(initialState);
-    }
+  const formBackgroundColor = "#f5f5f5";
 
-    // 👇 Enfocamos el primer input al abrir el modal
-    if (open && inputRef.current) {
-      inputRef.current.focus();
+  const textFieldSx = {
+    "& .MuiOutlinedInput-root": {
+      backgroundColor: "#ffffff",
+    },
+    "& .MuiInputLabel-root": {
+      zIndex: 1,
+      backgroundColor: formBackgroundColor,
+      px: 0.75,
+      lineHeight: 1.2,
+    },
+    "& .MuiInputLabel-root.MuiInputLabel-shrink": {
+      zIndex: 1,
+      backgroundColor: formBackgroundColor,
+      px: 0.75,
+      transform: "translate(14px, -9px) scale(0.75)",
+    },
+  };
+
+  useEffect(() => {
+    if (open) {
+      setErrors({});
+      setFormError("");
+
+      if (initialData) {
+        setPersona({
+          ...initialData,
+          fechaNacimiento:
+            formatDateToYYYYMMDD(initialData.fechaNacimiento) ?? "",
+          fechaRegistro: formatDateToYYYYMMDD(initialData.fechaRegistro) ?? "",
+          ruc: initialData.ruc || "N",
+          digitoVerificador:
+            initialData.ruc === "S"
+              ? Number(initialData.digitoVerificador ?? 0)
+              : 0,
+        });
+      } else {
+        setPersona(initialState);
+      }
+
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
     }
   }, [initialData, open]);
 
-  // ✅ Manejo de cambios en el formulario
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     const { name, value } = e.target;
-    setPersona((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
 
-    // Limpiamos el error si se corrige el campo
-    if (value !== "") {
+    setPersona((prev) => {
+      if (name === "ruc") {
+        const hasRuc = value === "S";
+
+        return {
+          ...prev,
+          ruc: value,
+          digitoVerificador: hasRuc ? prev.digitoVerificador : 0,
+        };
+      }
+
+      return {
+        ...prev,
+        [name]: value,
+      };
+    });
+
+    if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+
+    if (name === "ruc" && value === "N" && errors.digitoVerificador) {
+      setErrors((prev) => ({ ...prev, digitoVerificador: "" }));
+    }
+
+    if (formError) {
+      setFormError("");
     }
   };
 
-  // ✅ Función para validar campos obligatorios
-  const validateFields = () => {
-    const requiredFields = [
-      "nombres",
-      "apellidos",
-      "email",
-      "telefono",
-      "direccion",
-      "fechaNacimiento",
-      "cedula",
-      "ruc",
-    ];
+  const handleSelectChange = (value: number) => {
+    setPersona((prev) => ({
+      ...prev,
+      digitoVerificador: value,
+    }));
 
+    if (errors.digitoVerificador) {
+      setErrors((prev) => ({ ...prev, digitoVerificador: "" }));
+    }
+
+    if (formError) {
+      setFormError("");
+    }
+  };
+
+  const validateFields = () => {
     const newErrors: Record<string, string> = {};
 
-    requiredFields.forEach((field) => {
-      if (!persona[field as keyof Persona]) {
-        newErrors[field] = "Este campo es obligatorio";
+    if (!persona.nombres?.trim()) {
+      newErrors.nombres = "Este campo es obligatorio";
+    }
+
+    if (!persona.apellidos?.trim()) {
+      newErrors.apellidos = "Este campo es obligatorio";
+    }
+
+    if (!persona.email?.trim()) {
+      newErrors.email = "Este campo es obligatorio";
+    }
+
+    if (!persona.telefono?.trim()) {
+      newErrors.telefono = "Este campo es obligatorio";
+    }
+
+    if (!persona.direccion?.trim()) {
+      newErrors.direccion = "Este campo es obligatorio";
+    }
+
+    if (!persona.fechaNacimiento?.trim()) {
+      newErrors.fechaNacimiento = "Este campo es obligatorio";
+    }
+
+    if (!persona.cedula?.trim()) {
+      newErrors.cedula = "Este campo es obligatorio";
+    }
+
+    if (!persona.ruc?.trim()) {
+      newErrors.ruc = "Este campo es obligatorio";
+    }
+
+    if (persona.ruc === "S") {
+      const dv = Number(persona.digitoVerificador);
+      if (Number.isNaN(dv) || dv < 0 || dv > 9) {
+        newErrors.digitoVerificador =
+          "Debe seleccionar un dígito verificador entre 0 y 9";
       }
-    });
+    }
 
     setErrors(newErrors);
-
-    // Si no hay errores, retorna `true`
     return Object.keys(newErrors).length === 0;
   };
 
-  // ✅ Guardar cambios al hacer submit
-  const handleSave = () => {
-    if (validateFields()) {
-      onSave(persona);
+  const handleSave = async () => {
+    if (!validateFields()) return;
+
+    try {
+      setSaving(true);
+      setFormError("");
+
+      await onSave(persona);
+    } catch (error: any) {
+      if (error?.fieldErrors && Object.keys(error.fieldErrors).length > 0) {
+        setErrors((prev) => ({
+          ...prev,
+          ...error.fieldErrors,
+        }));
+      }
+
+      setFormError(
+        error?.message || "Ocurrió un problema al guardar la persona.",
+      );
+    } finally {
+      setSaving(false);
     }
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+    <Dialog
+      open={open}
+      onClose={saving ? undefined : onClose}
+      fullWidth
+      maxWidth="md"
+      fullScreen={isMobile}
+      PaperProps={{
+        sx: {
+          width: isMobile ? "100%" : "900px",
+          maxWidth: "900px",
+          borderRadius: isMobile ? 0 : 3,
+          backgroundColor: formBackgroundColor,
+        },
+      }}
+    >
       <DialogTitle
         sx={{
           textAlign: "center",
           fontWeight: "bold",
-          fontSize: isMobile ? "18px" : "20px",
+          fontSize: isMobile ? "18px" : "22px",
+          backgroundColor: formBackgroundColor,
         }}
       >
         {persona.id ? "Editar Persona" : "Agregar Persona"}
       </DialogTitle>
 
-      <DialogContent>
-        <Grid container spacing={2} alignItems="flex-start">
-          {/* 🔄 Campos del formulario */}
+      <DialogContent
+        sx={{
+          px: isMobile ? 2 : 4,
+          pb: 2,
+          backgroundColor: formBackgroundColor,
+          overflow: "visible",
+        }}
+      >
+        {formError && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {formError}
+          </Alert>
+        )}
+
+        <Grid container spacing={2} alignItems="flex-start" sx={{ mt: 0.5 }}>
           <Grid item xs={12} sm={6}>
             <TextField
               label="Nombres"
@@ -134,8 +281,11 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
               variant="outlined"
               error={Boolean(errors.nombres)}
               helperText={errors.nombres}
+              InputLabelProps={{ shrink: true }}
+              sx={textFieldSx}
             />
           </Grid>
+
           <Grid item xs={12} sm={6}>
             <TextField
               label="Apellidos"
@@ -147,6 +297,8 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
               variant="outlined"
               error={Boolean(errors.apellidos)}
               helperText={errors.apellidos}
+              InputLabelProps={{ shrink: true }}
+              sx={textFieldSx}
             />
           </Grid>
 
@@ -161,6 +313,8 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
               variant="outlined"
               error={Boolean(errors.direccion)}
               helperText={errors.direccion}
+              InputLabelProps={{ shrink: true }}
+              sx={textFieldSx}
             />
           </Grid>
 
@@ -175,6 +329,8 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
               variant="outlined"
               error={Boolean(errors.email)}
               helperText={errors.email}
+              InputLabelProps={{ shrink: true }}
+              sx={textFieldSx}
             />
           </Grid>
 
@@ -189,6 +345,8 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
               variant="outlined"
               error={Boolean(errors.telefono)}
               helperText={errors.telefono}
+              InputLabelProps={{ shrink: true }}
+              sx={textFieldSx}
             />
           </Grid>
 
@@ -196,13 +354,16 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
             <TextField
               label="Fecha de Nacimiento"
               name="fechaNacimiento"
+              type="date"
               fullWidth
               size="small"
-              value={persona.fechaNacimiento}
+              value={persona.fechaNacimiento || ""}
               onChange={handleChange}
               variant="outlined"
+              InputLabelProps={{ shrink: true }}
               error={Boolean(errors.fechaNacimiento)}
               helperText={errors.fechaNacimiento}
+              sx={textFieldSx}
             />
           </Grid>
 
@@ -217,34 +378,69 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
               variant="outlined"
               error={Boolean(errors.cedula)}
               helperText={errors.cedula}
+              InputLabelProps={{ shrink: true }}
+              sx={textFieldSx}
             />
           </Grid>
 
           <Grid item xs={12} sm={6}>
-            <TextField
-              label="RUC"
-              name="ruc"
-              fullWidth
-              size="small"
-              value={persona.ruc}
-              onChange={handleChange}
-              variant="outlined"
-              error={Boolean(errors.ruc)}
-              helperText={errors.ruc}
-            />
+            <FormControl error={Boolean(errors.ruc)} fullWidth>
+              <FormLabel
+                sx={{
+                  color: "#6a11cb",
+                  fontSize: "0.9rem",
+                  mb: 1,
+                }}
+              >
+                ¿Tiene RUC?
+              </FormLabel>
+
+              <RadioGroup
+                row
+                name="ruc"
+                value={persona.ruc}
+                onChange={handleChange}
+              >
+                <FormControlLabel value="S" control={<Radio />} label="Sí" />
+                <FormControlLabel value="N" control={<Radio />} label="No" />
+              </RadioGroup>
+
+              {errors.ruc && <FormHelperText>{errors.ruc}</FormHelperText>}
+            </FormControl>
           </Grid>
 
           <Grid item xs={12} sm={6}>
-            <TextField
-              label="Dígito Verificador"
-              name="digitoVerificador"
+            <FormControl
               fullWidth
               size="small"
-              value={persona.digitoVerificador}
-              onChange={handleChange}
-              type="number"
-              variant="outlined"
-            />
+              error={Boolean(errors.digitoVerificador)}
+              disabled={persona.ruc !== "S"}
+              sx={textFieldSx}
+            >
+              <InputLabel shrink id="digito-verificador-label">
+                Dígito Verificador
+              </InputLabel>
+
+              <Select
+                labelId="digito-verificador-label"
+                value={String(persona.digitoVerificador ?? 0)}
+                label="Dígito Verificador"
+                onChange={(e) => handleSelectChange(Number(e.target.value))}
+              >
+                {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((numero) => (
+                  <MenuItem key={numero} value={String(numero)}>
+                    {numero}
+                  </MenuItem>
+                ))}
+              </Select>
+
+              <FormHelperText>
+                {persona.ruc === "S"
+                  ? errors.digitoVerificador ||
+                    "Seleccione un dígito del 0 al 9"
+                  : "Disponible solo si tiene RUC"}
+              </FormHelperText>
+            </FormControl>
           </Grid>
         </Grid>
       </DialogContent>
@@ -256,11 +452,34 @@ const PersonaForm: React.FC<PersonaFormProps> = ({
           marginBottom: 2,
         }}
       >
-        <Button onClick={onClose} color="secondary" variant="contained">
-          Cancelar
+        <Button
+          onClick={handleSave}
+          variant="contained"
+          color="primary"
+          disabled={saving}
+          sx={{
+            minWidth: 120,
+            borderRadius: 2,
+            textTransform: "none",
+            fontWeight: 600,
+          }}
+        >
+          {saving ? "Guardando..." : persona.id ? "Actualizar" : "Guardar"}
         </Button>
-        <Button onClick={handleSave} color="primary" variant="contained">
-          {persona.id ? "Actualizar" : "Guardar"}
+
+        <Button
+          onClick={onClose}
+          variant="contained"
+          color="error"
+          disabled={saving}
+          sx={{
+            minWidth: 120,
+            borderRadius: 2,
+            textTransform: "none",
+            fontWeight: 600,
+          }}
+        >
+          Cancelar
         </Button>
       </DialogActions>
     </Dialog>

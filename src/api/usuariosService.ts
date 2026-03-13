@@ -3,38 +3,12 @@ import { Usuario } from "../modulos/Usuarios/types/usuarios.types";
 
 const API_URL = `/Usuarios`;
 
-// ✅ Función para convertir "dd/MM/yyyy" → "yyyy-MM-dd"
-const convertirFecha = (fecha: string): string => {
-  if (!fecha.includes("/")) return fecha; // Si ya está formateado, lo dejamos
-  const [day, month, year] = fecha.split("/");
-  return `${year}-${month}-${day}`;
-};
-
-// ✅ Función para formatear "yyyy-MM-dd" → "dd/MM/yyyy"
-const formatFecha = (fecha: string | null | undefined): string => {
-  if (!fecha) return "Sin Fecha";
-
-  try {
-    const dateObj = new Date(fecha);
-
-    if (isNaN(dateObj.getTime())) {
-      console.warn(`⚠️ La fecha recibida no es válida: ${fecha}`);
-      return "Fecha inválida";
-    }
-
-    // 🔄 Formato manual dd/MM/yyyy
-    const dia = ("0" + dateObj.getDate()).slice(-2);
-    const mes = ("0" + (dateObj.getMonth() + 1)).slice(-2);
-    const anio = dateObj.getFullYear();
-
-    return `${dia}/${mes}/${anio}`;
-  } catch (error) {
-    console.error("❌ Error al formatear la fecha:", error);
-    return "Sin Fecha";
-  }
-};
-
-// Activar o desactivar usuario
+//
+// ==========================================================
+// PUT /Usuarios/cambiar-estado/{id}
+// Activa o desactiva un usuario según su estado actual
+// ==========================================================
+//
 export const cambiarEstadoUsuario = async (id: number): Promise<void> => {
   try {
     await instance.put(
@@ -44,7 +18,7 @@ export const cambiarEstadoUsuario = async (id: number): Promise<void> => {
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     );
   } catch (error: any) {
     console.error("❌ Error al cambiar estado del usuario:", error.message);
@@ -55,14 +29,18 @@ export const cambiarEstadoUsuario = async (id: number): Promise<void> => {
   }
 };
 
-// Obtener todos los usuarios
+//
+// ==========================================================
+// GET /Usuarios/obtener-usuarios
+// Obtiene la lista de usuarios con filtro y paginación
+// ==========================================================
+//
 export const getUsuarios = async (
   filtro: string = "",
   pageNumber: number = 1,
-  pageSize: number = 10
+  pageSize: number = 10,
 ): Promise<Usuario[]> => {
   try {
-    // 🔄 Hacemos el request al endpoint correcto
     const response = await instance.get(`${API_URL}/obtener-usuarios`, {
       params: {
         filtro,
@@ -78,9 +56,14 @@ export const getUsuarios = async (
   }
 };
 
-// 🔄 Función para actualizar el usuario
+//
+// ==========================================================
+// PUT /Usuarios/editar-usuario
+// Actualiza los datos de un usuario existente
+// ==========================================================
+//
 export const actualizarUsuario = async (
-  usuario: Partial<Usuario>
+  usuario: Partial<Usuario>,
 ): Promise<void> => {
   try {
     await instance.put(`${API_URL}/editar-usuario`, usuario);
