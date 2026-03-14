@@ -82,3 +82,7 @@ export interface FacturaContadoRequest {
   observacion: string;
   detalles: FacturaDetalleRequest[];
 }
+export interface FacturarPagosResponse {
+  mensaje: string;
+  idFactura: number;
+}

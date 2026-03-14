@@ -10,13 +10,16 @@ import {
   Stack,
   useMediaQuery,
   useTheme,
-  Divider,
   Box,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
+import PrintIcon from "@mui/icons-material/Print";
 import { CajaAnulacionDto } from "../types/caja.types";
 
 interface Props {
   anulaciones: CajaAnulacionDto[];
+  onImprimir: (idAnulacion: number) => void;
 }
 
 const formatFecha = (fecha: string): string => {
@@ -28,7 +31,7 @@ const formatFecha = (fecha: string): string => {
   });
 };
 
-export default function AnulacionesTable({ anulaciones }: Props) {
+export default function AnulacionesTable({ anulaciones, onImprimir }: Props) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -53,6 +56,17 @@ export default function AnulacionesTable({ anulaciones }: Props) {
             <Typography variant="body2">
               <strong>Usuario:</strong> {a.usuarioAnulacion}
             </Typography>
+
+            <Box display="flex" justifyContent="flex-end" mt={1}>
+              <Tooltip title="Imprimir factura anulada">
+                <IconButton
+                  sx={{ color: "#7c3aed" }}
+                  onClick={() => onImprimir(a.idAnulacion)}
+                >
+                  <PrintIcon />
+                </IconButton>
+              </Tooltip>
+            </Box>
           </CardContent>
         </Card>
       ))}
@@ -66,6 +80,7 @@ export default function AnulacionesTable({ anulaciones }: Props) {
             <TableCell>Movimiento</TableCell>
             <TableCell>Motivo</TableCell>
             <TableCell>Usuario</TableCell>
+            <TableCell align="center">Acciones</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -75,6 +90,16 @@ export default function AnulacionesTable({ anulaciones }: Props) {
               <TableCell>{a.idMovimiento}</TableCell>
               <TableCell>{a.motivo}</TableCell>
               <TableCell>{a.usuarioAnulacion}</TableCell>
+              <TableCell align="center">
+                <Tooltip title="Imprimir factura anulada">
+                  <IconButton
+                    sx={{ color: "#7c3aed" }}
+                    onClick={() => onImprimir(a.idAnulacion)}
+                  >
+                    <PrintIcon />
+                  </IconButton>
+                </Tooltip>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>

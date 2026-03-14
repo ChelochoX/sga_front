@@ -1,49 +1,66 @@
 import instance from "./axiosInstance";
 import {
   FacturaContadoRequest,
+  FacturarPagosResponse,
   PagoFiltroRequest,
   ResultadoPagos,
-  PagoDetalleDto,
 } from "../modulos/Pagos/types/pagos.types";
 
 const API_URL = "/Pagos";
 
-// Pagos pendientes
+/**
+ * POST /Pagos/PagosPendientes
+ * Obtiene el listado paginado de pagos pendientes según los filtros enviados.
+ */
 export const getPagosPendientes = async (
-  filtro: PagoFiltroRequest
+  filtro: PagoFiltroRequest,
 ): Promise<ResultadoPagos> => {
   const { data } = await instance.post<ResultadoPagos>(
     `${API_URL}/PagosPendientes`,
-    filtro
+    filtro,
   );
   return data;
 };
 
-// Pagos realizados
+/**
+ * POST /Pagos/PagosRealizados
+ * Obtiene el listado paginado de pagos ya realizados según los filtros enviados.
+ */
 export const getPagosRealizados = async (
-  filtro: PagoFiltroRequest
+  filtro: PagoFiltroRequest,
 ): Promise<ResultadoPagos> => {
   const { data } = await instance.post<ResultadoPagos>(
     `${API_URL}/PagosRealizados`,
-    filtro
+    filtro,
   );
   return data;
 };
 
+/**
+ * GET /Pagos/ConfiguracionDocumentoFiscal
+ * Obtiene la configuración fiscal activa para el código de documento solicitado.
+ */
 export const getConfigDocumentoFiscal = async (codigoDocumento: string) => {
   const { data } = await instance.get(
     `${API_URL}/ConfiguracionDocumentoFiscal`,
     {
       params: { codigoDocumento },
-    }
+    },
   );
   return data;
 };
 
-// Facturar seleccionados
+/**
+ * POST /Pagos/RegistrarFactura
+ * Registra la factura de los detalles seleccionados y devuelve el mensaje
+ * junto con el id de la factura generada.
+ */
 export const facturarPagos = async (
-  payload: FacturaContadoRequest
-): Promise<any> => {
-  const { data } = await instance.post(`${API_URL}/RegistrarFactura`, payload);
+  payload: FacturaContadoRequest,
+): Promise<FacturarPagosResponse> => {
+  const { data } = await instance.post<FacturarPagosResponse>(
+    `${API_URL}/RegistrarFactura`,
+    payload,
+  );
   return data;
 };

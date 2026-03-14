@@ -11,7 +11,6 @@ import {
   CardContent,
   Typography,
   useMediaQuery,
-  useTheme,
   Stack,
   Divider,
   Dialog,
@@ -20,13 +19,17 @@ import {
   DialogActions,
   Button,
   TextField,
+  Tooltip,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
+import PrintIcon from "@mui/icons-material/Print";
+import { useTheme } from "@mui/material/styles";
 import { CajaMovimientoDto } from "../types/caja.types";
 
 interface Props {
   movimientos: CajaMovimientoDto[];
   onAnular: (idMovimiento: number, motivo: string) => void;
+  onImprimir: (idMovimiento: number) => void;
 }
 
 const formatFecha = (fecha: string): string => {
@@ -41,6 +44,7 @@ const formatFecha = (fecha: string): string => {
 const CajaMovimientosTable: React.FC<Props> = ({
   movimientos = [],
   onAnular,
+  onImprimir,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -53,19 +57,24 @@ const CajaMovimientosTable: React.FC<Props> = ({
     setSnackbarOpen(true);
   };
 
-  const confirmarAnulacion = () => {
-    if (!accionConfirmada || !motivoAnulacion.trim()) return;
-    onAnular(accionConfirmada, motivoAnulacion.trim());
+  const cerrarDialogo = () => {
     setSnackbarOpen(false);
     setMotivoAnulacion("");
     setAccionConfirmada(null);
+  };
+
+  const confirmarAnulacion = () => {
+    if (!accionConfirmada || !motivoAnulacion.trim()) return;
+
+    onAnular(accionConfirmada, motivoAnulacion.trim());
+    cerrarDialogo();
   };
 
   return (
     <Box>
       <Dialog
         open={snackbarOpen}
-        onClose={() => setSnackbarOpen(false)}
+        onClose={cerrarDialogo}
         maxWidth="sm"
         fullWidth
       >
@@ -84,7 +93,7 @@ const CajaMovimientosTable: React.FC<Props> = ({
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setSnackbarOpen(false)} color="secondary">
+          <Button onClick={cerrarDialogo} color="secondary">
             Cancelar
           </Button>
           <Button
@@ -110,7 +119,7 @@ const CajaMovimientosTable: React.FC<Props> = ({
                   <strong>Tipo:</strong> {mov.tipoMovimiento}
                 </Typography>
                 <Typography variant="body2">
-                  <strong>Monto:</strong> {mov.monto.toLocaleString()}
+                  <strong>Monto:</strong> {mov.monto.toLocaleString("es-PY")}
                 </Typography>
                 <Typography variant="body2">
                   <strong>Concepto:</strong> {mov.concepto}
@@ -121,14 +130,27 @@ const CajaMovimientosTable: React.FC<Props> = ({
                 <Typography variant="body2">
                   <strong>Referencia:</strong> {mov.referencia}
                 </Typography>
+
                 <Divider sx={{ my: 1 }} />
-                <Box display="flex" justifyContent="flex-end">
-                  <IconButton
-                    color="error"
-                    onClick={() => handleAnular(mov.idMovimiento)}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
+
+                <Box display="flex" justifyContent="flex-end" gap={1}>
+                  <Tooltip title="Imprimir factura">
+                    <IconButton
+                      color="primary"
+                      onClick={() => onImprimir(mov.idMovimiento)}
+                    >
+                      <PrintIcon />
+                    </IconButton>
+                  </Tooltip>
+
+                  <Tooltip title="Anular factura">
+                    <IconButton
+                      color="error"
+                      onClick={() => handleAnular(mov.idMovimiento)}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
                 </Box>
               </CardContent>
             </Card>
@@ -153,17 +175,28 @@ const CajaMovimientosTable: React.FC<Props> = ({
                 <TableRow key={mov.idMovimiento}>
                   <TableCell>{formatFecha(mov.fecha)}</TableCell>
                   <TableCell>{mov.tipoMovimiento}</TableCell>
-                  <TableCell>{mov.monto.toLocaleString()}</TableCell>
+                  <TableCell>{mov.monto.toLocaleString("es-PY")}</TableCell>
                   <TableCell>{mov.concepto}</TableCell>
                   <TableCell>{mov.usuario}</TableCell>
                   <TableCell>{mov.referencia}</TableCell>
                   <TableCell align="center">
-                    <IconButton
-                      color="error"
-                      onClick={() => handleAnular(mov.idMovimiento)}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
+                    <Tooltip title="Imprimir factura">
+                      <IconButton
+                        color="primary"
+                        onClick={() => onImprimir(mov.idMovimiento)}
+                      >
+                        <PrintIcon />
+                      </IconButton>
+                    </Tooltip>
+
+                    <Tooltip title="Anular factura">
+                      <IconButton
+                        color="error"
+                        onClick={() => handleAnular(mov.idMovimiento)}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Tooltip>
                   </TableCell>
                 </TableRow>
               ))}

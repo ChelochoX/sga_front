@@ -21,6 +21,8 @@ import { usePagos } from "../hooks/usePagos";
 import { formatFecha } from "../../../utils/dateUtils";
 import { facturarPagos } from "../../../api/pagosService";
 import { FacturaContadoRequest } from "../types/pagos.types";
+import Swal from "sweetalert2";
+import { descargarPdfFactura } from "../../../api/facturaPdfService";
 
 export default function PagosPage() {
   const theme = useTheme();
@@ -36,7 +38,7 @@ export default function PagosPage() {
   const [openFacturaModal, setOpenFacturaModal] = useState(false);
   const [documentoConfig, setDocumentoConfig] = useState<any>(null);
   const [mensajeErrorConfig, setMensajeErrorConfig] = useState<string | null>(
-    null
+    null,
   );
 
   const {
@@ -100,7 +102,7 @@ export default function PagosPage() {
   };
 
   const handleRowsPerPageChange = (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const newSize = parseInt(event.target.value, 10);
     setPageSize(newSize);
@@ -137,7 +139,7 @@ export default function PagosPage() {
   };
 
   const cabeceraSeleccionada = pagosPendientes.find((cab) =>
-    cab.detalles.some((d) => seleccionados.includes(d.idDetallePago!))
+    cab.detalles.some((d) => seleccionados.includes(d.idDetallePago!)),
   );
 
   // Pagos seleccionados (detalles) para facturar
@@ -157,14 +159,61 @@ export default function PagosPage() {
 
   const handleConfirmarFactura = async (payload: FacturaContadoRequest) => {
     try {
-      await facturarPagos(payload);
+      const response = await facturarPagos(payload);
+
       setOpenFacturaModal(false);
       setSeleccionados([]);
+
       if (tab === "pendientes") {
-        fetchPagosPendientes({ ...filtro, pageNumber: 1, pageSize });
+        await fetchPagosPendientes({ ...filtro, pageNumber: 1, pageSize });
       }
-    } catch (e) {
-      alert("Error al facturar pagos");
+
+      const result = await Swal.fire({
+        icon: "success",
+        title: "Factura generada",
+        text: response?.mensaje || "La factura se generó correctamente.",
+        confirmButtonText: "Ver PDF",
+        confirmButtonColor: "#7c3aed",
+        showCancelButton: true,
+        cancelButtonText: "Cerrar",
+        cancelButtonColor: "#9ca3af",
+      });
+
+      if (result.isConfirmed && response?.idFactura) {
+        try {
+          await descargarPdfFactura(response.idFactura);
+        } catch (pdfError: any) {
+          console.error("Error al generar/abrir PDF:", pdfError);
+
+          const mensajePdf =
+            pdfError?.response?.data?.Errors?.[0] ||
+            pdfError?.response?.data?.Message ||
+            pdfError?.response?.data?.mensaje ||
+            "La factura se generó correctamente, pero no se pudo abrir el PDF.";
+
+          await Swal.fire({
+            icon: "warning",
+            title: "Factura generada",
+            text: mensajePdf,
+            confirmButtonColor: "#d97706",
+          });
+        }
+      }
+    } catch (error: any) {
+      console.error("Error al facturar pagos:", error);
+
+      const mensaje =
+        error?.response?.data?.Errors?.[0] ||
+        error?.response?.data?.Message ||
+        error?.response?.data?.mensaje ||
+        "No se pudo generar la factura.";
+
+      await Swal.fire({
+        icon: "error",
+        title: "Error al facturar",
+        text: mensaje,
+        confirmButtonColor: "#dc2626",
+      });
     }
   };
 

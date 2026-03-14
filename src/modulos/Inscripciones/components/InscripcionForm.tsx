@@ -152,10 +152,17 @@ export default function InscripcionForm({ open, onClose, onSuccess }: Props) {
   const isFormValid = (): boolean => {
     if (!estudiante || !curso || !fechaInscripcion) return false;
 
-    if (toNumber(montoDescuento) > 0 && motivoDescuento.trim() === "")
+    if (toNumber(montoDescuento) > 0 && motivoDescuento.trim() === "") {
       return false;
-    if (toNumber(montoPrac) > 0 && motivoPrac.trim() === "") return false;
-    if (toNumber(montoMat) > 0 && motivoMat.trim() === "") return false;
+    }
+
+    if (toNumber(montoPrac) > 0 && motivoPrac.trim() === "") {
+      return false;
+    }
+
+    if (toNumber(montoMat) > 0 && motivoMat.trim() === "") {
+      return false;
+    }
 
     return true;
   };
@@ -456,12 +463,25 @@ export default function InscripcionForm({ open, onClose, onSuccess }: Props) {
             sx={{
               px: 3,
               py: 2,
-              justifyContent: "space-between",
-              flexWrap: "wrap",
-              gap: 1,
+              justifyContent: "flex-end",
+              alignItems: "center",
+              gap: 2,
             }}
           >
-            <Button onClick={onClose} color="secondary">
+            <Button
+              onClick={onClose}
+              variant="contained"
+              disabled={loading}
+              sx={{
+                bgcolor: "#d32f2f",
+                "&:hover": { bgcolor: "#b71c1c" },
+                color: "#fff",
+                fontWeight: 600,
+                minWidth: 120,
+                borderRadius: 2,
+                boxShadow: "0 3px 8px rgba(0,0,0,0.2)",
+              }}
+            >
               Cancelar
             </Button>
 
@@ -470,9 +490,13 @@ export default function InscripcionForm({ open, onClose, onSuccess }: Props) {
               disabled={!isFormValid() || loading}
               onClick={handleSubmit}
               sx={{
-                bgcolor: "#43a047",
-                "&:hover": { bgcolor: "#388e3c" },
+                bgcolor: "#1976d2",
+                "&:hover": { bgcolor: "#125ea8" },
+                color: "#fff",
+                fontWeight: 600,
                 minWidth: 120,
+                borderRadius: 2,
+                boxShadow: "0 3px 8px rgba(0,0,0,0.2)",
               }}
             >
               {loading ? "Guardando..." : "Inscribir"}
