@@ -8,13 +8,22 @@ import {
   filtrosContainer,
   cardCursoStyle,
 } from "../styles/cursos.styles";
-import { Button, Box, Skeleton, Snackbar, Alert } from "@mui/material"; // <-- agrega Snackbar y Alert
-import AddIcon from "@mui/icons-material/Add";
 import {
-  formatDateToYYYYMMDD,
-  getTodayYYYYMMDD,
-} from "../../../utils/dateUtils";
-import { Curso } from "../types/cursos.types";
+  Button,
+  Box,
+  Skeleton,
+  Snackbar,
+  Alert,
+  Divider,
+  Typography,
+  FormControlLabel,
+  Switch,
+  useTheme,
+  useMediaQuery,
+} from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import { formatDateToYYYYMMDD } from "../../../utils/dateUtils";
+import { Curso, CursoPayload } from "../types/cursos.types";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import { CursoForm, CursoFormValues } from "../components/CursoForm";
@@ -24,73 +33,72 @@ import dayjs from "dayjs";
 const CursosPage: React.FC = () => {
   const { cursos, setCursos, loading, eliminarCurso, fetchCursos } =
     useCursos();
-  const [openModal, setOpenModal] = React.useState(false);
 
-  // Estado de los filtros de fecha
-  const [fechaInicio, setFechaInicio] = React.useState<Date | null>(null);
-  const [fechaFin, setFechaFin] = React.useState<Date | null>(null);
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
-  // Estados para manejo de error bonito
+  const [openModal, setOpenModal] = useState(false);
+  const [fechaInicio, setFechaInicio] = useState<Date | null>(null);
+  const [fechaFin, setFechaFin] = useState<Date | null>(null);
+
+  const [filtrarPorEstado, setFiltrarPorEstado] = useState(false);
+  const [soloActivos, setSoloActivos] = useState(true);
+
   const [error, setError] = useState("");
   const [openSnackbar, setOpenSnackbar] = useState(false);
 
-  // Nuevo estado para el modal de edición y curso seleccionado
-  const [openEditModal, setOpenEditModal] = React.useState(false);
-  const [cursoSeleccionado, setCursoSeleccionado] =
-    React.useState<Curso | null>(null);
+  const [openEditModal, setOpenEditModal] = useState(false);
+  const [cursoSeleccionado, setCursoSeleccionado] = useState<Curso | null>(
+    null,
+  );
 
-  // Abrir Modal de Mensajes
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [cursoAEliminar, setCursoAEliminar] = useState<number | null>(null);
 
-  function getLastDayOfMonth(date: Date | null): Date | null {
-    if (!date) return null;
-    return new Date(date.getFullYear(), date.getMonth() + 1, 0);
-  }
+  const buildFiltros = () => ({
+    fechaInicio: formatDateToYYYYMMDD(fechaInicio),
+    fechaFin: formatDateToYYYYMMDD(fechaFin),
+    activo: filtrarPorEstado ? soloActivos : null,
+  });
 
-  const handleBuscar = () => {
-    let fechaInicioStr = formatDateToYYYYMMDD(fechaInicio);
-    let fechaFinStr = formatDateToYYYYMMDD(fechaFin);
-
-    // Si solo selecciona fechaInicio y no fechaFin, buscá TODO el mes
-    if (fechaInicio && !fechaFin) {
-      const lastDay = getLastDayOfMonth(fechaInicio);
-      fechaFinStr = formatDateToYYYYMMDD(lastDay);
-    }
-
-    fetchCursos({
-      fechaInicio: fechaInicioStr || getTodayYYYYMMDD(),
-      fechaFin: fechaFinStr || null,
-    });
+  const toNumber = (value: number | ""): number => {
+    return value === "" ? 0 : value;
   };
 
-  // AL CREAR, insertá el curso y refrescá la lista:
+  const buildCursoPayload = (values: CursoFormValues): CursoPayload => ({
+    nombre: values.nombre,
+    descripcion: values.descripcion,
+    duracion: toNumber(values.duracion),
+    unidadDuracion: values.unidadDuracion,
+    cantidadCuota: toNumber(values.cantidadCuota),
+    montoMatricula: toNumber(values.montoMatricula),
+    montoCuota: toNumber(values.montoCuota),
+    tienePractica: values.tienePractica ? "S" : "N",
+    costoPractica: toNumber(values.costoPractica),
+    fechaInicio: values.fechaInicio
+      ? values.fechaInicio.format("YYYY-MM-DD")
+      : null,
+    fechaFin: values.fechaFin ? values.fechaFin.format("YYYY-MM-DD") : null,
+    activo: values.activo,
+  });
+
+  const handleBuscar = async () => {
+    try {
+      await fetchCursos(buildFiltros());
+    } catch (e) {
+      console.error(e);
+      setError("No se pudieron obtener los cursos.");
+      setOpenSnackbar(true);
+    }
+  };
+
   const handleCrearCurso = async (values: CursoFormValues) => {
-    // Armá el payload en el handler:
-    const payload = {
-      nombre: values.nombre,
-      descripcion: values.descripcion,
-      duracion: values.duracion,
-      unidadDuracion: values.unidadDuracion,
-      cantidadCuota: values.cantidadCuota,
-      montoMatricula: values.montoMatricula,
-      montoCuota: values.montoCuota,
-      tienePractica: values.tienePractica ? "S" : "N",
-      costoPractica: values.costoPractica,
-      fechaInicio: values.fechaInicio
-        ? values.fechaInicio.format("YYYY-MM-DD")
-        : null,
-      fechaFin: values.fechaFin ? values.fechaFin.format("YYYY-MM-DD") : null,
-      activo: values.activo,
-    };
+    const payload = buildCursoPayload(values);
 
     try {
       await cursosService.createCurso(payload);
       setOpenModal(false);
-      fetchCursos({
-        fechaInicio: formatDateToYYYYMMDD(fechaInicio) || getTodayYYYYMMDD(),
-        fechaFin: formatDateToYYYYMMDD(fechaFin) || null,
-      });
+      await fetchCursos(buildFiltros());
     } catch (err: any) {
       let mensaje = "❌ Ocurrió un error inesperado.";
 
@@ -107,47 +115,27 @@ const CursosPage: React.FC = () => {
     }
   };
 
-  // Handler para abrir modal de edición
   const handleEditCurso = (curso: Curso) => {
     setCursoSeleccionado(curso);
     setOpenEditModal(true);
   };
 
-  // Handler para actualizar curso
-  const handleActualizarCurso = async (data: any) => {
+  const handleActualizarCurso = async (data: CursoFormValues) => {
     try {
       if (!cursoSeleccionado) return;
-      // Armá el payload igual que en createCurso, respetando los nombres que espera el backend
-      const payload = {
-        nombre: data.nombre,
-        descripcion: data.descripcion,
-        duracion: data.duracion,
-        unidadDuracion: data.unidadDuracion,
-        cantidadCuota: data.cantidadCuota,
-        montoMatricula: data.montoMatricula,
-        montoCuota: data.montoCuota,
-        tienePractica: data.tienePractica ? "S" : "N",
-        costoPractica: data.costoPractica,
-        fechaInicio: data.fechaInicio
-          ? data.fechaInicio.format("YYYY-MM-DD")
-          : null,
-        fechaFin: data.fechaFin ? data.fechaFin.format("YYYY-MM-DD") : null,
-        activo: data.activo,
-      };
+
+      const payload = buildCursoPayload(data);
+
       await cursosService.updateCurso(cursoSeleccionado.id_curso, payload);
       setOpenEditModal(false);
       setCursoSeleccionado(null);
-      fetchCursos({
-        fechaInicio: formatDateToYYYYMMDD(fechaInicio) || getTodayYYYYMMDD(),
-        fechaFin: formatDateToYYYYMMDD(fechaFin) || null,
-      });
+      await fetchCursos(buildFiltros());
     } catch (e) {
       alert("No se pudo actualizar el curso.");
       console.error(e);
     }
   };
 
-  // Handler para eliminar
   const handleEliminarCurso = (id: number) => {
     setCursoAEliminar(id);
     setConfirmOpen(true);
@@ -155,10 +143,13 @@ const CursosPage: React.FC = () => {
 
   const handleConfirmEliminar = async () => {
     if (cursoAEliminar == null) return;
+
     try {
-      await eliminarCurso(cursoAEliminar); // Llama al hook que borra y refresca
+      await eliminarCurso(cursoAEliminar);
+      setCursos((prev) => prev.filter((c) => c.id_curso !== cursoAEliminar));
     } catch (e) {
       alert("No se pudo eliminar el curso.");
+      console.error(e);
     } finally {
       setConfirmOpen(false);
       setCursoAEliminar(null);
@@ -167,17 +158,19 @@ const CursosPage: React.FC = () => {
 
   const handleToggleActivo = async (curso: Curso, activo: boolean) => {
     setCursos((prev) =>
-      prev.map((c) => (c.id_curso === curso.id_curso ? { ...c, activo } : c))
+      prev.map((c) => (c.id_curso === curso.id_curso ? { ...c, activo } : c)),
     );
+
     try {
       await cursosService.cambiarEstadoCurso(curso.id_curso, activo);
     } catch (e) {
       setCursos((prev) =>
         prev.map((c) =>
-          c.id_curso === curso.id_curso ? { ...c, activo: !activo } : c
-        )
+          c.id_curso === curso.id_curso ? { ...c, activo: !activo } : c,
+        ),
       );
       alert("No se pudo cambiar el estado del curso.");
+      console.error(e);
     }
   };
 
@@ -191,42 +184,22 @@ const CursosPage: React.FC = () => {
         width: "100%",
       }}
     >
-      {/* Filtros a la izquierda */}
       <Box
         sx={{
           ...filtrosContainer,
           alignItems: { xs: "center", md: "stretch" },
-          width: { xs: "100%", sm: "320px", md: "230px" },
-          minWidth: { md: "200px" },
+          width: { xs: "100%", sm: "320px", md: "260px" },
+          minWidth: { md: "220px" },
+          gap: 2,
         }}
       >
-        <FiltroFechaCursos
-          fechaInicio={fechaInicio}
-          setFechaInicio={setFechaInicio}
-          fechaFin={fechaFin}
-          setFechaFin={setFechaFin}
-        />
-        <Button
-          variant="contained"
-          sx={{
-            background: "#43a047",
-            ":hover": { background: "#388e3c" },
-            fontWeight: 600,
-            width: { xs: "100%", sm: "100%" },
-            color: "#fff",
-          }}
-          onClick={handleBuscar}
-          fullWidth
-        >
-          Buscar
-        </Button>
         <Button
           variant="contained"
           sx={{
             bgcolor: "#5947f5",
             ":hover": { bgcolor: "#3e2ad6" },
             fontWeight: 600,
-            width: { xs: "100%", sm: "100%" },
+            width: "100%",
           }}
           fullWidth
           startIcon={<AddIcon />}
@@ -234,9 +207,73 @@ const CursosPage: React.FC = () => {
         >
           Agregar
         </Button>
+
+        <Divider flexItem />
+
+        <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+          Opciones de búsqueda
+        </Typography>
+
+        <Box
+          sx={{
+            border: "1px solid #e0e0e0",
+            borderRadius: 2,
+            px: 2,
+            py: 1,
+            backgroundColor: "#fafafa",
+          }}
+        >
+          <FormControlLabel
+            control={
+              <Switch
+                checked={filtrarPorEstado}
+                onChange={(e) => setFiltrarPorEstado(e.target.checked)}
+                color="primary"
+              />
+            }
+            label="Filtrar por estado"
+          />
+
+          <FormControlLabel
+            control={
+              <Switch
+                checked={soloActivos}
+                onChange={(e) => setSoloActivos(e.target.checked)}
+                color="success"
+                disabled={!filtrarPorEstado}
+              />
+            }
+            label={soloActivos ? "Activos" : "Inactivos"}
+          />
+        </Box>
+
+        <Divider flexItem />
+
+        <FiltroFechaCursos
+          fechaInicio={fechaInicio}
+          setFechaInicio={setFechaInicio}
+          fechaFin={fechaFin}
+          setFechaFin={setFechaFin}
+        />
+
+        <Divider flexItem />
+
+        <Button
+          variant="contained"
+          sx={{
+            background: "#43a047",
+            ":hover": { background: "#388e3c" },
+            fontWeight: 600,
+            width: "100%",
+            color: "#fff",
+          }}
+          onClick={handleBuscar}
+          fullWidth
+        >
+          Buscar
+        </Button>
       </Box>
 
-      {/* Cards de cursos */}
       <Box sx={{ flex: 1 }}>
         <div style={gridCursosStyle as React.CSSProperties}>
           {loading
@@ -308,30 +345,36 @@ const CursosPage: React.FC = () => {
         </div>
       </Box>
 
-      {/* MODAL PARA AGREGAR CURSO */}
       <Dialog
         open={openModal}
         onClose={() => setOpenModal(false)}
         maxWidth="sm"
         fullWidth
+        fullScreen={fullScreen}
+        scroll="paper"
+        PaperProps={{
+          sx: {
+            borderRadius: { xs: 0, sm: 3 },
+            m: { xs: 0, sm: 2 },
+            width: { xs: "100%", sm: "100%" },
+            maxHeight: { xs: "100dvh", sm: "90dvh" },
+          },
+        }}
       >
-        <DialogContent>
+        <DialogContent
+          sx={{
+            p: { xs: 2, sm: 3 },
+            overflowY: "auto",
+          }}
+        >
           <CursoForm
             onSubmit={handleCrearCurso}
             onCancel={() => setOpenModal(false)}
-            onSuccess={() =>
-              fetchCursos({
-                fechaInicio:
-                  formatDateToYYYYMMDD(fechaInicio) || getTodayYYYYMMDD(),
-                fechaFin: formatDateToYYYYMMDD(fechaFin) || null,
-              })
-            }
             modo="crear"
           />
         </DialogContent>
       </Dialog>
 
-      {/* MODAL PARA EDITAR CURSO */}
       <Dialog
         open={openEditModal}
         onClose={() => {
@@ -340,12 +383,26 @@ const CursosPage: React.FC = () => {
         }}
         maxWidth="sm"
         fullWidth
+        fullScreen={fullScreen}
+        scroll="paper"
+        PaperProps={{
+          sx: {
+            borderRadius: { xs: 0, sm: 3 },
+            m: { xs: 0, sm: 2 },
+            width: { xs: "100%", sm: "100%" },
+            maxHeight: { xs: "100dvh", sm: "90dvh" },
+          },
+        }}
       >
-        <DialogContent>
+        <DialogContent
+          sx={{
+            p: { xs: 2, sm: 3 },
+            overflowY: "auto",
+          }}
+        >
           {cursoSeleccionado && (
             <CursoForm
               initialValues={{
-                // Asegurate de mapear correctamente todos los campos:
                 nombre: cursoSeleccionado.nombre,
                 descripcion: cursoSeleccionado.descripcion,
                 duracion: cursoSeleccionado.duracion,
@@ -357,16 +414,17 @@ const CursosPage: React.FC = () => {
                 costoPractica: cursoSeleccionado.costo_practica,
                 fechaInicio: cursoSeleccionado.fecha_inicio
                   ? dayjs(cursoSeleccionado.fecha_inicio, [
-                      "YYYY-MM-DD",
                       "DD/MM/YYYY",
+                      "YYYY-MM-DD",
                     ])
                   : null,
                 fechaFin: cursoSeleccionado.fecha_fin
                   ? dayjs(cursoSeleccionado.fecha_fin, [
-                      "YYYY-MM-DD",
                       "DD/MM/YYYY",
+                      "YYYY-MM-DD",
                     ])
                   : null,
+                activo: cursoSeleccionado.activo,
               }}
               onSubmit={handleActualizarCurso}
               onCancel={() => {
@@ -379,7 +437,6 @@ const CursosPage: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* SNACKBAR BONITO */}
       <Snackbar
         open={openSnackbar}
         autoHideDuration={null}
@@ -395,7 +452,6 @@ const CursosPage: React.FC = () => {
         </Alert>
       </Snackbar>
 
-      {/* ------------- MODAL DE CONFIRMACIÓN ------------- */}
       <ConfirmDialog
         open={confirmOpen}
         title="Eliminar curso"

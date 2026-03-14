@@ -22,10 +22,11 @@ export const useInscripciones = () => {
   const fetchEstudiantes = useCallback(async (qParam: string = "") => {
     setLoading(true);
     try {
-      const data = await getEstudiantes(qParam.trim());
+      const data = await getEstudiantes(qParam);
       setEstudiantes(data);
     } catch (error) {
       console.error("❌ Error al obtener estudiantes:", error);
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -38,6 +39,7 @@ export const useInscripciones = () => {
       setCursos(data);
     } catch (error) {
       console.error("❌ Error al obtener cursos:", error);
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -48,7 +50,7 @@ export const useInscripciones = () => {
       alumno?: string,
       cursoNombre?: string,
       fechaDesde?: string,
-      fechaHasta?: string
+      fechaHasta?: string,
     ) => {
       setLoading(true);
       try {
@@ -56,23 +58,23 @@ export const useInscripciones = () => {
           alumno,
           cursoNombre,
           fechaDesde,
-          fechaHasta
+          fechaHasta,
         );
         setInscripciones(data);
       } catch (error) {
         console.error("❌ Error al obtener inscripciones:", error);
+        throw error;
       } finally {
         setLoading(false);
       }
     },
-    []
+    [],
   );
 
   const insertarInscripcion = useCallback(async (input: InscripcionRequest) => {
     setLoading(true);
     try {
-      const id = await createInscripcion(input);
-      return id;
+      return await createInscripcion(input);
     } catch (error) {
       console.error("❌ Error al insertar inscripción:", error);
       throw error;
@@ -85,7 +87,6 @@ export const useInscripciones = () => {
     setLoading(true);
     try {
       await deleteInscripcion(id);
-      // Luego refetch para actualizar la lista
     } catch (error) {
       console.error("❌ Error al eliminar inscripción:", error);
       throw error;

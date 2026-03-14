@@ -1,4 +1,3 @@
-// src/modulos/Inscripciones/components/CourseSelectorDialog.tsx
 import React, { useEffect, useRef, useState } from "react";
 import {
   Dialog,
@@ -7,15 +6,21 @@ import {
   DialogActions,
   Button,
   TextField,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
   CircularProgress,
+  Typography,
+  Box,
+  Paper,
+  List,
+  ListItemButton,
+  ListItemText,
+  useTheme,
+  useMediaQuery,
+  InputAdornment,
 } from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
+import MenuBookIcon from "@mui/icons-material/MenuBook";
 import { Curso } from "../types/inscripciones.types";
-import { useInscripciones } from "../hooks/useInscripciones"; // mismo hook
+import { useInscripciones } from "../hooks/useInscripciones";
 
 interface Props {
   open: boolean;
@@ -28,15 +33,11 @@ export default function CourseSelectorDialog({
   onClose,
   onSelect,
 }: Props) {
-  // ① Estado local para el filtro de texto
   const [query, setQuery] = useState("");
-  // 🚀 Desestructuramos solo lo que necesitamos para cursos
-  const {
-    cursos,
-    loading,
-    refetchCursos, // para cargar/filtrar cursos
-  } = useInscripciones();
+  const { cursos, loading, refetchCursos } = useInscripciones();
 
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const didInitialFetch = useRef(false);
 
   useEffect(() => {
@@ -47,7 +48,7 @@ export default function CourseSelectorDialog({
     } else {
       didInitialFetch.current = false;
     }
-  }, [open, refetchCursos, setQuery]);
+  }, [open, refetchCursos]);
 
   useEffect(() => {
     if (open && didInitialFetch.current) {
@@ -56,50 +57,76 @@ export default function CourseSelectorDialog({
   }, [open, query, refetchCursos]);
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Seleccionar curso</DialogTitle>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      fullScreen={fullScreen}
+      scroll="paper"
+      PaperProps={{
+        sx: {
+          borderRadius: { xs: 0, sm: 3 },
+          maxHeight: { xs: "100dvh", sm: "85dvh" },
+        },
+      }}
+    >
+      <DialogTitle sx={{ fontWeight: 700 }}>Seleccionar curso</DialogTitle>
 
-      <DialogContent dividers>
+      <DialogContent dividers sx={{ p: 2 }}>
         <TextField
-          label="Buscar…"
+          label="Buscar curso"
           fullWidth
-          margin="normal"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          size="small"
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon fontSize="small" />
+              </InputAdornment>
+            ),
+          }}
+          sx={{ mb: 2 }}
         />
 
         {loading ? (
-          <CircularProgress sx={{ display: "block", mx: "auto", my: 3 }} />
+          <CircularProgress sx={{ display: "block", mx: "auto", my: 4 }} />
+        ) : cursos.length === 0 ? (
+          <Typography align="center" color="text.secondary" sx={{ py: 4 }}>
+            No se encontraron cursos.
+          </Typography>
         ) : (
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>Nombre</TableCell>
-                <TableCell>Descripción</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {cursos.map((c) => (
-                <TableRow
-                  hover
+          <Paper variant="outlined" sx={{ overflow: "hidden" }}>
+            <List disablePadding>
+              {cursos.map((c, index) => (
+                <ListItemButton
                   key={c.idCurso}
                   onClick={() => {
                     onSelect(c);
                     onClose();
                   }}
-                  sx={{ cursor: "pointer" }}
+                  divider={index < cursos.length - 1}
+                  sx={{ py: 1.5 }}
                 >
-                  <TableCell>{c.nombre}</TableCell>
-                  <TableCell>{c.descripcion}</TableCell>
-                </TableRow>
+                  <Box sx={{ mr: 2, color: "#5947f5", display: "flex" }}>
+                    <MenuBookIcon fontSize="small" />
+                  </Box>
+                  <ListItemText
+                    primary={c.nombre}
+                    secondary={c.descripcion || "Sin descripción"}
+                  />
+                </ListItemButton>
               ))}
-            </TableBody>
-          </Table>
+            </List>
+          </Paper>
         )}
       </DialogContent>
 
-      <DialogActions>
-        <Button onClick={onClose}>Cerrar</Button>
+      <DialogActions sx={{ px: 3, py: 2 }}>
+        <Button onClick={onClose} color="secondary">
+          Cerrar
+        </Button>
       </DialogActions>
     </Dialog>
   );

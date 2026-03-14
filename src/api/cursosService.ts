@@ -1,69 +1,47 @@
 import instance from "./axiosInstance";
 import {
-  ObtenerCursosRequest,
   Curso,
+  CursoPayload,
+  ObtenerCursosRequest,
 } from "../modulos/Cursos/types/cursos.types";
+import { formatDateToDisplay } from "../utils/dateUtils";
 
-// ⚡ Usando variables de entorno
-const API_URL = `/Cursos`;
+const API_URL = "/Cursos";
 
-// ✅ Función para convertir "dd/MM/yyyy" → "yyyy-MM-dd"
-const convertirFecha = (fecha: string): string => {
-  if (!fecha.includes("/")) return fecha;
-  const [day, month, year] = fecha.split("/");
-  return `${year}-${month}-${day}`;
-};
+/**
+ * Mapea la respuesta del backend al modelo que utiliza el frontend.
+ */
+const mapCursoFromApi = (item: any): Curso => ({
+  id_curso: item.idCurso,
+  nombre: item.nombre,
+  descripcion: item.descripcion,
+  duracion: item.duracion,
+  unidad_duracion: item.unidadDuracion,
+  cantidad_cuota: item.cantidadCuota,
+  monto_cuota: item.montoCuota,
+  tiene_practica: item.tienePractica === "S",
+  costo_practica: item.costoPractica,
+  fecha_inicio: formatDateToDisplay(item.fechaInicio),
+  fecha_fin: formatDateToDisplay(item.fechaFin),
+  monto_matricula: item.montoMatricula,
+  activo: item.activo === true || item.activo === "S" || item.activo === 1,
+});
 
-// ✅ Función para formatear "yyyy-MM-dd" → "dd/MM/yyyy"
-const formatFecha = (fecha: string | null | undefined): string => {
-  if (!fecha) return "Sin Fecha";
-
-  try {
-    const dateObj = new Date(fecha);
-
-    if (isNaN(dateObj.getTime())) {
-      console.warn(`⚠️ La fecha recibida no es válida: ${fecha}`);
-      return "Fecha inválida";
-    }
-
-    const dia = ("0" + dateObj.getDate()).slice(-2);
-    const mes = ("0" + (dateObj.getMonth() + 1)).slice(-2);
-    const anio = dateObj.getFullYear();
-
-    return `${dia}/${mes}/${anio}`;
-  } catch (error) {
-    console.error("❌ Error al formatear la fecha:", error);
-    return "Sin Fecha";
-  }
-};
-
-// 🔄 Obtener todos los cursos
+/**
+ * Obtiene la lista de cursos aplicando filtros por fecha y estado.
+ * Endpoint: POST /Cursos/obtener-cursos
+ */
 export const getCursos = async (
-  params: ObtenerCursosRequest
+  params: ObtenerCursosRequest,
 ): Promise<Curso[]> => {
   try {
-    const response = await instance.post(`${API_URL}/obtener-cursos`, params, {
+    const { data } = await instance.post(`${API_URL}/obtener-cursos`, params, {
       headers: {
         "Content-Type": "application/json",
       },
     });
-    // Mapea los datos del backend a tu interfaz
-    const data: Curso[] = response.data.map((item: any) => ({
-      id_curso: item.idCurso,
-      nombre: item.nombre,
-      descripcion: item.descripcion,
-      duracion: item.duracion,
-      unidad_duracion: item.unidadDuracion,
-      cantidad_cuota: item.cantidadCuota,
-      monto_cuota: item.montoCuota,
-      tiene_practica: item.tienePractica === "S",
-      costo_practica: item.costoPractica,
-      fecha_inicio: formatFecha(item.fechaInicio),
-      fecha_fin: formatFecha(item.fechaFin),
-      monto_matricula: item.montoMatricula,
-      activo: item.activo === true || item.activo === "S" || item.activo === 1,
-    }));
-    return data;
+
+    return data.map(mapCursoFromApi);
   } catch (error: any) {
     console.error("❌ Error al obtener cursos:", error.message);
     if (error.response) {
@@ -73,11 +51,14 @@ export const getCursos = async (
   }
 };
 
-// 🔄 Crear un curso
-export const createCurso = async (curso: Partial<Curso>): Promise<number> => {
+/**
+ * Crea un nuevo curso.
+ * Endpoint: POST /Cursos
+ */
+export const createCurso = async (curso: CursoPayload): Promise<number> => {
   try {
     const { data } = await instance.post(API_URL, curso);
-    return data; // El backend retorna el id del nuevo curso
+    return data;
   } catch (error: any) {
     console.error("❌ Error al crear el curso:", error.message);
     if (error.response) {
@@ -87,10 +68,13 @@ export const createCurso = async (curso: Partial<Curso>): Promise<number> => {
   }
 };
 
-// 🔄 Actualizar curso
+/**
+ * Actualiza un curso existente.
+ * Endpoint: PUT /Cursos/{id}
+ */
 export const updateCurso = async (
   id: number,
-  curso: Partial<Curso>
+  curso: CursoPayload,
 ): Promise<void> => {
   try {
     await instance.put(`${API_URL}/${id}`, curso);
@@ -103,7 +87,10 @@ export const updateCurso = async (
   }
 };
 
-// 🔄 Eliminar curso
+/**
+ * Elimina un curso por ID.
+ * Endpoint: DELETE /Cursos/{id}
+ */
 export const deleteCurso = async (id: number): Promise<void> => {
   try {
     await instance.delete(`${API_URL}/${id}`);
@@ -116,18 +103,23 @@ export const deleteCurso = async (id: number): Promise<void> => {
   }
 };
 
-// Cambiar estado de un curso
+/**
+ * Cambia el estado activo/inactivo de un curso.
+ * Endpoint: PUT /Cursos/{id}/cambiar-estado
+ */
 export const cambiarEstadoCurso = async (
   id: number,
-  activo: boolean
+  activo: boolean,
 ): Promise<void> => {
   try {
     await instance.put(
       `${API_URL}/${id}/cambiar-estado`,
-      { activo }, // payload
+      { activo },
       {
-        headers: { "Content-Type": "application/json" },
-      }
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
     );
   } catch (error: any) {
     console.error("❌ Error al cambiar estado del curso:", error.message);

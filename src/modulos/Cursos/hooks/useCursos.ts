@@ -1,46 +1,57 @@
-// src/modulos/Cursos/hooks/useCursos.ts
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import * as cursosService from "../../../api/cursosService";
 import { Curso, ObtenerCursosRequest } from "../types/cursos.types";
-
-function getTodayYYYYMMDD() {
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, "0");
-  const dd = String(today.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}`;
-}
 
 export function useCursos() {
   const [cursos, setCursos] = useState<Curso[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Listar cursos
-  const fetchCursos = useCallback(async (params?: ObtenerCursosRequest) => {
-    setLoading(true);
-    const filtro: ObtenerCursosRequest = params ?? {
-      fechaInicio: getTodayYYYYMMDD(),
-    };
+  const [ultimoFiltro, setUltimoFiltro] = useState<ObtenerCursosRequest>({
+    fechaInicio: null,
+    fechaFin: null,
+    activo: null,
+  });
 
-    const cursos = await cursosService.getCursos(filtro);
-    setCursos(cursos);
-    setLoading(false);
-  }, []);
-
-  // Eliminar curso
-  const eliminarCurso = useCallback(
-    async (id: number) => {
+  const fetchCursos = useCallback(
+    async (params?: ObtenerCursosRequest) => {
       setLoading(true);
-      await cursosService.deleteCurso(id);
-      await fetchCursos(); // refresca la lista después de borrar
-      setLoading(false);
+
+      try {
+        const filtro: ObtenerCursosRequest = params ?? ultimoFiltro;
+        setUltimoFiltro(filtro);
+
+        const data = await cursosService.getCursos(filtro);
+        setCursos(data);
+      } catch (error) {
+        console.error("Error al obtener cursos:", error);
+        throw error;
+      } finally {
+        setLoading(false);
+      }
     },
-    [fetchCursos]
+    [ultimoFiltro],
   );
 
-  useEffect(() => {
-    fetchCursos();
+  const eliminarCurso = useCallback(async (id: number) => {
+    setLoading(true);
+
+    try {
+      await cursosService.deleteCurso(id);
+      setCursos((prev) => prev.filter((curso) => curso.id_curso !== id));
+    } catch (error) {
+      console.error("Error al eliminar curso:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  return { cursos, setCursos, fetchCursos, eliminarCurso, loading };
+  return {
+    cursos,
+    setCursos,
+    fetchCursos,
+    eliminarCurso,
+    loading,
+    ultimoFiltro,
+  };
 }

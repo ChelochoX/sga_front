@@ -7,6 +7,7 @@ import {
   Grid,
   TextField,
   useMediaQuery,
+  Divider,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import InscripcionesTable from "../components/InscripcionesTable";
@@ -19,20 +20,29 @@ export default function InscripcionesPage() {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const [openForm, setOpenForm] = useState(false);
-  const [filtroAlumno, setFiltroAlumno] = useState<string>("");
-  const [filtroCurso, setFiltroCurso] = useState<string>("");
-  const [filtroDesde, setFiltroDesde] = useState<string>("");
-  const [filtroHasta, setFiltroHasta] = useState<string>("");
+  const [filtroAlumno, setFiltroAlumno] = useState("");
+  const [filtroCurso, setFiltroCurso] = useState("");
+  const [filtroDesde, setFiltroDesde] = useState("");
+  const [filtroHasta, setFiltroHasta] = useState("");
 
   const { inscripciones, loading, refetchInscripciones, eliminarInscripcion } =
     useInscripciones();
 
   useEffect(() => {
     refetchInscripciones();
-  }, []);
+  }, [refetchInscripciones]);
 
-  const handleBuscar = () => {
-    refetchInscripciones(filtroAlumno, filtroCurso, filtroDesde, filtroHasta);
+  const handleBuscar = async () => {
+    try {
+      await refetchInscripciones(
+        filtroAlumno,
+        filtroCurso,
+        filtroDesde,
+        filtroHasta,
+      );
+    } catch {
+      toast.error("No se pudieron obtener las inscripciones.");
+    }
   };
 
   const handleSuccess = () => {
@@ -44,8 +54,13 @@ export default function InscripcionesPage() {
     try {
       await eliminarInscripcion(id);
       toast.success("Inscripción eliminada correctamente");
-      refetchInscripciones(filtroAlumno, filtroCurso, filtroDesde, filtroHasta);
-    } catch (error) {
+      await refetchInscripciones(
+        filtroAlumno,
+        filtroCurso,
+        filtroDesde,
+        filtroHasta,
+      );
+    } catch {
       toast.error("Error al eliminar la inscripción");
     }
   };
@@ -56,8 +71,7 @@ export default function InscripcionesPage() {
         Inscripciones
       </Typography>
 
-      {/* Filtros */}
-      <Grid container spacing={1} mb={2}>
+      <Grid container spacing={1.5} mb={2}>
         <Grid item xs={12} sm={6} md={3}>
           <TextField
             label="Buscar alumno"
@@ -67,6 +81,7 @@ export default function InscripcionesPage() {
             onChange={(e) => setFiltroAlumno(e.target.value)}
           />
         </Grid>
+
         <Grid item xs={12} sm={6} md={3}>
           <TextField
             label="Buscar curso"
@@ -76,6 +91,7 @@ export default function InscripcionesPage() {
             onChange={(e) => setFiltroCurso(e.target.value)}
           />
         </Grid>
+
         <Grid item xs={6} sm={6} md={2}>
           <TextField
             label="Desde"
@@ -87,6 +103,7 @@ export default function InscripcionesPage() {
             onChange={(e) => setFiltroDesde(e.target.value)}
           />
         </Grid>
+
         <Grid item xs={6} sm={6} md={2}>
           <TextField
             label="Hasta"
@@ -98,25 +115,41 @@ export default function InscripcionesPage() {
             onChange={(e) => setFiltroHasta(e.target.value)}
           />
         </Grid>
+
         <Grid item xs={12} sm={6} md={2}>
-          <Button fullWidth variant="contained" onClick={handleBuscar}>
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={handleBuscar}
+            sx={{
+              bgcolor: "#43a047",
+              "&:hover": { bgcolor: "#388e3c" },
+              fontWeight: 700,
+            }}
+          >
             Buscar
           </Button>
         </Grid>
-        <Grid
-          item
-          xs={12}
-          sm={6}
-          md={2}
-          textAlign={isMobile ? "center" : "right"}
-        >
-          <Button variant="contained" onClick={() => setOpenForm(true)}>
+
+        <Grid item xs={12}>
+          <Divider sx={{ my: 0.5 }} />
+        </Grid>
+
+        <Grid item xs={12} textAlign={isMobile ? "center" : "left"}>
+          <Button
+            variant="contained"
+            onClick={() => setOpenForm(true)}
+            sx={{
+              bgcolor: "#5947f5",
+              "&:hover": { bgcolor: "#3e2ad6" },
+              fontWeight: 700,
+            }}
+          >
             + Nueva
           </Button>
         </Grid>
       </Grid>
 
-      {/* Lista responsiva (table o cards) o spinner */}
       {loading ? (
         <Box display="flex" justifyContent="center" mt={4}>
           <CircularProgress />
@@ -129,7 +162,6 @@ export default function InscripcionesPage() {
         />
       )}
 
-      {/* Formulario modal */}
       <InscripcionForm
         open={openForm}
         onClose={() => setOpenForm(false)}

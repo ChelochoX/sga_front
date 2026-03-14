@@ -15,12 +15,22 @@ export interface Curso {
 }
 
 export interface ObtenerCursosRequest {
-  fechaInicio: string; // Formato "yyyy-MM-dd"
-  fechaFin?: string | null; // Opcional
+  fechaInicio?: string | null;
+  fechaFin?: string | null;
+  activo?: boolean | null;
 }
 
-export interface Curso {
-  id_curso: number;
+export interface CursoPayload {
   nombre: string;
+  descripcion: string;
+  duracion: number;
+  unidadDuracion: string;
+  cantidadCuota: number;
+  montoMatricula: number;
+  montoCuota: number;
+  tienePractica: "S" | "N";
+  costoPractica: number;
+  fechaInicio: string | null;
+  fechaFin: string | null;
   activo: boolean;
 }
