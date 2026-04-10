@@ -1,16 +1,7 @@
 import React, { useState } from "react";
-import { useCursos } from "../hooks/useCursos";
-import * as cursosService from "../../../api/cursosService";
-import { CursoCard } from "../components/CursoCard";
-import FiltroFechaCursos from "../components/FiltroFechaCursos";
 import {
-  gridCursosStyle,
-  filtrosContainer,
-  cardCursoStyle,
-} from "../styles/cursos.styles";
-import {
-  Button,
   Box,
+  Button,
   Skeleton,
   Snackbar,
   Alert,
@@ -22,13 +13,34 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import { formatDateToYYYYMMDD } from "../../../utils/dateUtils";
-import { Curso, CursoPayload } from "../types/cursos.types";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
-import { CursoForm, CursoFormValues } from "../components/CursoForm";
-import { ConfirmDialog } from "../../../components/ConfirmDialog";
 import dayjs from "dayjs";
+
+import { useCursos } from "../hooks/useCursos";
+import * as cursosService from "../../../api/cursosService";
+import { CursoCard } from "../components/CursoCard";
+import FiltroFechaCursos from "../components/FiltroFechaCursos";
+import { CursoForm } from "../components/CursoForm";
+import { ConfirmDialog } from "../../../components/ConfirmDialog";
+import {
+  gridCursosStyle,
+  filtrosContainer,
+  cardCursoStyle,
+} from "../styles/cursos.styles";
+import {
+  CursoListado,
+  CursoPayload,
+  CursoFormValues,
+  ObtenerCursosRequest,
+} from "../types/cursos.types";
+import { formatDateToYYYYMMDD } from "../../../utils/dateUtils";
+
+type CursoDetallePage = Awaited<ReturnType<typeof cursosService.getCursoById>>;
+type CursoDetalleConcepto = NonNullable<CursoDetallePage["conceptos"]>[number];
+type CursoDetalleVencimiento = NonNullable<
+  CursoDetalleConcepto["vencimientos"]
+>[number];
 
 const CursosPage: React.FC = () => {
   const { cursos, setCursos, loading, eliminarCurso, fetchCursos } =
@@ -38,6 +50,8 @@ const CursosPage: React.FC = () => {
   const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
   const [openModal, setOpenModal] = useState(false);
+  const [openEditModal, setOpenEditModal] = useState(false);
+
   const [fechaInicio, setFechaInicio] = useState<Date | null>(null);
   const [fechaFin, setFechaFin] = useState<Date | null>(null);
 
@@ -47,39 +61,78 @@ const CursosPage: React.FC = () => {
   const [error, setError] = useState("");
   const [openSnackbar, setOpenSnackbar] = useState(false);
 
-  const [openEditModal, setOpenEditModal] = useState(false);
-  const [cursoSeleccionado, setCursoSeleccionado] = useState<Curso | null>(
-    null,
-  );
+  const [cursoSeleccionado, setCursoSeleccionado] =
+    useState<CursoDetallePage | null>(null);
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [cursoAEliminar, setCursoAEliminar] = useState<number | null>(null);
 
-  const buildFiltros = () => ({
+  const buildFiltros = (): ObtenerCursosRequest => ({
     fechaInicio: formatDateToYYYYMMDD(fechaInicio),
     fechaFin: formatDateToYYYYMMDD(fechaFin),
     activo: filtrarPorEstado ? soloActivos : null,
   });
 
-  const toNumber = (value: number | ""): number => {
-    return value === "" ? 0 : value;
-  };
-
   const buildCursoPayload = (values: CursoFormValues): CursoPayload => ({
     nombre: values.nombre,
     descripcion: values.descripcion,
-    duracion: toNumber(values.duracion),
+    duracion: Number(values.duracion || 0),
     unidadDuracion: values.unidadDuracion,
-    cantidadCuota: toNumber(values.cantidadCuota),
-    montoMatricula: toNumber(values.montoMatricula),
-    montoCuota: toNumber(values.montoCuota),
-    tienePractica: values.tienePractica ? "S" : "N",
-    costoPractica: toNumber(values.costoPractica),
     fechaInicio: values.fechaInicio
       ? values.fechaInicio.format("YYYY-MM-DD")
       : null,
     fechaFin: values.fechaFin ? values.fechaFin.format("YYYY-MM-DD") : null,
     activo: values.activo,
+    conceptos: values.conceptos.map(
+      (concepto: CursoFormValues["conceptos"][number]) => ({
+        tipoConcepto: concepto.tipoConcepto,
+        descripcion: concepto.descripcion,
+        activo: concepto.activo,
+        vencimientos: concepto.vencimientos.map(
+          (
+            vencimiento: CursoFormValues["conceptos"][number]["vencimientos"][number],
+          ) => ({
+            nroOrden: Number(vencimiento.nroOrden || 0),
+            monto: Number(vencimiento.monto || 0),
+            fechaVencimiento: vencimiento.fechaVencimiento
+              ? vencimiento.fechaVencimiento.format("YYYY-MM-DD")
+              : "",
+            descripcion: vencimiento.descripcion,
+            activo: vencimiento.activo,
+          }),
+        ),
+      }),
+    ),
+  });
+
+  const buildInitialValuesFromDetalle = (
+    curso: CursoDetallePage,
+  ): CursoFormValues => ({
+    nombre: curso.nombre,
+    descripcion: curso.descripcion ?? "",
+    duracion: curso.duracion,
+    unidadDuracion: curso.unidadDuracion,
+    fechaInicio: curso.fechaInicio ? dayjs(curso.fechaInicio) : null,
+    fechaFin: curso.fechaFin ? dayjs(curso.fechaFin) : null,
+    activo: curso.activo,
+    conceptos: (curso.conceptos ?? []).map(
+      (concepto: CursoDetalleConcepto) => ({
+        tipoConcepto: concepto.tipoConcepto,
+        descripcion: concepto.descripcion,
+        activo: concepto.activo,
+        vencimientos: (concepto.vencimientos ?? []).map(
+          (vencimiento: CursoDetalleVencimiento) => ({
+            nroOrden: vencimiento.nroOrden,
+            monto: vencimiento.monto,
+            fechaVencimiento: vencimiento.fechaVencimiento
+              ? dayjs(vencimiento.fechaVencimiento)
+              : null,
+            descripcion: vencimiento.descripcion ?? "",
+            activo: vencimiento.activo,
+          }),
+        ),
+      }),
+    ),
   });
 
   const handleBuscar = async () => {
@@ -100,6 +153,8 @@ const CursosPage: React.FC = () => {
       setOpenModal(false);
       await fetchCursos(buildFiltros());
     } catch (err: any) {
+      console.error(err);
+
       let mensaje = "❌ Ocurrió un error inesperado.";
 
       if (!err.response) {
@@ -115,24 +170,43 @@ const CursosPage: React.FC = () => {
     }
   };
 
-  const handleEditCurso = (curso: Curso) => {
-    setCursoSeleccionado(curso);
-    setOpenEditModal(true);
+  const handleEditCurso = async (curso: CursoListado) => {
+    try {
+      const detalle = await cursosService.getCursoById(curso.idCurso);
+      setCursoSeleccionado(detalle);
+      setOpenEditModal(true);
+    } catch (e) {
+      console.error(e);
+      setError("No se pudo obtener el detalle del curso.");
+      setOpenSnackbar(true);
+    }
   };
 
-  const handleActualizarCurso = async (data: CursoFormValues) => {
+  const handleActualizarCurso = async (values: CursoFormValues) => {
     try {
       if (!cursoSeleccionado) return;
 
-      const payload = buildCursoPayload(data);
+      const payload = buildCursoPayload(values);
 
-      await cursosService.updateCurso(cursoSeleccionado.id_curso, payload);
+      await cursosService.updateCurso(cursoSeleccionado.idCurso, payload);
       setOpenEditModal(false);
       setCursoSeleccionado(null);
       await fetchCursos(buildFiltros());
-    } catch (e) {
-      alert("No se pudo actualizar el curso.");
-      console.error(e);
+    } catch (err: any) {
+      console.error(err);
+
+      let mensaje = "No se pudo actualizar el curso.";
+
+      if (!err.response) {
+        mensaje = "💔 El servidor no está respondiendo. Intenta más tarde.";
+      } else if (err.response.data?.Errors?.length > 0) {
+        mensaje = err.response.data.Errors.join("\n");
+      } else if (err.response.data?.message) {
+        mensaje = err.response.data.message;
+      }
+
+      setError(mensaje);
+      setOpenSnackbar(true);
     }
   };
 
@@ -146,31 +220,33 @@ const CursosPage: React.FC = () => {
 
     try {
       await eliminarCurso(cursoAEliminar);
-      setCursos((prev) => prev.filter((c) => c.id_curso !== cursoAEliminar));
+      setCursos((prev) => prev.filter((c) => c.idCurso !== cursoAEliminar));
     } catch (e) {
-      alert("No se pudo eliminar el curso.");
       console.error(e);
+      setError("No se pudo eliminar el curso.");
+      setOpenSnackbar(true);
     } finally {
       setConfirmOpen(false);
       setCursoAEliminar(null);
     }
   };
 
-  const handleToggleActivo = async (curso: Curso, activo: boolean) => {
+  const handleToggleActivo = async (curso: CursoListado, activo: boolean) => {
     setCursos((prev) =>
-      prev.map((c) => (c.id_curso === curso.id_curso ? { ...c, activo } : c)),
+      prev.map((c) => (c.idCurso === curso.idCurso ? { ...c, activo } : c)),
     );
 
     try {
-      await cursosService.cambiarEstadoCurso(curso.id_curso, activo);
+      await cursosService.cambiarEstadoCurso(curso.idCurso, activo);
     } catch (e) {
       setCursos((prev) =>
         prev.map((c) =>
-          c.id_curso === curso.id_curso ? { ...c, activo: !activo } : c,
+          c.idCurso === curso.idCurso ? { ...c, activo: !activo } : c,
         ),
       );
-      alert("No se pudo cambiar el estado del curso.");
       console.error(e);
+      setError("No se pudo cambiar el estado del curso.");
+      setOpenSnackbar(true);
     }
   };
 
@@ -333,10 +409,10 @@ const CursosPage: React.FC = () => {
               ))
             : cursos.map((curso) => (
                 <CursoCard
-                  key={curso.id_curso}
+                  key={curso.idCurso}
                   curso={curso}
                   onEdit={() => handleEditCurso(curso)}
-                  onDelete={() => handleEliminarCurso(curso.id_curso)}
+                  onDelete={() => handleEliminarCurso(curso.idCurso)}
                   onToggleActivo={(checked) =>
                     handleToggleActivo(curso, checked)
                   }
@@ -348,7 +424,7 @@ const CursosPage: React.FC = () => {
       <Dialog
         open={openModal}
         onClose={() => setOpenModal(false)}
-        maxWidth="sm"
+        maxWidth="md"
         fullWidth
         fullScreen={fullScreen}
         scroll="paper"
@@ -381,7 +457,7 @@ const CursosPage: React.FC = () => {
           setOpenEditModal(false);
           setCursoSeleccionado(null);
         }}
-        maxWidth="sm"
+        maxWidth="md"
         fullWidth
         fullScreen={fullScreen}
         scroll="paper"
@@ -402,30 +478,7 @@ const CursosPage: React.FC = () => {
         >
           {cursoSeleccionado && (
             <CursoForm
-              initialValues={{
-                nombre: cursoSeleccionado.nombre,
-                descripcion: cursoSeleccionado.descripcion,
-                duracion: cursoSeleccionado.duracion,
-                unidadDuracion: cursoSeleccionado.unidad_duracion,
-                cantidadCuota: cursoSeleccionado.cantidad_cuota,
-                montoMatricula: cursoSeleccionado.monto_matricula,
-                montoCuota: cursoSeleccionado.monto_cuota,
-                tienePractica: cursoSeleccionado.tiene_practica,
-                costoPractica: cursoSeleccionado.costo_practica,
-                fechaInicio: cursoSeleccionado.fecha_inicio
-                  ? dayjs(cursoSeleccionado.fecha_inicio, [
-                      "DD/MM/YYYY",
-                      "YYYY-MM-DD",
-                    ])
-                  : null,
-                fechaFin: cursoSeleccionado.fecha_fin
-                  ? dayjs(cursoSeleccionado.fecha_fin, [
-                      "DD/MM/YYYY",
-                      "YYYY-MM-DD",
-                    ])
-                  : null,
-                activo: cursoSeleccionado.activo,
-              }}
+              initialValues={buildInitialValuesFromDetalle(cursoSeleccionado)}
               onSubmit={handleActualizarCurso}
               onCancel={() => {
                 setOpenEditModal(false);
@@ -439,13 +492,13 @@ const CursosPage: React.FC = () => {
 
       <Snackbar
         open={openSnackbar}
-        autoHideDuration={null}
+        autoHideDuration={5000}
         onClose={() => setOpenSnackbar(false)}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
         <Alert
           onClose={() => setOpenSnackbar(false)}
-          severity={error.includes("🔒") ? "warning" : "error"}
+          severity="error"
           sx={{ width: "100%" }}
         >
           {error}

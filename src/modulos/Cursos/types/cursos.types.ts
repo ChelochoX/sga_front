@@ -1,17 +1,50 @@
+import { Dayjs } from "dayjs";
+
+export type TipoConcepto = "Matricula" | "Cuota" | "Practica" | "DerechoExamen";
+
+export interface CursoConceptoVencimiento {
+  idCursoConceptoVencimiento?: number;
+  nroOrden: number;
+  monto: number;
+  fechaVencimiento: string;
+  descripcion: string;
+  activo: boolean;
+}
+
+export interface CursoConcepto {
+  idCursoConcepto?: number;
+  tipoConcepto: TipoConcepto;
+  descripcion: string;
+  activo: boolean;
+  vencimientos: CursoConceptoVencimiento[];
+}
+
 export interface Curso {
-  id_curso: number;
+  idCurso: number;
   nombre: string;
   descripcion: string;
   duracion: number;
-  unidad_duracion: string;
-  cantidad_cuota: number;
-  monto_cuota: number;
-  tiene_practica: boolean;
-  costo_practica: number;
-  fecha_inicio: string;
-  fecha_fin: string;
-  monto_matricula: number;
+  unidadDuracion: string;
+  fechaInicio: string;
+  fechaFin: string;
   activo: boolean;
+  conceptos: CursoConcepto[];
+}
+
+export interface CursoListado {
+  idCurso: number;
+  nombre: string;
+  descripcion: string;
+  duracion: number;
+  unidadDuracion: string;
+  fechaInicio: string;
+  fechaFin: string;
+  activo: boolean;
+  cantidadCuota?: number;
+  montoCuota?: number;
+  tienePractica?: boolean | string;
+  costoPractica?: number;
+  montoMatricula?: number;
 }
 
 export interface ObtenerCursosRequest {
@@ -20,17 +53,54 @@ export interface ObtenerCursosRequest {
   activo?: boolean | null;
 }
 
+export interface CursoConceptoVencimientoPayload {
+  nroOrden: number;
+  monto: number;
+  fechaVencimiento: string;
+  descripcion: string;
+  activo: boolean;
+}
+
+export interface CursoConceptoPayload {
+  tipoConcepto: TipoConcepto;
+  descripcion: string;
+  activo: boolean;
+  vencimientos: CursoConceptoVencimientoPayload[];
+}
+
 export interface CursoPayload {
   nombre: string;
   descripcion: string;
   duracion: number;
   unidadDuracion: string;
-  cantidadCuota: number;
-  montoMatricula: number;
-  montoCuota: number;
-  tienePractica: "S" | "N";
-  costoPractica: number;
   fechaInicio: string | null;
   fechaFin: string | null;
   activo: boolean;
+  conceptos: CursoConceptoPayload[];
+}
+
+export interface CursoConceptoVencimientoForm {
+  nroOrden: number;
+  monto: number | "";
+  fechaVencimiento: Dayjs | null;
+  descripcion: string;
+  activo: boolean;
+}
+
+export interface CursoConceptoForm {
+  tipoConcepto: TipoConcepto;
+  descripcion: string;
+  activo: boolean;
+  vencimientos: CursoConceptoVencimientoForm[];
+}
+
+export interface CursoFormValues {
+  nombre: string;
+  descripcion: string;
+  duracion: number | "";
+  unidadDuracion: string;
+  fechaInicio: Dayjs | null;
+  fechaFin: Dayjs | null;
+  activo: boolean;
+  conceptos: CursoConceptoForm[];
 }

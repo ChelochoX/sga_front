@@ -1,9 +1,9 @@
 import { useState, useCallback } from "react";
 import * as cursosService from "../../../api/cursosService";
-import { Curso, ObtenerCursosRequest } from "../types/cursos.types";
+import { CursoListado, ObtenerCursosRequest } from "../types/cursos.types";
 
 export function useCursos() {
-  const [cursos, setCursos] = useState<Curso[]>([]);
+  const [cursos, setCursos] = useState<CursoListado[]>([]);
   const [loading, setLoading] = useState(false);
 
   const [ultimoFiltro, setUltimoFiltro] = useState<ObtenerCursosRequest>({
@@ -37,7 +37,7 @@ export function useCursos() {
 
     try {
       await cursosService.deleteCurso(id);
-      setCursos((prev) => prev.filter((curso) => curso.id_curso !== id));
+      setCursos((prev) => prev.filter((curso) => curso.idCurso !== id));
     } catch (error) {
       console.error("Error al eliminar curso:", error);
       throw error;
