@@ -4,24 +4,26 @@ import {
   Button,
   DialogActions,
   FormControlLabel,
-  IconButton,
-  MenuItem,
-  Paper,
   Switch,
   TextField,
   Typography,
+  Paper,
   Divider,
+  MenuItem,
+  IconButton,
 } from "@mui/material";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
+import AutoFixHighIcon from "@mui/icons-material/AutoFixHigh";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/es";
+
 import {
+  CursoFormValues,
   CursoConceptoForm,
   CursoConceptoVencimientoForm,
-  CursoFormValues,
   TipoConcepto,
 } from "../types/cursos.types";
 
@@ -29,19 +31,23 @@ interface CursoFormProps {
   initialValues?: Partial<CursoFormValues>;
   onCancel: () => void;
   onSubmit: (data: CursoFormValues) => Promise<void> | void;
-  onSuccess?: () => void;
   modo?: "crear" | "editar";
 }
 
+type AutoCuotaConfig = {
+  cantidad: number | "";
+  monto: number | "";
+  primerVencimiento: Dayjs | null;
+};
+
 const unidades = ["Horas", "Dias", "Semanas", "Meses"];
+
 const tiposConcepto: TipoConcepto[] = [
   "Matricula",
   "Cuota",
   "Practica",
   "DerechoExamen",
 ];
-
-const numberFields = new Set(["duracion", "monto"]);
 
 const defaultVencimiento = (nroOrden = 1): CursoConceptoVencimientoForm => ({
   nroOrden,
@@ -51,176 +57,137 @@ const defaultVencimiento = (nroOrden = 1): CursoConceptoVencimientoForm => ({
   activo: true,
 });
 
-const defaultConcepto = (tipo?: TipoConcepto): CursoConceptoForm => ({
-  tipoConcepto: tipo ?? "Cuota",
-  descripcion: "",
+const defaultConcepto = (tipo: TipoConcepto): CursoConceptoForm => ({
+  tipoConcepto: tipo,
+  descripcion:
+    tipo === "Matricula"
+      ? "Matrícula"
+      : tipo === "Cuota"
+        ? "Cuotas"
+        : tipo === "Practica"
+          ? "Prácticas"
+          : "Derecho de examen",
   activo: true,
-  vencimientos: [defaultVencimiento(1)],
+  vencimientos: tipo === "Cuota" ? [] : [defaultVencimiento(1)],
 });
 
-const mapInitialConceptos = (
-  conceptos?: CursoConceptoForm[],
-): CursoConceptoForm[] => {
-  if (!conceptos || conceptos.length === 0) return [defaultConcepto("Cuota")];
-
-  return conceptos.map((c) => ({
-    tipoConcepto: c.tipoConcepto,
-    descripcion: c.descripcion ?? "",
-    activo: c.activo ?? true,
-    vencimientos:
-      c.vencimientos?.length > 0
-        ? c.vencimientos.map((v, idx) => ({
-            nroOrden: v.nroOrden ?? idx + 1,
-            monto: v.monto ?? "",
-            fechaVencimiento: v.fechaVencimiento
-              ? dayjs(v.fechaVencimiento)
-              : null,
-            descripcion: v.descripcion ?? "",
-            activo: v.activo ?? true,
-          }))
-        : [defaultVencimiento(1)],
-  }));
-};
+const buildInitialValues = (
+  initialValues?: Partial<CursoFormValues>,
+): CursoFormValues => ({
+  nombre: initialValues?.nombre ?? "",
+  descripcion: initialValues?.descripcion ?? "",
+  duracion: initialValues?.duracion ?? "",
+  unidadDuracion: initialValues?.unidadDuracion ?? "Meses",
+  fechaInicio: initialValues?.fechaInicio ?? null,
+  fechaFin: initialValues?.fechaFin ?? null,
+  activo: initialValues?.activo ?? true,
+  conceptos: initialValues?.conceptos ?? [],
+});
 
 export const CursoForm: React.FC<CursoFormProps> = ({
   initialValues,
   onCancel,
   onSubmit,
-  onSuccess,
   modo = "crear",
 }) => {
-  const initialState: CursoFormValues = useMemo(
-    () => ({
-      nombre: initialValues?.nombre ?? "",
-      descripcion: initialValues?.descripcion ?? "",
-      duracion: initialValues?.duracion ?? "",
-      unidadDuracion: initialValues?.unidadDuracion ?? "Horas",
-      fechaInicio: initialValues?.fechaInicio
-        ? dayjs(initialValues.fechaInicio)
-        : null,
-      fechaFin: initialValues?.fechaFin ? dayjs(initialValues.fechaFin) : null,
-      activo: initialValues?.activo ?? false,
-      conceptos: mapInitialConceptos(initialValues?.conceptos),
-    }),
-    [initialValues],
+  const [values, setValues] = useState<CursoFormValues>(
+    buildInitialValues(initialValues),
   );
-
-  const [values, setValues] = useState<CursoFormValues>(initialState);
   const [submitting, setSubmitting] = useState(false);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  const [autoCuotas, setAutoCuotas] = useState<Record<number, AutoCuotaConfig>>(
+    {},
+  );
+
+  const tiposExistentes = useMemo(
+    () => values.conceptos.map((c) => c.tipoConcepto),
+    [values.conceptos],
+  );
+
+  const handleFieldChange = (
+    field: keyof Omit<
+      CursoFormValues,
+      "conceptos" | "fechaInicio" | "fechaFin"
+    >,
+    value: string | number | boolean,
   ) => {
-    const { name, value, type } = e.target;
-
-    if (type === "checkbox") {
-      setValues((prev) => ({
-        ...prev,
-        [name]: (e.target as HTMLInputElement).checked,
-      }));
-      return;
-    }
-
-    if (numberFields.has(name)) {
-      setValues((prev) => ({
-        ...prev,
-        [name]: value === "" ? "" : Number(value),
-      }));
-      return;
-    }
-
     setValues((prev) => ({
       ...prev,
-      [name]: value,
+      [field]: value,
     }));
   };
 
   const handleDateChange = (
-    name: "fechaInicio" | "fechaFin",
-    date: Dayjs | null,
+    field: "fechaInicio" | "fechaFin",
+    value: Dayjs | null,
   ) => {
     setValues((prev) => ({
       ...prev,
-      [name]: date,
+      [field]: value,
     }));
   };
 
+  const agregarConcepto = (tipo: TipoConcepto) => {
+    if (tiposExistentes.includes(tipo)) return;
+
+    setValues((prev) => ({
+      ...prev,
+      conceptos: [...prev.conceptos, defaultConcepto(tipo)],
+    }));
+
+    if (tipo === "Cuota") {
+      setAutoCuotas((prev) => ({
+        ...prev,
+        [values.conceptos.length]: {
+          cantidad: "",
+          monto: "",
+          primerVencimiento: null,
+        },
+      }));
+    }
+  };
+
+  const eliminarConcepto = (conceptoIndex: number) => {
+    setValues((prev) => ({
+      ...prev,
+      conceptos: prev.conceptos.filter((_, i) => i !== conceptoIndex),
+    }));
+
+    setAutoCuotas((prev) => {
+      const nuevo: Record<number, AutoCuotaConfig> = {};
+      Object.entries(prev).forEach(([key, value]) => {
+        const index = Number(key);
+        if (index < conceptoIndex) nuevo[index] = value;
+        if (index > conceptoIndex) nuevo[index - 1] = value;
+      });
+      return nuevo;
+    });
+  };
+
   const handleConceptoChange = (
-    index: number,
+    conceptoIndex: number,
     field: keyof Omit<CursoConceptoForm, "vencimientos">,
     value: string | boolean,
   ) => {
     setValues((prev) => {
       const conceptos = [...prev.conceptos];
-      const conceptoActual = conceptos[index];
-      if (!conceptoActual) return prev;
-
-      conceptos[index] = {
-        ...conceptoActual,
-        [field]: value,
-      } as CursoConceptoForm;
-
-      return { ...prev, conceptos };
-    });
-  };
-
-  const handleVencimientoChange = (
-    conceptoIndex: number,
-    vencimientoIndex: number,
-    field: keyof CursoConceptoVencimientoForm,
-    value: string | number | boolean | Dayjs | null | "",
-  ) => {
-    setValues((prev) => {
-      const conceptos = [...prev.conceptos];
-      const conceptoActual = conceptos[conceptoIndex];
-      if (!conceptoActual) return prev;
-
-      const vencimientos = [...conceptoActual.vencimientos];
-      const vencimientoActual = vencimientos[vencimientoIndex];
-      if (!vencimientoActual) return prev;
-
-      vencimientos[vencimientoIndex] = {
-        ...vencimientoActual,
-        [field]: value,
-      } as CursoConceptoVencimientoForm;
-
       conceptos[conceptoIndex] = {
-        ...conceptoActual,
-        vencimientos,
+        ...conceptos[conceptoIndex],
+        [field]: value,
       };
-
       return { ...prev, conceptos };
     });
   };
 
-  const agregarConcepto = (tipo?: TipoConcepto) => {
-    setValues((prev) => ({
-      ...prev,
-      conceptos: [...prev.conceptos, defaultConcepto(tipo)],
-    }));
-  };
-
-  const eliminarConcepto = (index: number) => {
-    setValues((prev) => ({
-      ...prev,
-      conceptos: prev.conceptos.filter((_, i) => i !== index),
-    }));
-  };
-
-  const agregarVencimiento = (conceptoIndex: number) => {
+  const agregarVencimientoManual = (conceptoIndex: number) => {
     setValues((prev) => {
       const conceptos = [...prev.conceptos];
-      const conceptoActual = conceptos[conceptoIndex];
-      if (!conceptoActual) return prev;
-
-      const nroOrden = conceptoActual.vencimientos.length + 1;
+      const concepto = conceptos[conceptoIndex];
+      const nroOrden = concepto.vencimientos.length + 1;
 
       conceptos[conceptoIndex] = {
-        ...conceptoActual,
-        vencimientos: [
-          ...conceptoActual.vencimientos,
-          defaultVencimiento(nroOrden),
-        ],
+        ...concepto,
+        vencimientos: [...concepto.vencimientos, defaultVencimiento(nroOrden)],
       };
 
       return { ...prev, conceptos };
@@ -233,10 +200,9 @@ export const CursoForm: React.FC<CursoFormProps> = ({
   ) => {
     setValues((prev) => {
       const conceptos = [...prev.conceptos];
-      const conceptoActual = conceptos[conceptoIndex];
-      if (!conceptoActual) return prev;
+      const concepto = conceptos[conceptoIndex];
 
-      const nuevosVencimientos = conceptoActual.vencimientos
+      const nuevos = concepto.vencimientos
         .filter((_, i) => i !== vencimientoIndex)
         .map((v, idx) => ({
           ...v,
@@ -244,50 +210,142 @@ export const CursoForm: React.FC<CursoFormProps> = ({
         }));
 
       conceptos[conceptoIndex] = {
-        ...conceptoActual,
-        vencimientos:
-          nuevosVencimientos.length > 0
-            ? nuevosVencimientos
-            : [defaultVencimiento(1)],
+        ...concepto,
+        vencimientos: nuevos,
       };
 
       return { ...prev, conceptos };
     });
   };
 
-  const handleFocusSelectIfZero = (
-    e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>,
+  const handleVencimientoChange = (
+    conceptoIndex: number,
+    vencimientoIndex: number,
+    field: keyof CursoConceptoVencimientoForm,
+    value: string | number | boolean | Dayjs | null,
   ) => {
-    const { name, value } = e.target;
+    setValues((prev) => {
+      const conceptos = [...prev.conceptos];
+      const concepto = conceptos[conceptoIndex];
+      const vencimientos = [...concepto.vencimientos];
 
-    if (numberFields.has(name) && (value === "0" || value === "0.00")) {
-      e.target.select();
+      vencimientos[vencimientoIndex] = {
+        ...vencimientos[vencimientoIndex],
+        [field]: value,
+      };
+
+      conceptos[conceptoIndex] = {
+        ...concepto,
+        vencimientos,
+      };
+
+      return { ...prev, conceptos };
+    });
+  };
+
+  const handleAutoCuotaChange = (
+    conceptoIndex: number,
+    field: keyof AutoCuotaConfig,
+    value: number | "" | Dayjs | null,
+  ) => {
+    setAutoCuotas((prev) => ({
+      ...prev,
+      [conceptoIndex]: {
+        cantidad: prev[conceptoIndex]?.cantidad ?? "",
+        monto: prev[conceptoIndex]?.monto ?? "",
+        primerVencimiento: prev[conceptoIndex]?.primerVencimiento ?? null,
+        [field]: value,
+      },
+    }));
+  };
+
+  const generarCuotas = (conceptoIndex: number) => {
+    const config = autoCuotas[conceptoIndex];
+
+    if (!config) return;
+
+    const cantidad = Number(config.cantidad || 0);
+    const monto = Number(config.monto || 0);
+    const primerVencimiento = config.primerVencimiento;
+
+    if (cantidad <= 0 || monto < 0 || !primerVencimiento) {
+      alert(
+        "Completa cantidad, monto y primer vencimiento para generar las cuotas.",
+      );
+      return;
     }
+
+    const vencimientos: CursoConceptoVencimientoForm[] = Array.from(
+      { length: cantidad },
+      (_, idx) => ({
+        nroOrden: idx + 1,
+        monto,
+        fechaVencimiento: primerVencimiento.add(idx, "month"),
+        descripcion: `Cuota ${idx + 1}`,
+        activo: true,
+      }),
+    );
+
+    setValues((prev) => {
+      const conceptos = [...prev.conceptos];
+      const conceptoActual = conceptos[conceptoIndex];
+
+      if (!conceptoActual) {
+        return prev;
+      }
+
+      conceptos[conceptoIndex] = {
+        ...conceptoActual,
+        descripcion: conceptoActual.descripcion?.trim() || "Cuotas mensuales",
+        vencimientos,
+      };
+
+      return { ...prev, conceptos };
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!values.nombre.trim()) {
+      alert("El nombre del curso es obligatorio.");
+      return;
+    }
+
+    if (!values.fechaInicio || !values.fechaFin) {
+      alert("Debes completar la fecha de inicio y fin del curso.");
+      return;
+    }
+
+    if (values.conceptos.length === 0) {
+      alert("Debes agregar al menos un concepto al curso.");
+      return;
+    }
+
+    const conceptoInvalido = values.conceptos.some(
+      (c) =>
+        !c.tipoConcepto ||
+        !c.descripcion.trim() ||
+        c.vencimientos.length === 0 ||
+        c.vencimientos.some(
+          (v) => !v.fechaVencimiento || Number(v.monto || 0) < 0,
+        ),
+    );
+
+    if (conceptoInvalido) {
+      alert(
+        "Revisa los conceptos y vencimientos. Todos deben tener datos válidos.",
+      );
+      return;
+    }
+
     setSubmitting(true);
 
     try {
-      await onSubmit({
-        ...values,
-        duracion: values.duracion === "" ? 0 : values.duracion,
-        conceptos: values.conceptos.map((c) => ({
-          ...c,
-          vencimientos: c.vencimientos.map((v, idx) => ({
-            ...v,
-            nroOrden: idx + 1,
-            monto: v.monto === "" ? 0 : v.monto,
-          })),
-        })),
-      });
-
-      if (onSuccess) onSuccess();
-      onCancel();
+      await onSubmit(values);
     } catch (error) {
-      alert("Error al guardar el curso");
       console.error(error);
+      alert("Ocurrió un error al guardar el curso.");
     } finally {
       setSubmitting(false);
     }
@@ -299,25 +357,27 @@ export const CursoForm: React.FC<CursoFormProps> = ({
         sx={{
           display: "flex",
           flexDirection: "column",
-          gap: 2,
+          gap: 2.5,
           width: "100%",
           minWidth: 0,
         }}
       >
+        <Typography variant="h5" sx={{ fontWeight: 700 }}>
+          {modo === "crear" ? "Agregar curso" : "Editar curso"}
+        </Typography>
+
         <TextField
           label="Nombre"
-          name="nombre"
           value={values.nombre}
-          onChange={handleChange}
+          onChange={(e) => handleFieldChange("nombre", e.target.value)}
           required
           fullWidth
         />
 
         <TextField
           label="Descripción"
-          name="descripcion"
           value={values.descripcion}
-          onChange={handleChange}
+          onChange={(e) => handleFieldChange("descripcion", e.target.value)}
           multiline
           rows={2}
           fullWidth
@@ -325,31 +385,33 @@ export const CursoForm: React.FC<CursoFormProps> = ({
 
         <Box
           sx={{
-            display: "flex",
-            flexDirection: { xs: "column", sm: "row" },
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
             gap: 2,
           }}
         >
           <TextField
             label="Duración"
-            name="duracion"
             type="number"
             value={values.duracion}
-            onChange={handleChange}
-            onFocus={handleFocusSelectIfZero}
+            onChange={(e) =>
+              handleFieldChange(
+                "duracion",
+                e.target.value === "" ? "" : Number(e.target.value),
+              )
+            }
             required
             fullWidth
-            sx={{ flex: 1 }}
           />
 
           <TextField
             select
             label="Unidad"
-            name="unidadDuracion"
             value={values.unidadDuracion}
-            onChange={handleChange}
+            onChange={(e) =>
+              handleFieldChange("unidadDuracion", e.target.value)
+            }
             fullWidth
-            sx={{ flex: 1 }}
           >
             {unidades.map((op) => (
               <MenuItem key={op} value={op}>
@@ -360,292 +422,368 @@ export const CursoForm: React.FC<CursoFormProps> = ({
         </Box>
 
         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
-          <DatePicker
-            label="Fecha Inicio"
-            value={values.fechaInicio}
-            onChange={(date) =>
-              handleDateChange(
-                "fechaInicio",
-                date && dayjs.isDayjs(date) ? date : null,
-              )
-            }
-            format="DD/MM/YYYY"
-            slotProps={{
-              textField: {
-                required: true,
-                fullWidth: true,
-              },
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+              gap: 2,
             }}
-          />
+          >
+            <DatePicker
+              label="Fecha Inicio"
+              value={values.fechaInicio}
+              onChange={(date) =>
+                handleDateChange(
+                  "fechaInicio",
+                  date && dayjs.isDayjs(date) ? date : null,
+                )
+              }
+              format="DD/MM/YYYY"
+              slotProps={{
+                textField: {
+                  required: true,
+                  fullWidth: true,
+                },
+              }}
+            />
 
-          <DatePicker
-            label="Fecha Fin"
-            value={values.fechaFin}
-            onChange={(date) =>
-              handleDateChange(
-                "fechaFin",
-                date && dayjs.isDayjs(date) ? date : null,
-              )
-            }
-            format="DD/MM/YYYY"
-            slotProps={{
-              textField: {
-                required: true,
-                fullWidth: true,
-              },
-            }}
-          />
+            <DatePicker
+              label="Fecha Fin"
+              value={values.fechaFin}
+              onChange={(date) =>
+                handleDateChange(
+                  "fechaFin",
+                  date && dayjs.isDayjs(date) ? date : null,
+                )
+              }
+              format="DD/MM/YYYY"
+              slotProps={{
+                textField: {
+                  required: true,
+                  fullWidth: true,
+                },
+              }}
+            />
+          </Box>
         </LocalizationProvider>
 
         <FormControlLabel
           label="¿Curso activo?"
           control={
             <Switch
-              name="activo"
               checked={values.activo}
-              onChange={handleChange}
-              color="primary"
+              onChange={(e) => handleFieldChange("activo", e.target.checked)}
             />
           }
         />
 
-        <Divider sx={{ my: 1 }} />
+        <Divider />
+
+        <Typography variant="h6" sx={{ fontWeight: 700 }}>
+          Conceptos del curso
+        </Typography>
 
         <Box
           sx={{
             display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexWrap: "wrap",
             gap: 1,
+            flexWrap: "wrap",
           }}
         >
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>
-            Conceptos del curso
-          </Typography>
-
-          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-            {tiposConcepto.map((tipo) => (
-              <Button
-                key={tipo}
-                variant="outlined"
-                size="small"
-                startIcon={<AddIcon />}
-                onClick={() => agregarConcepto(tipo)}
-              >
-                {tipo}
-              </Button>
-            ))}
-          </Box>
+          {tiposConcepto.map((tipo) => (
+            <Button
+              key={tipo}
+              variant="outlined"
+              startIcon={<AddIcon />}
+              onClick={() => agregarConcepto(tipo)}
+              disabled={tiposExistentes.includes(tipo)}
+            >
+              {tipo}
+            </Button>
+          ))}
         </Box>
 
-        {values.conceptos.map((concepto, conceptoIndex) => (
-          <Paper
-            key={`${concepto.tipoConcepto}-${conceptoIndex}`}
-            variant="outlined"
-            sx={{ p: 2, borderRadius: 2 }}
-          >
-            <Box
+        {values.conceptos.map((concepto, conceptoIndex) => {
+          const autoConfig = autoCuotas[conceptoIndex] ?? {
+            cantidad: "",
+            monto: "",
+            primerVencimiento: null,
+          };
+
+          return (
+            <Paper
+              key={`${concepto.tipoConcepto}-${conceptoIndex}`}
+              variant="outlined"
               sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                mb: 2,
-                gap: 1,
+                p: 2,
+                borderRadius: 3,
               }}
             >
-              <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                Concepto {conceptoIndex + 1}
-              </Typography>
-
-              <IconButton
-                color="error"
-                onClick={() => eliminarConcepto(conceptoIndex)}
-                disabled={values.conceptos.length === 1}
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  mb: 2,
+                }}
               >
-                <DeleteOutlineIcon />
-              </IconButton>
-            </Box>
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                  {concepto.tipoConcepto}
+                </Typography>
 
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: { xs: "1fr", md: "1fr 2fr" },
-                gap: 2,
-                mb: 2,
-              }}
-            >
-              <TextField
-                select
-                label="Tipo de concepto"
-                value={concepto.tipoConcepto}
-                onChange={(e) =>
-                  handleConceptoChange(
-                    conceptoIndex,
-                    "tipoConcepto",
-                    e.target.value as TipoConcepto,
-                  )
-                }
-                fullWidth
+                <IconButton
+                  color="error"
+                  onClick={() => eliminarConcepto(conceptoIndex)}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </Box>
+
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                  gap: 2,
+                  mb: 2,
+                }}
               >
-                {tiposConcepto.map((tipo) => (
-                  <MenuItem key={tipo} value={tipo}>
-                    {tipo}
-                  </MenuItem>
-                ))}
-              </TextField>
-
-              <TextField
-                label="Descripción del concepto"
-                value={concepto.descripcion}
-                onChange={(e) =>
-                  handleConceptoChange(
-                    conceptoIndex,
-                    "descripcion",
-                    e.target.value,
-                  )
-                }
-                fullWidth
-              />
-            </Box>
-
-            <FormControlLabel
-              label="Concepto activo"
-              control={
-                <Switch
-                  checked={concepto.activo}
+                <TextField
+                  select
+                  label="Tipo de concepto"
+                  value={concepto.tipoConcepto}
                   onChange={(e) =>
                     handleConceptoChange(
                       conceptoIndex,
-                      "activo",
-                      e.target.checked,
+                      "tipoConcepto",
+                      e.target.value,
                     )
                   }
+                  fullWidth
+                  disabled
+                >
+                  {tiposConcepto.map((tipo) => (
+                    <MenuItem key={tipo} value={tipo}>
+                      {tipo}
+                    </MenuItem>
+                  ))}
+                </TextField>
+
+                <TextField
+                  label="Descripción del concepto"
+                  value={concepto.descripcion}
+                  onChange={(e) =>
+                    handleConceptoChange(
+                      conceptoIndex,
+                      "descripcion",
+                      e.target.value,
+                    )
+                  }
+                  fullWidth
                 />
-              }
-            />
+              </Box>
 
-            <Divider sx={{ my: 2 }} />
+              <FormControlLabel
+                label="Concepto activo"
+                control={
+                  <Switch
+                    checked={concepto.activo}
+                    onChange={(e) =>
+                      handleConceptoChange(
+                        conceptoIndex,
+                        "activo",
+                        e.target.checked,
+                      )
+                    }
+                  />
+                }
+              />
 
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                mb: 2,
-                flexWrap: "wrap",
-                gap: 1,
-              }}
-            >
-              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+              <Divider sx={{ my: 2 }} />
+
+              {concepto.tipoConcepto === "Cuota" ? (
+                <>
+                  <Typography
+                    variant="subtitle1"
+                    sx={{ fontWeight: 700, mb: 2 }}
+                  >
+                    Generación automática de cuotas
+                  </Typography>
+
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr 1fr" },
+                      gap: 2,
+                      mb: 2,
+                    }}
+                  >
+                    <TextField
+                      label="Cantidad de cuotas"
+                      type="number"
+                      value={autoConfig.cantidad}
+                      onChange={(e) =>
+                        handleAutoCuotaChange(
+                          conceptoIndex,
+                          "cantidad",
+                          e.target.value === "" ? "" : Number(e.target.value),
+                        )
+                      }
+                      fullWidth
+                    />
+
+                    <TextField
+                      label="Monto por cuota"
+                      type="number"
+                      value={autoConfig.monto}
+                      onChange={(e) =>
+                        handleAutoCuotaChange(
+                          conceptoIndex,
+                          "monto",
+                          e.target.value === "" ? "" : Number(e.target.value),
+                        )
+                      }
+                      fullWidth
+                    />
+
+                    <LocalizationProvider
+                      dateAdapter={AdapterDayjs}
+                      adapterLocale="es"
+                    >
+                      <DatePicker
+                        label="Primer vencimiento"
+                        value={autoConfig.primerVencimiento}
+                        onChange={(date) =>
+                          handleAutoCuotaChange(
+                            conceptoIndex,
+                            "primerVencimiento",
+                            date && dayjs.isDayjs(date) ? date : null,
+                          )
+                        }
+                        format="DD/MM/YYYY"
+                        slotProps={{
+                          textField: {
+                            fullWidth: true,
+                          },
+                        }}
+                      />
+                    </LocalizationProvider>
+                  </Box>
+
+                  <Button
+                    variant="contained"
+                    startIcon={<AutoFixHighIcon />}
+                    onClick={() => generarCuotas(conceptoIndex)}
+                    sx={{ mb: 2 }}
+                  >
+                    Generar cuotas
+                  </Button>
+                </>
+              ) : (
+                <Box sx={{ mb: 2 }}>
+                  <Button
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    onClick={() => agregarVencimientoManual(conceptoIndex)}
+                  >
+                    Agregar vencimiento
+                  </Button>
+                </Box>
+              )}
+
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>
                 Vencimientos
               </Typography>
 
-              <Button
-                variant="contained"
-                size="small"
-                startIcon={<AddIcon />}
-                onClick={() => agregarVencimiento(conceptoIndex)}
-              >
-                Agregar vencimiento
-              </Button>
-            </Box>
+              {concepto.vencimientos.length === 0 && (
+                <Typography variant="body2" color="text.secondary">
+                  Aún no hay vencimientos cargados.
+                </Typography>
+              )}
 
-            {concepto.vencimientos.map((vencimiento, vencimientoIndex) => (
-              <Paper
-                key={`${conceptoIndex}-${vencimientoIndex}`}
-                variant="outlined"
-                sx={{
-                  p: 2,
-                  mb: 2,
-                  borderRadius: 2,
-                  backgroundColor: "#fafafa",
-                }}
-              >
-                <Box
+              {concepto.vencimientos.map((vencimiento, vencimientoIndex) => (
+                <Paper
+                  key={`${conceptoIndex}-${vencimientoIndex}`}
+                  variant="outlined"
                   sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
+                    p: 2,
                     mb: 2,
-                    gap: 1,
+                    borderRadius: 2,
                   }}
                 >
-                  <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                    Vencimiento #{vencimiento.nroOrden}
-                  </Typography>
-
-                  <IconButton
-                    color="error"
-                    onClick={() =>
-                      eliminarVencimiento(conceptoIndex, vencimientoIndex)
-                    }
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      mb: 2,
+                    }}
                   >
-                    <DeleteOutlineIcon />
-                  </IconButton>
-                </Box>
+                    <Typography sx={{ fontWeight: 700 }}>
+                      Vencimiento #{vencimiento.nroOrden}
+                    </Typography>
 
-                <Box
-                  sx={{
-                    display: "grid",
-                    gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
-                    gap: 2,
-                  }}
-                >
-                  <TextField
-                    label="Nro. orden"
-                    type="number"
-                    value={vencimiento.nroOrden}
-                    disabled
-                    fullWidth
-                  />
+                    <IconButton
+                      color="error"
+                      onClick={() =>
+                        eliminarVencimiento(conceptoIndex, vencimientoIndex)
+                      }
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Box>
 
-                  <TextField
-                    label="Monto"
-                    name="monto"
-                    type="number"
-                    value={vencimiento.monto}
-                    onChange={(e) =>
-                      handleVencimientoChange(
-                        conceptoIndex,
-                        vencimientoIndex,
-                        "monto",
-                        e.target.value === "" ? "" : Number(e.target.value),
-                      )
-                    }
-                    onFocus={handleFocusSelectIfZero}
-                    required
-                    fullWidth
-                  />
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                      gap: 2,
+                      mb: 2,
+                    }}
+                  >
+                    <TextField
+                      label="Nro. orden"
+                      type="number"
+                      value={vencimiento.nroOrden}
+                      onChange={(e) =>
+                        handleVencimientoChange(
+                          conceptoIndex,
+                          vencimientoIndex,
+                          "nroOrden",
+                          Number(e.target.value || 0),
+                        )
+                      }
+                      fullWidth
+                      disabled={concepto.tipoConcepto === "Cuota"}
+                    />
+
+                    <TextField
+                      label="Monto"
+                      type="number"
+                      value={vencimiento.monto}
+                      onChange={(e) =>
+                        handleVencimientoChange(
+                          conceptoIndex,
+                          vencimientoIndex,
+                          "monto",
+                          e.target.value === "" ? "" : Number(e.target.value),
+                        )
+                      }
+                      fullWidth
+                    />
+                  </Box>
 
                   <LocalizationProvider
                     dateAdapter={AdapterDayjs}
                     adapterLocale="es"
                   >
                     <DatePicker
-                      label="Fecha Inicio"
-                      value={values.fechaInicio}
+                      label="Fecha de vencimiento"
+                      value={vencimiento.fechaVencimiento}
                       onChange={(date) =>
-                        handleDateChange(
-                          "fechaInicio",
-                          date && dayjs.isDayjs(date) ? date : null,
-                        )
-                      }
-                      format="DD/MM/YYYY"
-                      slotProps={{
-                        textField: {
-                          required: true,
-                          fullWidth: true,
-                        },
-                      }}
-                    />
-
-                    <DatePicker
-                      label="Fecha Fin"
-                      value={values.fechaFin}
-                      onChange={(date) =>
-                        handleDateChange(
-                          "fechaFin",
+                        handleVencimientoChange(
+                          conceptoIndex,
+                          vencimientoIndex,
+                          "fechaVencimiento",
                           date && dayjs.isDayjs(date) ? date : null,
                         )
                       }
@@ -671,55 +809,56 @@ export const CursoForm: React.FC<CursoFormProps> = ({
                       )
                     }
                     fullWidth
+                    sx={{ mt: 2 }}
                   />
-                </Box>
 
-                <FormControlLabel
-                  sx={{ mt: 1 }}
-                  label="Vencimiento activo"
-                  control={
-                    <Switch
-                      checked={vencimiento.activo}
-                      onChange={(e) =>
-                        handleVencimientoChange(
-                          conceptoIndex,
-                          vencimientoIndex,
-                          "activo",
-                          e.target.checked,
-                        )
-                      }
-                    />
-                  }
-                />
-              </Paper>
-            ))}
-          </Paper>
-        ))}
-      </Box>
+                  <FormControlLabel
+                    sx={{ mt: 1 }}
+                    label="Vencimiento activo"
+                    control={
+                      <Switch
+                        checked={vencimiento.activo}
+                        onChange={(e) =>
+                          handleVencimientoChange(
+                            conceptoIndex,
+                            vencimientoIndex,
+                            "activo",
+                            e.target.checked,
+                          )
+                        }
+                      />
+                    }
+                  />
+                </Paper>
+              ))}
+            </Paper>
+          );
+        })}
 
-      <DialogActions
-        sx={{
-          mt: 2,
-          px: 0,
-          pb: 0,
-          justifyContent: "flex-end",
-          flexWrap: "wrap",
-          gap: 1,
-        }}
-      >
-        <Button onClick={onCancel} color="secondary" disabled={submitting}>
-          Cancelar
-        </Button>
-
-        <Button
-          type="submit"
-          variant="contained"
-          color="primary"
-          disabled={submitting}
+        <DialogActions
+          sx={{
+            mt: 2,
+            px: 0,
+            pb: 0,
+            justifyContent: "flex-end",
+            flexWrap: "wrap",
+            gap: 1,
+          }}
         >
-          {modo === "crear" ? "Agregar" : "Guardar"}
-        </Button>
-      </DialogActions>
+          <Button onClick={onCancel} color="secondary" disabled={submitting}>
+            Cancelar
+          </Button>
+
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            disabled={submitting}
+          >
+            {modo === "crear" ? "Agregar" : "Guardar"}
+          </Button>
+        </DialogActions>
+      </Box>
     </form>
   );
 };
