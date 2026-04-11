@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -72,6 +72,10 @@ const CursosPage: React.FC = () => {
     fechaFin: formatDateToYYYYMMDD(fechaFin),
     activo: filtrarPorEstado ? soloActivos : null,
   });
+
+  useEffect(() => {
+    void fetchCursos(buildFiltros());
+  }, []);
 
   const buildCursoPayload = (values: CursoFormValues): CursoPayload => ({
     nombre: values.nombre,
@@ -350,75 +354,81 @@ const CursosPage: React.FC = () => {
         </Button>
       </Box>
 
-      <Box sx={{ flex: 1 }}>
-        <div style={gridCursosStyle as React.CSSProperties}>
-          {loading
-            ? [...Array(4)].map((_, idx) => (
-                <Box
-                  key={idx}
-                  sx={{
-                    ...cardCursoStyle,
-                    borderRadius: 10,
-                    minHeight: 360,
-                    maxWidth: 380,
-                    width: "100%",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    p: 3,
-                  }}
-                >
-                  <Skeleton
-                    variant="rectangular"
-                    width={80}
-                    height={26}
-                    sx={{ mb: 1, borderRadius: 1 }}
-                  />
-                  <Skeleton
-                    variant="text"
-                    width="80%"
-                    height={28}
-                    sx={{ mb: 2 }}
-                  />
-                  <Skeleton
-                    variant="text"
-                    width="60%"
-                    height={22}
-                    sx={{ mb: 1 }}
-                  />
-                  <Skeleton
-                    variant="text"
-                    width="60%"
-                    height={22}
-                    sx={{ mb: 1 }}
-                  />
-                  <Skeleton
-                    variant="rectangular"
-                    width="90%"
-                    height={32}
-                    sx={{ mt: 2, borderRadius: 1 }}
-                  />
-                  <Skeleton
-                    variant="rectangular"
-                    width="50%"
-                    height={32}
-                    sx={{ mt: 1, borderRadius: 1 }}
-                  />
-                </Box>
-              ))
-            : cursos.map((curso) => (
-                <CursoCard
-                  key={curso.idCurso}
-                  curso={curso}
-                  onEdit={() => handleEditCurso(curso)}
-                  onDelete={() => handleEliminarCurso(curso.idCurso)}
-                  onToggleActivo={(checked) =>
-                    handleToggleActivo(curso, checked)
-                  }
+      <Box
+        sx={{
+          ...gridCursosStyle,
+          gridTemplateColumns: {
+            xs: "1fr",
+            sm: "1fr",
+            md: "repeat(2, minmax(0, 1fr))",
+            xl: "repeat(3, minmax(0, 1fr))",
+          },
+        }}
+      >
+        {loading
+          ? [...Array(4)].map((_, idx) => (
+              <Box
+                key={idx}
+                sx={{
+                  ...cardCursoStyle,
+                  borderRadius: 10,
+                  minHeight: 360,
+                  width: "100%",
+                  maxWidth: 430,
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  p: 3,
+                }}
+              >
+                <Skeleton
+                  variant="rectangular"
+                  width={80}
+                  height={26}
+                  sx={{ mb: 1, borderRadius: 1 }}
                 />
-              ))}
-        </div>
+                <Skeleton
+                  variant="text"
+                  width="80%"
+                  height={28}
+                  sx={{ mb: 2 }}
+                />
+                <Skeleton
+                  variant="text"
+                  width="60%"
+                  height={22}
+                  sx={{ mb: 1 }}
+                />
+                <Skeleton
+                  variant="text"
+                  width="60%"
+                  height={22}
+                  sx={{ mb: 1 }}
+                />
+                <Skeleton
+                  variant="rectangular"
+                  width="90%"
+                  height={32}
+                  sx={{ mt: 2, borderRadius: 1 }}
+                />
+                <Skeleton
+                  variant="rectangular"
+                  width="50%"
+                  height={32}
+                  sx={{ mt: 1, borderRadius: 1 }}
+                />
+              </Box>
+            ))
+          : cursos.map((curso) => (
+              <CursoCard
+                key={curso.idCurso}
+                curso={curso}
+                onEdit={() => handleEditCurso(curso)}
+                onDelete={() => handleEliminarCurso(curso.idCurso)}
+                onToggleActivo={(checked) => handleToggleActivo(curso, checked)}
+              />
+            ))}
       </Box>
 
       <Dialog

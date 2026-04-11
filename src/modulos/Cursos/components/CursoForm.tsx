@@ -126,25 +126,28 @@ export const CursoForm: React.FC<CursoFormProps> = ({
       [field]: value,
     }));
   };
-
   const agregarConcepto = (tipo: TipoConcepto) => {
     if (tiposExistentes.includes(tipo)) return;
 
-    setValues((prev) => ({
-      ...prev,
-      conceptos: [...prev.conceptos, defaultConcepto(tipo)],
-    }));
+    setValues((prev) => {
+      const nuevoIndex = prev.conceptos.length;
 
-    if (tipo === "Cuota") {
-      setAutoCuotas((prev) => ({
+      if (tipo === "Cuota") {
+        setAutoCuotas((prevAuto) => ({
+          ...prevAuto,
+          [nuevoIndex]: {
+            cantidad: "",
+            monto: "",
+            primerVencimiento: null,
+          },
+        }));
+      }
+
+      return {
         ...prev,
-        [values.conceptos.length]: {
-          cantidad: "",
-          monto: "",
-          primerVencimiento: null,
-        },
-      }));
-    }
+        conceptos: [...prev.conceptos, defaultConcepto(tipo)],
+      };
+    });
   };
 
   const eliminarConcepto = (conceptoIndex: number) => {
@@ -171,10 +174,15 @@ export const CursoForm: React.FC<CursoFormProps> = ({
   ) => {
     setValues((prev) => {
       const conceptos = [...prev.conceptos];
+      const concepto = conceptos[conceptoIndex];
+
+      if (!concepto) return prev;
+
       conceptos[conceptoIndex] = {
-        ...conceptos[conceptoIndex],
+        ...concepto,
         [field]: value,
       };
+
       return { ...prev, conceptos };
     });
   };
@@ -183,6 +191,9 @@ export const CursoForm: React.FC<CursoFormProps> = ({
     setValues((prev) => {
       const conceptos = [...prev.conceptos];
       const concepto = conceptos[conceptoIndex];
+
+      if (!concepto) return prev;
+
       const nroOrden = concepto.vencimientos.length + 1;
 
       conceptos[conceptoIndex] = {
@@ -201,6 +212,8 @@ export const CursoForm: React.FC<CursoFormProps> = ({
     setValues((prev) => {
       const conceptos = [...prev.conceptos];
       const concepto = conceptos[conceptoIndex];
+
+      if (!concepto) return prev;
 
       const nuevos = concepto.vencimientos
         .filter((_, i) => i !== vencimientoIndex)
@@ -227,10 +240,16 @@ export const CursoForm: React.FC<CursoFormProps> = ({
     setValues((prev) => {
       const conceptos = [...prev.conceptos];
       const concepto = conceptos[conceptoIndex];
+
+      if (!concepto) return prev;
+
       const vencimientos = [...concepto.vencimientos];
+      const vencimiento = vencimientos[vencimientoIndex];
+
+      if (!vencimiento) return prev;
 
       vencimientos[vencimientoIndex] = {
-        ...vencimientos[vencimientoIndex],
+        ...vencimiento,
         [field]: value,
       };
 

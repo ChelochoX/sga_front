@@ -13,6 +13,7 @@ export interface CursoConceptoVencimiento {
 
 export interface CursoConcepto {
   idCursoConcepto?: number;
+  idCurso?: number;
   tipoConcepto: TipoConcepto;
   descripcion: string;
   activo: boolean;
@@ -40,11 +41,7 @@ export interface CursoListado {
   fechaInicio: string;
   fechaFin: string;
   activo: boolean;
-  cantidadCuota?: number;
-  montoCuota?: number;
-  tienePractica?: boolean | string;
-  costoPractica?: number;
-  montoMatricula?: number;
+  conceptos: CursoConcepto[];
 }
 
 export interface ObtenerCursosRequest {
