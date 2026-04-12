@@ -16,6 +16,7 @@ import {
   Collapse,
   IconButton,
   Checkbox,
+  Chip,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { PagoCabeceraDto } from "../types/pagos.types";
@@ -36,6 +37,29 @@ interface Props {
   onSeleccionarDetalle: (ids: number[]) => void;
 }
 
+const formatearMonto = (monto?: number | null) =>
+  (Number(monto ?? 0) || 0).toLocaleString("es-PY", {
+    style: "currency",
+    currency: "PYG",
+    minimumFractionDigits: 0,
+  });
+
+const formatearFecha = (fecha?: string | null) => {
+  if (!fecha) return "-";
+  const soloFecha = fecha.includes("T") ? fecha.split("T")[0] : fecha;
+  if (!soloFecha) return "-";
+
+  const partes = soloFecha.split("-");
+  if (partes.length === 3) {
+    const [anio, mes, dia] = partes;
+    return `${dia}/${mes}/${anio}`;
+  }
+
+  const parsed = new Date(fecha);
+  if (Number.isNaN(parsed.getTime())) return "-";
+  return parsed.toLocaleDateString("es-PY");
+};
+
 export default function PagosTable({
   seleccionados,
   onSeleccionarDetalle,
@@ -54,16 +78,39 @@ export default function PagosTable({
 
   const [open, setOpen] = React.useState<number | null>(null);
 
-  const handleCheck = (id: number) => {
-    if (!onSeleccionarDetalle) return;
-    if (seleccionados.includes(id)) {
-      onSeleccionarDetalle(seleccionados.filter((i) => i !== id));
-    } else {
-      onSeleccionarDetalle([...seleccionados, id]);
+  const obtenerIdPagoDeDetalle = (detalleId: number): number | null => {
+    for (const cab of data) {
+      if (cab.detalles.some((d) => d.idDetallePago === detalleId)) {
+        return cab.idPago;
+      }
     }
+    return null;
   };
 
-  // --- MOBILE ---
+  const handleCheck = (idDetalle: number, idPagoActual: number) => {
+    const yaSeleccionado = seleccionados.includes(idDetalle);
+
+    if (yaSeleccionado) {
+      onSeleccionarDetalle(seleccionados.filter((i) => i !== idDetalle));
+      return;
+    }
+
+    const primerSeleccionado = seleccionados[0];
+    if (!primerSeleccionado) {
+      onSeleccionarDetalle([...seleccionados, idDetalle]);
+      return;
+    }
+
+    const idPagoSeleccionado = obtenerIdPagoDeDetalle(primerSeleccionado);
+
+    if (idPagoSeleccionado !== idPagoActual) {
+      onSeleccionarDetalle([idDetalle]);
+      return;
+    }
+
+    onSeleccionarDetalle([...seleccionados, idDetalle]);
+  };
+
   if (isMobile) {
     return (
       <Box display="flex" flexDirection="column" gap={2}>
@@ -74,96 +121,108 @@ export default function PagosTable({
             {emptyText || "Sin registros todavía"}
           </Typography>
         ) : (
-          data.map((cab, idx) => (
+          data.map((cab) => (
             <Card key={cab.idPago} elevation={2}>
               <CardContent>
-                <Typography fontWeight={600}>
-                  {cab.nombreEstudiante} - {cab.nombreCurso}
+                <Typography fontWeight={700} mb={0.5}>
+                  {cab.nombreEstudiante}
                 </Typography>
+                <Typography fontWeight={600} color="primary" mb={1}>
+                  {cab.nombreCurso}
+                </Typography>
+
                 <Typography variant="body2">
-                  Deuda Total:{" "}
-                  {cab.deudaTotal?.toLocaleString("es-PY", {
-                    style: "currency",
-                    currency: "PYG",
-                  })}
+                  <b>Deuda Total:</b> {formatearMonto(cab.deudaTotal)}
                 </Typography>
+
                 <Typography variant="body2">
-                  Tipo Cuenta: {cab.tipoCuenta} | Descuento:{" "}
-                  {cab.descuentoCabecera}
+                  <b>Tipo Cuenta:</b> {cab.tipoCuenta}
                 </Typography>
+
+                <Typography variant="body2">
+                  <b>Descuento:</b> {formatearMonto(cab.descuentoCabecera)}
+                </Typography>
+
                 <Typography variant="body2" gutterBottom>
-                  {cab.observacion}
+                  <b>Observación:</b> {cab.observacion || "-"}
                 </Typography>
+
                 <Box mt={2}>
-                  <Typography fontWeight={600} fontSize={15} mb={1}>
+                  <Typography fontWeight={700} fontSize={15} mb={1}>
                     Detalles de cuotas
                   </Typography>
+
                   {cab.detalles.length === 0 ? (
                     <Typography variant="body2" color="text.secondary">
                       Sin cuotas
                     </Typography>
                   ) : (
-                    cab.detalles.map((det, dIdx) => (
+                    cab.detalles.map((det, idx) => (
                       <Box
-                        key={dIdx}
+                        key={idx}
                         mb={1}
-                        p={1}
+                        p={1.2}
                         bgcolor="#f3f0ff"
                         borderRadius={2}
                         display="flex"
-                        alignItems="center"
+                        alignItems="flex-start"
                         gap={1}
                       >
                         {tab === "pendientes" && (
                           <Checkbox
                             checked={seleccionados.includes(det.idDetallePago!)}
-                            onChange={() => handleCheck(det.idDetallePago!)}
+                            onChange={() =>
+                              handleCheck(det.idDetallePago!, cab.idPago)
+                            }
                             disabled={det.estado !== "Pendiente"}
                           />
                         )}
-                        <Box>
-                          <Typography fontWeight={500}>
+
+                        <Box sx={{ flex: 1 }}>
+                          <Typography fontWeight={600}>
                             {det.concepto}
                           </Typography>
+
                           <Typography variant="body2">
-                            Monto:{" "}
-                            {det.monto?.toLocaleString("es-PY", {
-                              style: "currency",
-                              currency: "PYG",
-                            })}
+                            <b>Monto:</b> {formatearMonto(det.monto)}
                           </Typography>
+
                           <Typography variant="body2">
-                            Vencimiento:{" "}
-                            {det.fechaVencimiento
-                              ? new Date(
-                                  det.fechaVencimiento
-                                ).toLocaleDateString("es-PY")
-                              : "-"}
+                            <b>Vencimiento:</b>{" "}
+                            {formatearFecha(det.fechaVencimiento)}
                           </Typography>
+
                           {tab === "realizados" && (
                             <>
                               <Typography variant="body2">
-                                Pago:{" "}
-                                {det.fechaPago
-                                  ? new Date(det.fechaPago).toLocaleDateString(
-                                      "es-PY"
-                                    )
-                                  : "-"}
+                                <b>Pago:</b> {formatearFecha(det.fechaPago)}
                               </Typography>
                               <Typography variant="body2">
-                                Tipo Pago: {det.tipoPago || "-"}
+                                <b>Tipo Pago:</b> {det.tipoPago || "-"}
                               </Typography>
                               <Typography variant="body2">
-                                Referencia: {det.referencia || "-"}
+                                <b>Referencia:</b> {det.referencia || "-"}
                               </Typography>
                               <Typography variant="body2">
-                                Voucher: {det.voucherNumero || "-"}
+                                <b>Voucher:</b> {det.voucherNumero || "-"}
                               </Typography>
                             </>
                           )}
-                          <Typography variant="body2">
-                            Estado: {det.estado}
-                          </Typography>
+
+                          <Box mt={0.7}>
+                            <Chip
+                              label={det.estado || "-"}
+                              size="small"
+                              color={
+                                det.estado === "Pendiente"
+                                  ? "warning"
+                                  : det.estado === "Pagado"
+                                    ? "success"
+                                    : "default"
+                              }
+                              variant="outlined"
+                            />
+                          </Box>
                         </Box>
                       </Box>
                     ))
@@ -177,7 +236,6 @@ export default function PagosTable({
     );
   }
 
-  // --- DESKTOP ---
   return (
     <Paper>
       <TableContainer>
@@ -193,6 +251,7 @@ export default function PagosTable({
               <TableCell>Observación</TableCell>
             </TableRow>
           </TableHead>
+
           <TableBody>
             {loading ? (
               <TableRow>
@@ -216,7 +275,6 @@ export default function PagosTable({
                   <TableRow
                     sx={{
                       background: "#faf9ff",
-                      fontWeight: 700,
                       "&:hover": {
                         background: "#e8e3ff",
                         transition: "background 0.2s",
@@ -241,31 +299,30 @@ export default function PagosTable({
                         )}
                       </IconButton>
                     </TableCell>
+
                     <TableCell>{cabecera.nombreCurso}</TableCell>
                     <TableCell>{cabecera.nombreEstudiante}</TableCell>
-                    <TableCell>
-                      {cabecera.deudaTotal?.toLocaleString("es-PY", {
-                        style: "currency",
-                        currency: "PYG",
-                      })}
-                    </TableCell>
+                    <TableCell>{formatearMonto(cabecera.deudaTotal)}</TableCell>
                     <TableCell>{cabecera.tipoCuenta}</TableCell>
-                    <TableCell>{cabecera.descuentoCabecera}</TableCell>
+                    <TableCell>
+                      {formatearMonto(cabecera.descuentoCabecera)}
+                    </TableCell>
                     <TableCell>{cabecera.observacion}</TableCell>
                   </TableRow>
-                  {/* Detalle expandible */}
+
                   <TableRow>
                     <TableCell colSpan={7} sx={{ p: 0, background: "#f9f7fd" }}>
                       <Collapse in={open === idx} timeout="auto" unmountOnExit>
                         <Box m={2} mb={3}>
                           <Typography
                             variant="subtitle2"
-                            fontWeight={600}
+                            fontWeight={700}
                             gutterBottom
                             sx={{ mb: 1.5, color: "#7c3aed" }}
                           >
                             Detalles de cuotas
                           </Typography>
+
                           <Table size="small" sx={{ background: "#fff" }}>
                             <TableHead>
                               <TableRow>
@@ -284,6 +341,7 @@ export default function PagosTable({
                                 <TableCell>Estado</TableCell>
                               </TableRow>
                             </TableHead>
+
                             <TableBody>
                               {cabecera.detalles.map((detalle, j) => (
                                 <TableRow
@@ -298,10 +356,13 @@ export default function PagosTable({
                                     <TableCell>
                                       <Checkbox
                                         checked={seleccionados.includes(
-                                          detalle.idDetallePago!
+                                          detalle.idDetallePago!,
                                         )}
                                         onChange={() =>
-                                          handleCheck(detalle.idDetallePago!)
+                                          handleCheck(
+                                            detalle.idDetallePago!,
+                                            cabecera.idPago,
+                                          )
                                         }
                                         disabled={
                                           detalle.estado !== "Pendiente"
@@ -309,28 +370,19 @@ export default function PagosTable({
                                       />
                                     </TableCell>
                                   )}
+
                                   <TableCell>{detalle.concepto}</TableCell>
                                   <TableCell>
-                                    {detalle.monto?.toLocaleString("es-PY", {
-                                      style: "currency",
-                                      currency: "PYG",
-                                    })}
+                                    {formatearMonto(detalle.monto)}
                                   </TableCell>
                                   <TableCell>
-                                    {detalle.fechaVencimiento
-                                      ? new Date(
-                                          detalle.fechaVencimiento
-                                        ).toLocaleDateString("es-PY")
-                                      : "-"}
+                                    {formatearFecha(detalle.fechaVencimiento)}
                                   </TableCell>
+
                                   {tab === "realizados" && (
                                     <>
                                       <TableCell>
-                                        {detalle.fechaPago
-                                          ? new Date(
-                                              detalle.fechaPago
-                                            ).toLocaleDateString("es-PY")
-                                          : "-"}
+                                        {formatearFecha(detalle.fechaPago)}
                                       </TableCell>
                                       <TableCell>
                                         {detalle.tipoPago || "-"}
@@ -343,6 +395,7 @@ export default function PagosTable({
                                       </TableCell>
                                     </>
                                   )}
+
                                   <TableCell>{detalle.estado}</TableCell>
                                 </TableRow>
                               ))}
@@ -358,6 +411,7 @@ export default function PagosTable({
           </TableBody>
         </Table>
       </TableContainer>
+
       <TablePagination
         component="div"
         count={totalRows}

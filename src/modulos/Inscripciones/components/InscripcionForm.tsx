@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -16,15 +16,22 @@ import {
   Typography,
   Divider,
   Paper,
+  Chip,
+  CircularProgress,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import PersonSearchIcon from "@mui/icons-material/PersonSearch";
 import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
+import EventIcon from "@mui/icons-material/Event";
+import PaymentsIcon from "@mui/icons-material/Payments";
+import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import DiscountIcon from "@mui/icons-material/Discount";
 import { DatePicker } from "@mui/x-date-pickers";
 import {
   Estudiante,
   Curso,
   InscripcionRequest,
+  InscripcionPlanPagoPreview,
 } from "../types/inscripciones.types";
 import StudentSelectorDialog from "./StudentSelectorDialog";
 import CourseSelectorDialog from "./CourseSelectorDialog";
@@ -48,6 +55,16 @@ type NumberInput = number | "";
 
 const toNumber = (value: NumberInput): number => (value === "" ? 0 : value);
 
+const formatearMonto = (monto?: number | null) =>
+  `Gs. ${(Number(monto ?? 0) || 0).toLocaleString("es-PY")}`;
+
+const formatearFecha = (fecha?: string | null) => {
+  if (!fecha) return "—";
+  const date = new Date(fecha);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString("es-PY");
+};
+
 export default function InscripcionForm({ open, onClose, onSuccess }: Props) {
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
@@ -69,11 +86,18 @@ export default function InscripcionForm({ open, onClose, onSuccess }: Props) {
   const [errorMotivoDescuento, setErrorMotivoDescuento] = useState("");
   const [errorMotivoPrac, setErrorMotivoPrac] = useState("");
   const [errorMotivoMat, setErrorMotivoMat] = useState("");
+
   const [fechaInscripcion, setFechaInscripcion] = useState<Dayjs | null>(
     dayjs(),
   );
 
-  const { insertarInscripcion, loading } = useInscripciones();
+  const [preview, setPreview] = useState<InscripcionPlanPagoPreview | null>(
+    null,
+  );
+  const [loadingPreview, setLoadingPreview] = useState(false);
+
+  const { insertarInscripcion, obtenerPreviewPlanPago, loading } =
+    useInscripciones();
 
   useEffect(() => {
     if (!open) return;
@@ -91,6 +115,7 @@ export default function InscripcionForm({ open, onClose, onSuccess }: Props) {
     setErrorMotivoPrac("");
     setErrorMotivoMat("");
     setFechaInscripcion(dayjs());
+    setPreview(null);
   }, [open]);
 
   useEffect(() => {
@@ -143,7 +168,7 @@ export default function InscripcionForm({ open, onClose, onSuccess }: Props) {
 
     const parsed = Number(rawValue);
 
-    if (isNaN(parsed)) return;
+    if (Number.isNaN(parsed)) return;
     if (parsed < 0) return;
 
     setter(parsed);
@@ -167,17 +192,14 @@ export default function InscripcionForm({ open, onClose, onSuccess }: Props) {
     return true;
   };
 
-  const handleSubmit = async () => {
-    if (!isFormValid()) {
-      toast.error("Complete los datos obligatorios antes de continuar.");
-      return;
-    }
+  const payload: InscripcionRequest | null = useMemo(() => {
+    if (!estudiante || !curso || !fechaInscripcion) return null;
 
-    const payload: InscripcionRequest = {
-      idPersona: estudiante!.idPersona,
-      idCurso: curso!.idCurso,
+    return {
+      idPersona: estudiante.idPersona,
+      idCurso: curso.idCurso,
       estado,
-      fechaInscripcion: fechaInscripcion!.toDate().toISOString(),
+      fechaInscripcion: fechaInscripcion.toDate().toISOString(),
       montoDescuento: toNumber(montoDescuento),
       motivoDescuento,
       montoDescuentoPractica: toNumber(montoPrac),
@@ -185,6 +207,45 @@ export default function InscripcionForm({ open, onClose, onSuccess }: Props) {
       montoDescuentoMatricula: toNumber(montoMat),
       motivoDescuentoMatricula: motivoMat,
     };
+  }, [
+    estudiante,
+    curso,
+    estado,
+    fechaInscripcion,
+    montoDescuento,
+    motivoDescuento,
+    montoPrac,
+    motivoPrac,
+    montoMat,
+    motivoMat,
+  ]);
+
+  const handlePreview = async () => {
+    if (!payload || !isFormValid()) {
+      toast.error("Complete los datos obligatorios antes de previsualizar.");
+      return;
+    }
+
+    try {
+      setLoadingPreview(true);
+      const data = await obtenerPreviewPlanPago(payload);
+      setPreview(data);
+    } catch (error: any) {
+      const mensaje =
+        error?.response?.data?.message ||
+        "No se pudo obtener la previsualización del plan de pagos.";
+      toast.error(mensaje);
+      setPreview(null);
+    } finally {
+      setLoadingPreview(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!payload || !isFormValid()) {
+      toast.error("Complete los datos obligatorios antes de continuar.");
+      return;
+    }
 
     try {
       await insertarInscripcion(payload);
@@ -350,7 +411,7 @@ export default function InscripcionForm({ open, onClose, onSuccess }: Props) {
                   <Grid container spacing={2}>
                     <Grid item xs={12}>
                       <TextField
-                        label="Monto descuento"
+                        label="Monto descuento por cuota"
                         type="number"
                         fullWidth
                         size="small"
@@ -368,7 +429,7 @@ export default function InscripcionForm({ open, onClose, onSuccess }: Props) {
 
                     <Grid item xs={12}>
                       <TextField
-                        label="Motivo descuento"
+                        label="Motivo descuento por cuota"
                         fullWidth
                         size="small"
                         value={motivoDescuento}
@@ -454,6 +515,151 @@ export default function InscripcionForm({ open, onClose, onSuccess }: Props) {
                       )}
                     </Grid>
                   </Grid>
+                </Paper>
+              </Grid>
+
+              <Grid item xs={12}>
+                <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      flexWrap: "wrap",
+                      gap: 2,
+                      mb: 2,
+                    }}
+                  >
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                      Previsualización del plan de pagos
+                    </Typography>
+
+                    <Button
+                      variant="contained"
+                      onClick={handlePreview}
+                      disabled={!isFormValid() || loadingPreview}
+                      sx={{
+                        bgcolor: "#7b1fa2",
+                        "&:hover": { bgcolor: "#6a1b9a" },
+                        fontWeight: 700,
+                      }}
+                    >
+                      {loadingPreview ? "Calculando..." : "Ver plan de pagos"}
+                    </Button>
+                  </Box>
+
+                  {loadingPreview ? (
+                    <Box display="flex" justifyContent="center" py={4}>
+                      <CircularProgress />
+                    </Box>
+                  ) : !preview ? (
+                    <Typography color="text.secondary">
+                      Seleccioná estudiante, curso y descuentos para ver cómo se
+                      generarán los pagos.
+                    </Typography>
+                  ) : (
+                    <>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexWrap: "wrap",
+                          gap: 1.2,
+                          mb: 2,
+                        }}
+                      >
+                        <Chip
+                          icon={<ReceiptLongIcon />}
+                          label={`${preview.cantidadPagos} pagos`}
+                          color="primary"
+                          variant="outlined"
+                        />
+                        <Chip
+                          icon={<PaymentsIcon />}
+                          label={`Total ${formatearMonto(preview.total)}`}
+                          color="success"
+                          variant="outlined"
+                        />
+                        <Chip
+                          icon={<DiscountIcon />}
+                          label={`Descuento ${formatearMonto(
+                            preview.descuentoAplicado,
+                          )}`}
+                          color="warning"
+                          variant="outlined"
+                        />
+                      </Box>
+
+                      <Box
+                        sx={{
+                          display: "grid",
+                          gridTemplateColumns: {
+                            xs: "1fr",
+                            md: "1fr 1fr",
+                          },
+                          gap: 1.5,
+                        }}
+                      >
+                        {preview.detalles.map((item, index) => (
+                          <Paper
+                            key={`${item.tipoConcepto}-${item.nroOrden}-${index}`}
+                            variant="outlined"
+                            sx={{
+                              p: 1.5,
+                              borderRadius: 2,
+                              backgroundColor: "#fcfcfd",
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "flex-start",
+                                gap: 1,
+                                mb: 1,
+                              }}
+                            >
+                              <Typography sx={{ fontWeight: 700 }}>
+                                {item.concepto}
+                              </Typography>
+
+                              <Chip
+                                size="small"
+                                label={item.tipoConcepto}
+                                variant="outlined"
+                              />
+                            </Box>
+
+                            <Typography variant="body2" color="text.secondary">
+                              <b>Orden:</b> {item.nroOrden}
+                            </Typography>
+
+                            <Typography variant="body2" color="text.secondary">
+                              <b>Vencimiento:</b>{" "}
+                              {formatearFecha(item.fechaVencimiento)}
+                            </Typography>
+
+                            <Typography variant="body2" color="text.secondary">
+                              <b>Monto original:</b>{" "}
+                              {formatearMonto(item.montoOriginal)}
+                            </Typography>
+
+                            <Typography variant="body2" color="text.secondary">
+                              <b>Descuento:</b>{" "}
+                              {formatearMonto(item.descuentoAplicado)}
+                            </Typography>
+
+                            <Typography
+                              variant="body2"
+                              sx={{ mt: 0.5, fontWeight: 700 }}
+                            >
+                              <b>Monto final:</b>{" "}
+                              {formatearMonto(item.montoFinal)}
+                            </Typography>
+                          </Paper>
+                        ))}
+                      </Box>
+                    </>
+                  )}
                 </Paper>
               </Grid>
             </Grid>

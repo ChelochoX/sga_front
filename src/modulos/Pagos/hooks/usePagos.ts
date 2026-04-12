@@ -4,14 +4,18 @@ import {
   getPagosRealizados,
   getConfigDocumentoFiscal,
 } from "../../../api/pagosService";
-import { PagoCabeceraDto, PagoFiltroRequest } from "../types/pagos.types";
+import {
+  PagoCabeceraDto,
+  PagoFiltroRequest,
+  DocumentoFiscalConfig,
+} from "../types/pagos.types";
 
 export const usePagos = () => {
   const [pagosPendientes, setPagosPendientes] = useState<PagoCabeceraDto[]>([]);
   const [pagosRealizados, setPagosRealizados] = useState<PagoCabeceraDto[]>([]);
   const [totalPendientes, setTotalPendientes] = useState(0);
   const [totalRealizados, setTotalRealizados] = useState(0);
-  const [config, setConfig] = useState<any>(null);
+  const [config, setConfig] = useState<DocumentoFiscalConfig | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadingConfig, setLoadingConfig] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,7 +27,7 @@ export const usePagos = () => {
       const data = await getPagosPendientes(filtro);
       setPagosPendientes(data.items);
       setTotalPendientes(data.total);
-    } catch (err: any) {
+    } catch {
       setError("Error al obtener pagos pendientes");
     } finally {
       setLoading(false);
@@ -37,7 +41,7 @@ export const usePagos = () => {
       const data = await getPagosRealizados(filtro);
       setPagosRealizados(data.items);
       setTotalRealizados(data.total);
-    } catch (err: any) {
+    } catch {
       setError("Error al obtener pagos realizados");
     } finally {
       setLoading(false);
@@ -45,7 +49,7 @@ export const usePagos = () => {
   };
 
   const fetchConfig = async (
-    codigoDocumento: string
+    codigoDocumento: string,
   ): Promise<string | null> => {
     setLoadingConfig(true);
     try {

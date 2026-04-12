@@ -29,7 +29,7 @@ export interface InscripcionDetalle {
   nombreEstudiante: string;
   idCurso: number;
   nombreCurso: string;
-  fechaInscripcion: string; // ISO
+  fechaInscripcion: string;
   estado: string;
   montoDescuento: number;
   motivoDescuento: string;
@@ -37,4 +37,25 @@ export interface InscripcionDetalle {
   motivoDescPractica: string;
   montoDescMatricula: number;
   motivoDescMatricula: string;
+  totalPagos: number;
+  cantidadPagos: number;
+}
+
+export interface InscripcionPlanPagoPreviewDetalle {
+  tipoConcepto: string;
+  concepto: string;
+  montoOriginal: number;
+  descuentoAplicado: number;
+  montoFinal: number;
+  fechaVencimiento: string;
+  nroOrden: number;
+}
+
+export interface InscripcionPlanPagoPreview {
+  idCurso: number;
+  nombreCurso: string;
+  total: number;
+  cantidadPagos: number;
+  descuentoAplicado: number;
+  detalles: InscripcionPlanPagoPreviewDetalle[];
 }

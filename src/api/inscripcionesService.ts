@@ -4,17 +4,13 @@ import {
   Curso,
   InscripcionRequest,
   InscripcionDetalle,
+  InscripcionPlanPagoPreview,
 } from "../modulos/Inscripciones/types/inscripciones.types";
 
 const API_URL = "/Inscripciones";
 
 const normalizeQuery = (value?: string) => value?.trim() || undefined;
 
-/**
- * Obtiene la lista de personas habilitadas para inscripción.
- * El endpoint debe retornar únicamente personas con rol Estudiante.
- * Endpoint: GET /Inscripciones/estudiantes
- */
 export const getEstudiantes = async (q = ""): Promise<Estudiante[]> => {
   const { data } = await instance.get<Estudiante[]>(`${API_URL}/estudiantes`, {
     params: { q: normalizeQuery(q) },
@@ -22,10 +18,6 @@ export const getEstudiantes = async (q = ""): Promise<Estudiante[]> => {
   return data;
 };
 
-/**
- * Obtiene la lista de cursos activos disponibles para inscripción.
- * Endpoint: GET /Inscripciones/obtener-cursos
- */
 export const getCursos = async (q = ""): Promise<Curso[]> => {
   const { data } = await instance.get<Curso[]>(`${API_URL}/obtener-cursos`, {
     params: { search: normalizeQuery(q) },
@@ -33,10 +25,16 @@ export const getCursos = async (q = ""): Promise<Curso[]> => {
   return data;
 };
 
-/**
- * Crea una nueva inscripción.
- * Endpoint: POST /Inscripciones
- */
+export const previewPlanPago = async (
+  payload: InscripcionRequest,
+): Promise<InscripcionPlanPagoPreview> => {
+  const { data } = await instance.post<InscripcionPlanPagoPreview>(
+    `${API_URL}/preview-plan-pago`,
+    payload,
+  );
+  return data;
+};
+
 export const createInscripcion = async (
   payload: InscripcionRequest,
 ): Promise<number> => {
@@ -44,10 +42,6 @@ export const createInscripcion = async (
   return data;
 };
 
-/**
- * Obtiene el listado de inscripciones con filtros opcionales.
- * Endpoint: GET /Inscripciones
- */
 export const getInscripciones = async (
   alumno?: string,
   cursoNombre?: string,
@@ -66,10 +60,6 @@ export const getInscripciones = async (
   return data;
 };
 
-/**
- * Elimina una inscripción por su identificador.
- * Endpoint: DELETE /Inscripciones/{id}
- */
 export const deleteInscripcion = async (id: number): Promise<void> => {
   await instance.delete(`${API_URL}/${id}`);
 };

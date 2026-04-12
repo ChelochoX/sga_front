@@ -4,6 +4,7 @@ import {
   Curso,
   InscripcionRequest,
   InscripcionDetalle,
+  InscripcionPlanPagoPreview,
 } from "../types/inscripciones.types";
 import {
   getEstudiantes,
@@ -11,12 +12,16 @@ import {
   createInscripcion,
   getInscripciones,
   deleteInscripcion,
+  previewPlanPago,
 } from "../../../api/inscripcionesService";
 
 export const useInscripciones = () => {
   const [estudiantes, setEstudiantes] = useState<Estudiante[]>([]);
   const [cursos, setCursos] = useState<Curso[]>([]);
   const [inscripciones, setInscripciones] = useState<InscripcionDetalle[]>([]);
+  const [preview, setPreview] = useState<InscripcionPlanPagoPreview | null>(
+    null,
+  );
   const [loading, setLoading] = useState(false);
 
   const fetchEstudiantes = useCallback(async (qParam: string = "") => {
@@ -71,6 +76,27 @@ export const useInscripciones = () => {
     [],
   );
 
+  const obtenerPreviewPlanPago = useCallback(
+    async (input: InscripcionRequest) => {
+      setLoading(true);
+      try {
+        const data = await previewPlanPago(input);
+        setPreview(data);
+        return data;
+      } catch (error) {
+        console.error("❌ Error al obtener preview del plan de pago:", error);
+        throw error;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [],
+  );
+
+  const limpiarPreview = useCallback(() => {
+    setPreview(null);
+  }, []);
+
   const insertarInscripcion = useCallback(async (input: InscripcionRequest) => {
     setLoading(true);
     try {
@@ -99,10 +125,13 @@ export const useInscripciones = () => {
     estudiantes,
     cursos,
     inscripciones,
+    preview,
     loading,
     refetchEstudiantes: fetchEstudiantes,
     refetchCursos: fetchCursos,
     refetchInscripciones: fetchInscripciones,
+    obtenerPreviewPlanPago,
+    limpiarPreview,
     insertarInscripcion,
     eliminarInscripcion,
   };

@@ -29,7 +29,7 @@ export default function InscripcionesPage() {
     useInscripciones();
 
   useEffect(() => {
-    refetchInscripciones();
+    void refetchInscripciones();
   }, [refetchInscripciones]);
 
   const handleBuscar = async () => {
@@ -46,7 +46,12 @@ export default function InscripcionesPage() {
   };
 
   const handleSuccess = () => {
-    refetchInscripciones(filtroAlumno, filtroCurso, filtroDesde, filtroHasta);
+    void refetchInscripciones(
+      filtroAlumno,
+      filtroCurso,
+      filtroDesde,
+      filtroHasta,
+    );
     setOpenForm(false);
   };
 

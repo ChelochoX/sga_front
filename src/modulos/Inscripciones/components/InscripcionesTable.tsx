@@ -10,19 +10,21 @@ import {
   Typography,
   Card,
   CardContent,
-  Grid,
   useMediaQuery,
   Box,
   IconButton,
   Tooltip,
   Chip,
   Stack,
+  Divider,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import DeleteIcon from "@mui/icons-material/Delete";
 import SchoolIcon from "@mui/icons-material/School";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import EventIcon from "@mui/icons-material/Event";
+import PaymentsIcon from "@mui/icons-material/Payments";
+import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import { InscripcionDetalle } from "../types/inscripciones.types";
 
 interface Props {
@@ -30,6 +32,16 @@ interface Props {
   onDelete: (id: number) => void;
   loadingDelete: boolean;
 }
+
+const formatearMonto = (monto: number) =>
+  `Gs. ${Number(monto || 0).toLocaleString("es-PY")}`;
+
+const formatearFecha = (fecha: string) => {
+  if (!fecha) return "—";
+  const date = new Date(fecha);
+  if (isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString("es-PY");
+};
 
 export default function InscripcionesTable({
   data,
@@ -70,9 +82,7 @@ export default function InscripcionesTable({
                   <Box display="flex" alignItems="center" gap={1}>
                     <EventIcon fontSize="small" sx={{ color: "#6b7280" }} />
                     <Typography variant="body2">
-                      {new Date(row.fechaInscripcion).toLocaleDateString(
-                        "es-PY",
-                      )}
+                      {formatearFecha(row.fechaInscripcion)}
                     </Typography>
                   </Box>
 
@@ -85,9 +95,35 @@ export default function InscripcionesTable({
                     />
                   </Box>
 
+                  <Divider />
+
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <ReceiptLongIcon
+                      fontSize="small"
+                      sx={{ color: "#ef6c00" }}
+                    />
+                    <Typography variant="body2">
+                      <b>Pagos:</b> {row.cantidadPagos}
+                    </Typography>
+                  </Box>
+
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <PaymentsIcon fontSize="small" sx={{ color: "#2e7d32" }} />
+                    <Typography variant="body2">
+                      <b>Total:</b> {formatearMonto(row.totalPagos)}
+                    </Typography>
+                  </Box>
+
                   <Typography variant="body2" color="text.secondary">
-                    Matrícula: {row.montoDescMatricula} / Práctica:{" "}
-                    {row.montoDescPractica} / Descuento: {row.montoDescuento}
+                    Desc. matrícula: {formatearMonto(row.montoDescMatricula)}
+                  </Typography>
+
+                  <Typography variant="body2" color="text.secondary">
+                    Desc. práctica: {formatearMonto(row.montoDescPractica)}
+                  </Typography>
+
+                  <Typography variant="body2" color="text.secondary">
+                    Desc. general: {formatearMonto(row.montoDescuento)}
                   </Typography>
 
                   <Box display="flex" justifyContent="flex-end">
@@ -113,7 +149,7 @@ export default function InscripcionesTable({
   return (
     <TableContainer
       component={Paper}
-      sx={{ maxHeight: 420, borderRadius: 2, overflow: "hidden" }}
+      sx={{ maxHeight: 520, borderRadius: 2, overflow: "hidden" }}
     >
       <Table stickyHeader size="small">
         <TableHead>
@@ -122,6 +158,8 @@ export default function InscripcionesTable({
             <TableCell>Curso</TableCell>
             <TableCell>Fecha</TableCell>
             <TableCell>Estado</TableCell>
+            <TableCell align="right">Pagos</TableCell>
+            <TableCell align="right">Total</TableCell>
             <TableCell>Descuentos</TableCell>
             <TableCell align="center">Acción</TableCell>
           </TableRow>
@@ -130,7 +168,7 @@ export default function InscripcionesTable({
         <TableBody>
           {data.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} align="center">
+              <TableCell colSpan={8} align="center">
                 <Typography variant="body2" color="text.secondary">
                   Sin registros todavía
                 </Typography>
@@ -141,9 +179,7 @@ export default function InscripcionesTable({
               <TableRow key={row.idInscripcion} hover>
                 <TableCell>{row.nombreEstudiante}</TableCell>
                 <TableCell>{row.nombreCurso}</TableCell>
-                <TableCell>
-                  {new Date(row.fechaInscripcion).toLocaleDateString("es-PY")}
-                </TableCell>
+                <TableCell>{formatearFecha(row.fechaInscripcion)}</TableCell>
                 <TableCell>
                   <Chip
                     label={row.estado}
@@ -152,9 +188,14 @@ export default function InscripcionesTable({
                     variant="outlined"
                   />
                 </TableCell>
+                <TableCell align="right">{row.cantidadPagos}</TableCell>
+                <TableCell align="right">
+                  {formatearMonto(row.totalPagos)}
+                </TableCell>
                 <TableCell sx={{ whiteSpace: "nowrap" }}>
-                  Matrícula: {row.montoDescMatricula} / Práctica:{" "}
-                  {row.montoDescPractica} / Descuento: {row.montoDescuento}
+                  Mat.: {formatearMonto(row.montoDescMatricula)} / Prác.:{" "}
+                  {formatearMonto(row.montoDescPractica)} / Gral.:{" "}
+                  {formatearMonto(row.montoDescuento)}
                 </TableCell>
                 <TableCell align="center">
                   <Tooltip title="Eliminar inscripción">

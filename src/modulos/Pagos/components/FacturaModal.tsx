@@ -21,10 +21,12 @@ import {
   Card,
   CardContent,
   Stack,
-  Divider,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { FacturaContadoRequest } from "../types/pagos.types";
+import {
+  DocumentoFiscalConfig,
+  FacturaContadoRequest,
+} from "../types/pagos.types";
 
 interface DetalleItem {
   concepto: string;
@@ -35,24 +37,12 @@ interface DetalleItem {
   idDetallePago: number;
 }
 
-interface ConfigDocumento {
-  numeroActual?: string;
-  timbrado?: string;
-  razonSocialEmisor?: string;
-  rucEmisor?: string;
-  direccionEmisor?: string;
-  vigenciaDesde?: string;
-  vigenciaHasta?: string;
-  sucursal?: string;
-  puntoExpedicion?: string;
-}
-
 interface Props {
   open: boolean;
   onClose: () => void;
   onConfirmar: (payload: FacturaContadoRequest) => void;
   detalles: DetalleItem[];
-  config?: ConfigDocumento | null;
+  config?: DocumentoFiscalConfig | null;
   fechaEmision?: string;
   loading?: boolean;
   estudiante: string;
@@ -60,6 +50,25 @@ interface Props {
   ruc: string;
   telefono: string;
 }
+
+const formatearFecha = (fecha?: string | null) => {
+  if (!fecha) return "";
+  const soloFecha = fecha.includes("T") ? fecha.split("T")[0] : fecha;
+  if (!soloFecha) return "";
+
+  const partes = soloFecha.split("-");
+  if (partes.length === 3) {
+    const [anio, mes, dia] = partes;
+    return `${dia}/${mes}/${anio}`;
+  }
+
+  const parsed = new Date(fecha);
+  if (Number.isNaN(parsed.getTime())) return "";
+  return parsed.toLocaleDateString("es-PY");
+};
+
+const formatearNumero = (monto?: number | null) =>
+  (Number(monto ?? 0) || 0).toLocaleString("es-PY");
 
 const FacturaModal: React.FC<Props> = ({
   open,
@@ -77,28 +86,28 @@ const FacturaModal: React.FC<Props> = ({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [tipoFactura, setTipoFactura] = useState<"CONTADO" | "CREDITO">(
-    "CONTADO"
+    "CONTADO",
   );
 
   const total = detalles.reduce((sum, d) => sum + (d.monto || 0), 0);
+
   const totalIva10 = detalles
     .filter((d) => d.tipoIva === "10%")
     .reduce((sum, d) => sum + (d.iva || 0), 0);
+
   const totalIva5 = detalles
     .filter((d) => d.tipoIva === "5%")
     .reduce((sum, d) => sum + (d.iva || 0), 0);
+
   const totalExenta = detalles
     .filter((d) => d.tipoIva === "Exenta")
     .reduce((sum, d) => sum + (d.monto || 0), 0);
-  const totalIva = totalIva10 + totalIva5;
-  const subtotal = total - totalIva;
 
-  const concepto = detalles[0]?.concepto || "";
-  const nombreEstudiante = concepto.split(" - ")[1] ?? "";
+  const totalIva = totalIva10 + totalIva5;
 
   const facturaNro = config
     ? `${config.sucursal}-${config.puntoExpedicion}-${String(
-        config.numeroActual
+        config.numeroActual,
       ).padStart(7, "0")}`
     : "A definir";
 
@@ -113,37 +122,37 @@ const FacturaModal: React.FC<Props> = ({
       <DialogTitle>
         <Typography fontWeight={700}>Factura</Typography>
       </DialogTitle>
+
       <DialogContent>
         <Card variant="outlined" sx={{ mb: 2 }}>
           <CardContent>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
                 <Typography variant="body2">
-                  Fecha de Emisión:{" "}
-                  {fechaEmision
-                    ? new Date(fechaEmision).toLocaleDateString("es-PY")
-                    : ""}
+                  Fecha de Emisión: {formatearFecha(fechaEmision)}
                 </Typography>
                 <Typography variant="body2">
-                  RUC: {config?.rucEmisor}
+                  RUC emisor: {config?.rucEmisor || "-"}
+                </Typography>
+                <Typography variant="body2">
+                  Razón social: {config?.razonSocialEmisor || "-"}
                 </Typography>
               </Grid>
+
               <Grid item xs={12} sm={6} textAlign="right">
                 <Typography variant="h6" fontWeight={700}>
                   Factura Nro: {facturaNro}
                 </Typography>
                 <Typography variant="body2">
-                  Timbrado: {config?.timbrado}
+                  Timbrado: {config?.timbrado || "-"}
                 </Typography>
                 <Typography variant="body2">
                   Vigencia:{" "}
                   {config?.vigenciaDesde && config?.vigenciaHasta
-                    ? `${new Date(config.vigenciaDesde).toLocaleDateString(
-                        "es-PY"
-                      )} al ${new Date(config.vigenciaHasta).toLocaleDateString(
-                        "es-PY"
+                    ? `${formatearFecha(config.vigenciaDesde)} al ${formatearFecha(
+                        config.vigenciaHasta,
                       )}`
-                    : ""}
+                    : "-"}
                 </Typography>
               </Grid>
             </Grid>
@@ -167,6 +176,7 @@ const FacturaModal: React.FC<Props> = ({
                   <b>Teléfono:</b> {telefono}
                 </Typography>
               </Grid>
+
               <Grid item xs={12} sm={6}>
                 <Typography variant="body2" fontWeight={600}>
                   Condición de Venta:
@@ -193,6 +203,7 @@ const FacturaModal: React.FC<Props> = ({
                     label="Crédito"
                   />
                 </Box>
+
                 <Typography variant="body2">
                   <b>Tipo de Transacción:</b> Venta de servicios educativos
                 </Typography>
@@ -206,6 +217,7 @@ const FacturaModal: React.FC<Props> = ({
             <Typography fontWeight={600} mb={1}>
               Detalles
             </Typography>
+
             {isMobile ? (
               <Stack spacing={2}>
                 {detalles.map((item, idx) => (
@@ -223,8 +235,7 @@ const FacturaModal: React.FC<Props> = ({
                       <b>Cantidad:</b> 1
                     </Typography>
                     <Typography variant="body2">
-                      <b>Precio Unitario:</b>{" "}
-                      {item.monto.toLocaleString("es-PY")}
+                      <b>Precio Unitario:</b> {formatearNumero(item.monto)}
                     </Typography>
                     <Typography variant="body2">
                       <b>Descuento:</b> 0
@@ -232,20 +243,16 @@ const FacturaModal: React.FC<Props> = ({
                     <Typography variant="body2">
                       <b>Exentas:</b>{" "}
                       {item.tipoIva === "Exenta"
-                        ? item.monto.toLocaleString("es-PY")
+                        ? formatearNumero(item.monto)
                         : 0}
                     </Typography>
                     <Typography variant="body2">
                       <b>5%:</b>{" "}
-                      {item.tipoIva === "5%"
-                        ? item.monto.toLocaleString("es-PY")
-                        : 0}
+                      {item.tipoIva === "5%" ? formatearNumero(item.monto) : 0}
                     </Typography>
                     <Typography variant="body2">
                       <b>10%:</b>{" "}
-                      {item.tipoIva === "10%"
-                        ? item.monto.toLocaleString("es-PY")
-                        : 0}
+                      {item.tipoIva === "10%" ? formatearNumero(item.monto) : 0}
                     </Typography>
                   </Paper>
                 ))}
@@ -265,6 +272,7 @@ const FacturaModal: React.FC<Props> = ({
                     <TableCell align="right">10%</TableCell>
                   </TableRow>
                 </TableHead>
+
                 <TableBody>
                   {detalles.map((item, idx) => (
                     <TableRow key={idx}>
@@ -273,40 +281,42 @@ const FacturaModal: React.FC<Props> = ({
                       <TableCell>Unidad</TableCell>
                       <TableCell align="right">1</TableCell>
                       <TableCell align="right">
-                        {item.monto.toLocaleString("es-PY")}
+                        {formatearNumero(item.monto)}
                       </TableCell>
                       <TableCell align="right">0</TableCell>
                       <TableCell align="right">
                         {item.tipoIva === "Exenta"
-                          ? item.monto.toLocaleString("es-PY")
+                          ? formatearNumero(item.monto)
                           : 0}
                       </TableCell>
                       <TableCell align="right">
                         {item.tipoIva === "5%"
-                          ? item.monto.toLocaleString("es-PY")
+                          ? formatearNumero(item.monto)
                           : 0}
                       </TableCell>
                       <TableCell align="right">
                         {item.tipoIva === "10%"
-                          ? item.monto.toLocaleString("es-PY")
+                          ? formatearNumero(item.monto)
                           : 0}
                       </TableCell>
                     </TableRow>
                   ))}
+
                   <TableRow>
                     <TableCell colSpan={8} align="right">
                       <b>Total IVA:</b>
                     </TableCell>
                     <TableCell align="right">
-                      {totalIva.toLocaleString("es-PY")}
+                      {formatearNumero(totalIva)}
                     </TableCell>
                   </TableRow>
+
                   <TableRow>
                     <TableCell colSpan={8} align="right">
                       <b>Total General:</b>
                     </TableCell>
                     <TableCell align="right">
-                      {total.toLocaleString("es-PY")}
+                      {formatearNumero(total)}
                     </TableCell>
                   </TableRow>
                 </TableBody>
@@ -315,13 +325,16 @@ const FacturaModal: React.FC<Props> = ({
           </CardContent>
         </Card>
       </DialogContent>
+
       <DialogActions>
         <Button onClick={onClose} variant="outlined" disabled={loading}>
           Cancelar
         </Button>
+
         <Button
           onClick={() => {
             if (!config) return;
+
             const payload: FacturaContadoRequest = {
               sucursal: config.sucursal ?? "",
               caja: config.puntoExpedicion ?? "",
@@ -331,20 +344,21 @@ const FacturaModal: React.FC<Props> = ({
               tipoFactura,
               totalFactura: total,
               totalIva10,
-              totalIva5: 0,
+              totalIva5,
               totalExenta,
               observacion:
                 "Generación de pagos desde el módulo de pagos - cuenta corriente",
-              detalles: detalles.map((d, idx) => ({
+              detalles: detalles.map((d) => ({
                 concepto: d.concepto,
                 monto: d.monto,
                 iva: d.iva ?? 0,
-                tipoIva: d.tipoIva ?? "Iva10%",
+                tipoIva: d.tipoIva ?? "10%",
                 idPago: d.idPago,
                 idDetallePago: d.idDetallePago,
                 observacion: "",
               })),
             };
+
             onConfirmar(payload);
           }}
           variant="contained"
