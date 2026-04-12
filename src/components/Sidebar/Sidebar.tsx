@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Drawer,
   List,
@@ -27,6 +27,7 @@ import {
   ExpandMore,
   Settings as SettingsIcon,
   GppGood as PermisoIcon,
+  Description as DescriptionIcon,
 } from "@mui/icons-material";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import HistoryIcon from "@mui/icons-material/History";
@@ -47,9 +48,11 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   const [configOpen, setConfigOpen] = useState(false);
-  const handleConfigClick = () => setConfigOpen(!configOpen);
   const [cajaOpen, setCajaOpen] = useState(false);
+
+  const handleConfigClick = () => setConfigOpen(!configOpen);
   const handleCajaClick = () => setCajaOpen(!cajaOpen);
 
   const puedeVer = puedeVerModulo;
@@ -87,6 +90,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           {open ? <ChevronLeftIcon /> : <ChevronRightIcon />}
         </IconButton>
       </Toolbar>
+
       <Divider />
 
       <List>
@@ -101,6 +105,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             currentPath={currentPath}
           />
         )}
+
         {puedeVer("Usuarios") && (
           <SidebarItem
             open={open}
@@ -132,6 +137,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               >
                 <SettingsIcon />
               </ListItemIcon>
+
               {open && <ListItemText primary="Configuración" />}
               {open && (configOpen ? <ExpandLess /> : <ExpandMore />)}
             </ListItemButton>
@@ -152,12 +158,26 @@ const Sidebar: React.FC<SidebarProps> = ({
                 currentPath={currentPath}
               />
             )}
+
             {puedeVer("Roles") && (
               <SidebarItem
                 open={open}
                 icon={<PermisoIcon />}
                 label="Permisos"
                 to="/dashboard/permisos"
+                isMobile={isMobile}
+                nested
+                handleDrawerToggle={handleDrawerToggle}
+                currentPath={currentPath}
+              />
+            )}
+
+            {puedeVer("Roles") && (
+              <SidebarItem
+                open={open}
+                icon={<DescriptionIcon />}
+                label="Documentos fiscales"
+                to="/dashboard/documentos-fiscales"
                 isMobile={isMobile}
                 nested
                 handleDrawerToggle={handleDrawerToggle}
@@ -178,6 +198,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             currentPath={currentPath}
           />
         )}
+
         {puedeVer("Inscripciones") && (
           <SidebarItem
             open={open}
@@ -189,6 +210,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             currentPath={currentPath}
           />
         )}
+
         {puedeVer("Pagos") && (
           <SidebarItem
             open={open}
@@ -222,6 +244,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               >
                 <AccountBalanceIcon />
               </ListItemIcon>
+
               {open && <ListItemText primary="Caja" />}
               {open && (cajaOpen ? <ExpandLess /> : <ExpandMore />)}
             </ListItemButton>
@@ -304,6 +327,7 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
         >
           {icon}
         </ListItemIcon>
+
         {open && <ListItemText primary={label} />}
       </ListItemButton>
     </ListItem>

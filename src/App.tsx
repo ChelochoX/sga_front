@@ -20,6 +20,7 @@ import CajaMovimientos from "./modulos/Caja/pages/CajaMovimientosPage";
 import CajaAnulaciones from "./modulos/Caja/pages/CajaAnulacionesPage";
 import AccesoDenegado from "./utils/accesoDenegado";
 import RutaProtegida from "./components/RutaProtegida";
+import DocumentosFiscalesConfigPage from "./modulos/DocumentosFiscalesConfig/pages/DocumentosFiscalesConfigPage";
 
 // 🟣 Toastify
 import { ToastContainer } from "react-toastify";
@@ -49,6 +50,13 @@ const App: React.FC = () => {
 
             <Route element={<RutaProtegida modulo="roles" />}>
               <Route path="permisos" element={<PermisosPage />} />
+            </Route>
+
+            <Route element={<RutaProtegida modulo="roles" />}>
+              <Route
+                path="documentos-fiscales"
+                element={<DocumentosFiscalesConfigPage />}
+              />
             </Route>
 
             <Route element={<RutaProtegida modulo="cursos" />}>
